@@ -1,5 +1,5 @@
 # cmd4-E-Zone-MyAir
-A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Air into Homekit using the Homebridge plug-in cmd4
+A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Air into Homekit using the Homebridge plug-in cmd4.
 
 ## Installation:
 1. Install [Homebridge](https://github.com/nfarina/homebridge).
