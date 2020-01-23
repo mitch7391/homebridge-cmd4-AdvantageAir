@@ -1,0 +1,194 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    "platforms": [
+        {
+            "platform": "Cmd4",
+            "name": "Cmd4",
+            "accessories": [
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Living_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z01"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Theatre_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z02"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Master_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z03"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Craft_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z04"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Spare_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z05"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "displayName": "My_TemperatureSensor",
+                    "currentTemperature": 50,
+                    "statusFault": "NO_FAULT",
+                    "name": "Guest_Room",
+                    "polling": [
+                        {
+                            "currentTemperature": 50,
+                            "interval": 50,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 3,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z06"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "My_Switch",
+                    "on": "FALSE",
+                    "name": "Theatre",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z02"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "My_Switch",
+                    "on": "FALSE",
+                    "name": "Bedroom",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z03"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "My_Switch",
+                    "on": "FALSE",
+                    "name": "Craft",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z04"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "My_Switch",
+                    "on": "FALSE",
+                    "name": "Spare",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z05"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "My_Switch",
+                    "on": "FALSE",
+                    "name": "Guest",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/zones.sh",
+                    "state_cmd_suffix": "z06"
+                },
+                {
+                    "type": "Fan",
+                    "on": "FALSE",
+                    "name": "Fan",
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/ezone.sh"
+                },
+                {
+                    "type": "Thermostat",
+                    "displayName": "My_Thermostat",
+                    "currentHeatingCoolingState": "OFF",
+                    "targetHeatingCoolingState": "OFF",
+                    "currentTemperature": 50,
+                    "targetTemperature": 37,
+                    "temperatureDisplayUnits": "CELCIUS",
+                    "name": "My_Thermostat",
+                    "polling": [
+                        {
+                            "currentHeatingCoolingState": "OFF",
+                            "interval": 540,
+                            "timeout": 4000
+                        },
+                        {
+                            "currentTemperature": 50,
+                            "interval": 60,
+                            "timeout": 4000
+                        }
+                    ],
+                    "stateChangeResponseTime": 1,
+                    "state_cmd": "bash /home/pi/ezone.sh"
+                }                
+            ]
+        }
+    ]
+}
