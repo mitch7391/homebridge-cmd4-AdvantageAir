@@ -1,10 +1,10 @@
 # cmd4-E-Zone-MyAir
-A shell script to integrate E-zone / MyAir controller by Advantage Air / Ambience Air into Homekit using the Homebridge plug-in cmd4
+A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Air into Homekit using the Homebridge plug-in cmd4
 
 ## Installation:
 1. Install [Homebridge](https://github.com/nfarina/homebridge).
 2. Install [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in.
-3. Edit <B>ezone.sh</B> and <B>zones.sh</B> with the IP address of your E-Zone / MyAir controller.
+3. Edit <B>ezone.sh</B> and <B>zones.sh</B> with the IP address of your E-Zone/MyAir controller.
 4. Copy <B>ezone.sh</B> and <B>zones.sh</B> to a subdirectory of your <B>.homebridge</B> directory; e.g. <B>.homebridge/Cmd4Scripts/ezone.sh</B>. Mine is located in <B>/home/pi/ezone.sh</B>.
 5. <B>OR</B> if you are less savvy like me, you can create the script in your homedrive of your raspberry pi using `sudo nano ezone.sh` and pasting the contents inside, then saving. Its pathway will be <B>/home/pi/ezone.sh</B>. Do the same for <B>zones.sh</B>.
 6. Install <B>jq</B>; `sudo apt-get install jq`. Make sure 'curl' is installed (it should already be installed).
