@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # IP address
-ip="192.168.0.172:2025"
+ip="192.168.0.173:2025"
 
 if [ "$1" = "Get" ]; then
   case "$3" in
@@ -18,7 +18,7 @@ if [ "$1" = "Get" ]; then
       echo 0
       ;;
 
-    TargetHeatingCoolingState | CurrentHeatingCoolingState )
+    CurrentHeatingCoolingState | TargetHeatingCoolingState )
       if [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.state') = '"off"' ]; then
         echo 0
       else
@@ -61,6 +61,9 @@ if [ "$1" = "Get" ]; then
 	  ;;
 	  '"dry"' )
 	  echo 0
+	  ;;
+	  * )
+          echo 0
 	  ;;
         esac
       fi
