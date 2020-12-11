@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# IP address:
+# IP Address / Port:
 ip="192.168.0.173:2025"
 # Constant Zone 1:
 cz1=z01
@@ -9,19 +9,20 @@ cz2=z06
 
 if [ "$1" = "Get" ]; then
   case "$3" in
-    # Gets the current temperature
+    # Gets the current temperature.
     CurrentTemperature )
       curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.measuredTemp'
     ;;
-    # Gets the target temperature
+    # Gets the target temperature.
     TargetTemperature )
       curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.setTemp'
     ;;
-    # Sets display units to Celsius
+    # Sets display units to Celsius.
     TemperatureDisplayUnits )
       echo 0
     ;;
 
+    # Makes the target Control Unit state the current Control Unit state.
     TargetHeatingCoolingState | CurrentHeatingCoolingState )
       # Set to Off if the zone is closed or the Control Unit is Off.
       if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"close"' ] || [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.state')" = '"off"' ]; then
@@ -33,12 +34,12 @@ if [ "$1" = "Get" ]; then
 
 	case "$mode" in
           '"heat"' )
-             # Set Thermostat to Heat Mode.
+             # Thermostat in Heat Mode.
              echo 1
           ;;
 
 	  '"cool"' )
-             # Set Thermostat to Cool Mode.
+             # Thermostat in Cool Mode.
              echo 2
           ;;
 
@@ -53,7 +54,7 @@ if [ "$1" = "Get" ]; then
           ;;
 
 	   * )
-             # If anything unexpected is retruned than the above, set to Off.
+             # If anything unexpected is retruned than the above, return value Off.
              echo 0
 	  ;;
        esac
@@ -62,7 +63,7 @@ if [ "$1" = "Get" ]; then
 
     #Fan Accessory
     On )
-      # Set to Off if the zone is closed or the Control Unit is Off.
+      # Return value of Off if the zone is closed or the Control Unit is Off.
       if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"close"' ] || [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.state')" = '"off"' ]; then
         echo 0
 
