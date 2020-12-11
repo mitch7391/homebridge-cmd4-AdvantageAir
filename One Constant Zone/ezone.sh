@@ -94,6 +94,9 @@ if [ "$1" = "Get" ]; then
 	    # If anything unexpected is retruned than the above, set to Off.
             echo 0
 	  ;;
+	  * )
+          echo 0
+	  ;;
         esac
       fi
     ;;
