@@ -1,45 +1,46 @@
 #!/bin/bash
 
 # IP address
-ip="192.168.0.172:2025"
+ip="192.168.0.173:2025"
 
 if [ "$1" = "Get" ]; then
   case "$3" in
+    # Gets the current temperature
     CurrentTemperature )
-      echo $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.measuredTemp')
-      ;;
+      curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.measuredTemp'
+    ;;
 
-    #Temp Sensor Fault Status = fault/no fault = 0/1-2
+    # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
     StatusFault )
-      if  [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.error') = '0' ]; then
+      if  [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.error')" = '0' ]; then
         echo 0
       else
         echo 1
       fi
-      ;;
+    ;;
 
-    #damper open/closed = switch on/off = 1/0
+    # Get zone open/closed status
     On )
-      if [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state') = '"open"' ]; then
+      if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"open"' ]; then
         echo 1
       else
         echo 0
       fi
-      ;;
-    esac
+    ;;
+  esac
 fi
 
 if [ "$1" = "Set" ]; then
   case "$3" in
+    # Set zone to open/close.
     On )
       if [ "$4" = "true" ]; then
         curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"open"}}}}
       else
         curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
       fi
-      ;;
-    esac
+    ;;
+  esac
 fi
-
 
 exit 0
