@@ -1,82 +1,98 @@
 #!/bin/bash
 
-# IP address
+# IP address:
 ip="192.168.0.173:2025"
+# Constant Zone 1:
+cz1=z01
+# Constant Zone 2:
+cz2=z06
 
 if [ "$1" = "Get" ]; then
   case "$3" in
-
+    # Gets the current temperature
     CurrentTemperature )
-      echo $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.measuredTemp')
+      curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.measuredTemp'
     ;;
-
+    # Gets the target temperature
     TargetTemperature )
-      echo $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.setTemp')
+      curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.setTemp'
     ;;
-
+    # Sets display units to Celsius
     TemperatureDisplayUnits )
       echo 0
     ;;
 
     TargetHeatingCoolingState | CurrentHeatingCoolingState )
-      
-      if [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state') = '"close"' ]; then
+      # Set to Off if the zone is closed or the Control Unit is Off.
+      if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"close"' ] || [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.state')" = '"off"' ]; then
         echo 0
-      
+
       else
+        # Get the current mode of the Control Unit. Off=0, Heat=1, Cool=2.
         mode=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.mode')
-        
+
 	case "$mode" in
           '"heat"' )
+             # Set Thermostat to Heat Mode.
              echo 1
           ;;
-        
+
 	  '"cool"' )
+             # Set Thermostat to Cool Mode.
              echo 2
           ;;
-          
+
 	  '"vent"' )
+             # Fan mode, set Thermostat to Off and Fan to On.
              echo 0
           ;;
-          
+
 	  '"dry"' )
+             # No support for a dry mode by Apple, set to Off.
              echo 0
           ;;
-          
+
 	   * )
+             # If anything unexpected is retruned than the above, set to Off.
              echo 0
 	  ;;
        esac
       fi
     ;;
 
-    #Fan Accessory - on/off = 1/0
+    #Fan Accessory
     On )
-      
-      if [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state') = '"close"' ]; then
+      # Set to Off if the zone is closed or the Control Unit is Off.
+      if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"close"' ] || [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.state')" = '"off"' ]; then
         echo 0
-      
+
       else
+         # Get the current mode of the Control Unit. Fan can only be On or Off; if not Vent, set all other modes to Off.
          mode=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.info.mode')
-      
+
         case "$mode" in
 	  '"heat"' )
+            # Fan does not support Heat Mode.
 	    echo 0
 	  ;;
-	  
+
 	  '"cool"' )
+            # Fan does not support Cool Mode.
             echo 0
 	  ;;
-	  
+
 	  '"vent"' )
+            # Set Fan to On.
 	    echo 1
 	  ;;
-	  
+
 	  '"dry"' )
+            # Fan does not support Dry Mode.
 	    echo 0
 	  ;;
-	  
+
 	  * )
+            # If anything unexpected is retruned than the above, set to Off.
             echo 0
 	  ;;
         esac
@@ -86,63 +102,132 @@ if [ "$1" = "Get" ]; then
 fi
 
 if [ "$1" = "Set" ]; then
-  case "$3" in   
-      
+  case "$3" in
+
    TargetHeatingCoolingState )
-        
-     # Check later if I can just do this with $5 and save on two lines
-     constZone1State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.z01.state')
-     constZone2State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.z06.state')
-        
-     case "$4" in
-       0 )
-        
-	if ["$constZone1State" = "open" && "$constZone2State" = "open"]; then
-          curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
-        
-	else       
-          curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
-        fi
+
+     case "$5" in
+	$cz1 )
+
+           case "$4" in
+            0 )
+              # Checks state of other constant zone before deciding to shut zone or shut off Control Unit.
+              cz2State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'$cz2'.state')
+              case "$cz2State" in
+                '"open"' )
+                        # Close Zone.
+                        curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
+                ;;
+
+                '"close"' )
+                         # Shut Off Control Unit.
+                         curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
+                ;;
+              esac
+            ;;
+
+            1 )
+              # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
+              curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"heat"}",""zones":{"$5":{"state":"open"}}}}
+            ;;
+
+            2 )
+              # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
+              curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"cool"}",""zones":{"$5":{"state":"open"}}}}
+            ;;
+          esac
        ;;
 
-       1 )
-        curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"heat"}",""zones":{"$5":{"state":"open"}}}}
-       ;;
 
-       2 )
-        curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"cool"}",""zones":{"$5":{"state":"open"}}}}
+       $cz2 )
+
+           case "$4" in
+            0 )
+              # Checks state of other constant zone before deciding to shut zone or shut off Control Unit.
+	      cz1State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'$cz1'.state')
+              case "$cz1State" in
+                '"open"' )
+                        # Close Zone.
+                        curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
+                ;;
+
+                '"close"' )
+                         # Shut Off Control Unit.
+                         curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
+                ;;
+              esac
+            ;;
+
+            1 )
+              # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
+              curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"heat"}",""zones":{"$5":{"state":"open"}}}}
+            ;;
+
+            2 )
+              # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
+              curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"cool"}",""zones":{"$5":{"state":"open"}}}}
+            ;;
+          esac
        ;;
      esac
    ;;
 
+
    TargetTemperature )
-     
+
      case "$5" in
-       "z01" )
+       $cz1 )
+          # All zones associated with Constant Zone 1 (e.g all first storey zones); you may need to add or remove some.
           curl -g http://$ip/setAircon?json={"ac1":{"info":{"setTemp":"$4"}",""zones":{"z01":{"setTemp":"$4"}",""z02":{"setTemp":"$4"}",""z03":{"setTemp":"$4"}}}}
        ;;
-       
-       "z06" )
+
+       $cz2 )
+          # All zones associated with Constant Zone 2 (e.g all second storey zones); you may need to add or remove some.
 	  curl -g http://$ip/setAircon?json={"ac1":{"info":{"setTemp":"$4"}",""zones":{"z04":{"setTemp":"$4"}",""z05":{"setTemp":"$4"}",""z06":{"setTemp":"$4"}}}}
        ;;
      esac
     ;;
 
     On )
-     
-     if [ "$4" = "true" ]; then
+
+    if [ "$4" = "true" ]; then
+       # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
        curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"vent"",""fan":"auto"}",""zones":{"$5":{"state":"open"}}}}
-     
-     else
-       # Check later if I can just do this with $5 and save on two lines
-       constZone1State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.z01.state')
-       constZone2State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.z06.state')
-       
-       if ["$constZone1State" = "open" && "$constZone2State" = "open"]; then  
-         curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
-       else
-         curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
-       fi
+
+    else
+       case "$5" in
+	 $cz1 )
+            # Checks state of other constant zone before deciding to shut zone or shut off Control Unit.
+            cz2State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'$cz2'.state')
+            case "$cz2State" in
+              '"open"' )
+                      # Close Zone.
+                      curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
+              ;;
+
+              '"close"' )
+                       # Shut Off Control Unit.
+                       curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
+              ;;
+            esac
+         ;;
+
+         $cz2 )
+            # Checks state of other constant zone before deciding to shut zone or shut off Control Unit.
+            cz1State=$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'$cz1'.state')
+            case "$cz1State" in
+              '"open"' )
+                      # Close Zone.
+                      curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
+              ;;
+
+              '"close"' )
+                       # Shut Off Control Unit.
+                       curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"off"}}}
+              ;;
+            esac
+         ;;
+       esac
      fi
     ;;
   esac
