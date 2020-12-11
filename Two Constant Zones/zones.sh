@@ -12,7 +12,7 @@ if [ "$1" = "Get" ]; then
 
     # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
     StatusFault )
-      if  [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.error') = '0' ]; then
+      if  [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.error')" = '0' ]; then
         echo 0
       else
         echo 1
@@ -21,7 +21,7 @@ if [ "$1" = "Get" ]; then
 
     # Get zone open/closed status
     On )
-      if [ $(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state') = '"open"' ]; then
+      if [ "$(curl -s http://$ip/getSystemData | jq '.aircons.ac1.zones.'"$4"'.state')" = '"open"' ]; then
         echo 1
       else
         echo 0
