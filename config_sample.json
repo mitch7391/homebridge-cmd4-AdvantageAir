@@ -16,6 +16,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Living_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -33,6 +36,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Theatre_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -50,6 +56,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Master_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -67,6 +76,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Craft_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -84,6 +96,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Spare_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -101,6 +116,9 @@
                     "currentTemperature": 50,
                     "statusFault": "NO_FAULT",
                     "name": "Guest_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentTemperature": 50,
@@ -117,6 +135,9 @@
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Theatre",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z02"
@@ -126,6 +147,9 @@
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Bedroom",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z03"
@@ -135,6 +159,9 @@
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Craft",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z04"
@@ -144,6 +171,9 @@
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Spare",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z05"
@@ -153,6 +183,9 @@
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Guest",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z06"
@@ -161,6 +194,9 @@
                     "type": "Fan",
                     "on": "FALSE",
                     "name": "Fan",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/ezone.sh"
                 },
@@ -173,10 +209,13 @@
                     "targetTemperature": 37,
                     "temperatureDisplayUnits": "CELCIUS",
                     "name": "My_Thermostat",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
                             "currentHeatingCoolingState": "OFF",
-                            "interval": 540,
+                            "interval": 60,
                             "timeout": 4000
                         },
                         {
