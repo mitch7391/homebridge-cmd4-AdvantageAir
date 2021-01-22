@@ -17,7 +17,7 @@ A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Ai
 
 ## Screenshot:
 <h3 align="center">
-  <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/beta/Screenshots/Ezone.png">
+  <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Ezone.png">
 </h3>
 
 ## About:
