@@ -3,7 +3,7 @@ name: Support Request
 about: Stuck on one of the installation steps in the README?
 title: ''
 labels: question
-assignees: 'mitch7391'
+assignees: mitch7391
 
 ---
 
