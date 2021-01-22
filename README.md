@@ -20,10 +20,6 @@ A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Ai
   <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/beta/Screenshots/Ezone.png">
 </h3>
 
-<h3 align="center">
-  <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/beta/Screenshots/Ezone2.png">
-</h3>
-
 ## About:
 Due to the current limitations in Homekit, multi-zoned ducted air conditioners are not represented as a single accessory. Our work around here is two create multiple accessories:
 1. A Thermostat with modes <B>OFF/HEAT/COOL</B> using the E-Zone/MyAir 'constant' zone (usually zone 1 in a one constant zone setup) as the measured temperature for feedback. <B><I>NOTE:</B></I> <B>AUTO</B> mode in Homekit is not used in E-zone/MyAir, so it will set the controller to <B>OFF</B>. Setting <B>DRY</B> mode from the controller will then represent in Homekit as <B>OFF</B>. 
