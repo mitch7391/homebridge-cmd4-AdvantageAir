@@ -7,7 +7,7 @@ assignees: mitch7391
 
 ---
 
-**Is our feature request related to a problem? Please describe:**
+**Is your feature request related to a problem? Please describe:**
 <!-- A clear and concise description of what the problem is. E.g. Mitch does not put enough time into this repo [...] -->
 
 **Describe the solution you'd like:**
