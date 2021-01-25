@@ -13,7 +13,7 @@ A shell script to integrate E-zone/MyAir controller by Advantage Air/Ambience Ai
 9. Restart Homebridge.
 
 ## Known Bug:
-<B>Right now there is a breaking issue in homebridge-cmd4 `v.3.0.x` that causes issues with 'set' commands. Please continue to use homebridge-cmd4 `v2.4.4` until these issues have been sorted out. The jump to `v.3.0.x` also requires breaking changes in your `config.json`, which will be updated here when stable. </B> [Issue here.](https://github.com/ztalbot2000/homebridge-cmd4/issues/76)
+~~<B>Right now there is a breaking issue in homebridge-cmd4 `v.3.0.x` that causes issues with 'set' commands. Please continue to use homebridge-cmd4 `v2.4.4` until these issues have been sorted out. The jump to `v.3.0.x` also requires breaking changes in your `config.json`, which will be updated here when stable. </B> [Issue here.](https://github.com/ztalbot2000/homebridge-cmd4/issues/76)~~
 
 ## Screenshot:
 <h3 align="center">
