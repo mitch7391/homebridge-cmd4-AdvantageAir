@@ -9,9 +9,11 @@
         {
             "platform": "Cmd4",
             "name": "Cmd4",
+            "restartRecover": false,
             "accessories": [
                 {
                     "type": "Switch",
+                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Theatre",
@@ -24,6 +26,7 @@
                 },
                 {
                     "type": "Switch",
+                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Bedroom",
@@ -36,6 +39,7 @@
                 },
                 {
                     "type": "Switch",
+                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Craft",
@@ -48,6 +52,7 @@
                 },
                 {
                     "type": "Switch",
+                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Spare",
@@ -60,6 +65,7 @@
                 },
                 {
                     "type": "Switch",
+                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Guest",
@@ -72,6 +78,7 @@
                 },
                 {
                     "type": "Fan",
+                    "outputConstants": true,
                     "on": "FALSE",
                     "name": "Fan",
                     "Manufacturer": "Advantage Air Australia",
@@ -83,6 +90,7 @@
                 },                
                 {
                     "type": "Fan",
+                    "outputConstants": true,
                     "on": "FALSE",
                     "name": "Fan2",
                     "Manufacturer": "Advantage Air Australia",
@@ -94,6 +102,7 @@
                 },
                 {
                     "type": "Thermostat",
+                    "outputConstants": false,
                     "displayName": "My_Thermostat",
                     "currentHeatingCoolingState": "OFF",
                     "targetHeatingCoolingState": "OFF",
@@ -106,14 +115,19 @@
                     "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
-                            "currentHeatingCoolingState": "OFF",
+                            "characteristic": "currentHeatingCoolingState",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
                         },
                         {
-                            "currentTemperature": 50,
+                            "characteristic": "currentTemperature",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
+                        },
+                        {
+                            "characteristic": "targetTemperature",
+                            "interval": 60,
+                            "timeout": 8000
                         }
                     ],
                     "stateChangeResponseTime": 1,
@@ -122,6 +136,7 @@
                 },
                 {
                     "type": "Thermostat",
+                    "outputConstants": false,
                     "displayName": "My_Thermostat2",
                     "currentHeatingCoolingState": "OFF",
                     "targetHeatingCoolingState": "OFF",
@@ -134,14 +149,19 @@
                     "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
-                            "currentHeatingCoolingState": "OFF",
+                            "characteristic": "currentHeatingCoolingState",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
                         },
                         {
-                            "currentTemperature": 50,
+                            "characteristic": "currentTemperature",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
+                        },
+                        {
+                            "characteristic": "targetTemperature",
+                            "interval": 60,
+                            "timeout": 8000
                         }
                     ],
                     "stateChangeResponseTime": 1,
