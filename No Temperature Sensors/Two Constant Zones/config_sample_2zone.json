@@ -8,12 +8,12 @@
     "platforms": [
         {
             "platform": "Cmd4",
-            "name": "Cmd4",
+            "name": "Cmd4",          
+            "outputConstants": false,
             "restartRecover": false,
             "accessories": [
                 {
                     "type": "Switch",
-                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Theatre",
@@ -26,7 +26,6 @@
                 },
                 {
                     "type": "Switch",
-                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Bedroom",
@@ -39,7 +38,6 @@
                 },
                 {
                     "type": "Switch",
-                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Craft",
@@ -52,7 +50,6 @@
                 },
                 {
                     "type": "Switch",
-                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Spare",
@@ -65,7 +62,6 @@
                 },
                 {
                     "type": "Switch",
-                    "outputConstants": true,
                     "displayName": "My_Switch",
                     "on": "FALSE",
                     "name": "Guest",
@@ -78,7 +74,6 @@
                 },
                 {
                     "type": "Fan",
-                    "outputConstants": true,
                     "on": "FALSE",
                     "name": "Fan",
                     "Manufacturer": "Advantage Air Australia",
@@ -90,7 +85,6 @@
                 },                
                 {
                     "type": "Fan",
-                    "outputConstants": true,
                     "on": "FALSE",
                     "name": "Fan2",
                     "Manufacturer": "Advantage Air Australia",
@@ -102,7 +96,6 @@
                 },
                 {
                     "type": "Thermostat",
-                    "outputConstants": false,
                     "displayName": "My_Thermostat",
                     "currentHeatingCoolingState": "OFF",
                     "targetHeatingCoolingState": "OFF",
@@ -136,7 +129,6 @@
                 },
                 {
                     "type": "Thermostat",
-                    "outputConstants": false,
                     "displayName": "My_Thermostat2",
                     "currentHeatingCoolingState": "OFF",
                     "targetHeatingCoolingState": "OFF",
