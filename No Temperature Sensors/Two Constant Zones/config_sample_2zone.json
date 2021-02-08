@@ -8,7 +8,9 @@
     "platforms": [
         {
             "platform": "Cmd4",
-            "name": "Cmd4",
+            "name": "Cmd4",          
+            "outputConstants": false,
+            "restartRecover": false,
             "accessories": [
                 {
                     "type": "Switch",
@@ -106,14 +108,19 @@
                     "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
-                            "currentHeatingCoolingState": "OFF",
+                            "characteristic": "currentHeatingCoolingState",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
                         },
                         {
-                            "currentTemperature": 50,
+                            "characteristic": "currentTemperature",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
+                        },
+                        {
+                            "characteristic": "targetTemperature",
+                            "interval": 60,
+                            "timeout": 8000
                         }
                     ],
                     "stateChangeResponseTime": 1,
@@ -134,14 +141,19 @@
                     "SerialNumber": "Fujitsu e-zone2",
                     "polling": [
                         {
-                            "currentHeatingCoolingState": "OFF",
+                            "characteristic": "currentHeatingCoolingState",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
                         },
                         {
-                            "currentTemperature": 50,
+                            "characteristic": "currentTemperature",
                             "interval": 60,
-                            "timeout": 4000
+                            "timeout": 8000
+                        },
+                        {
+                            "characteristic": "targetTemperature",
+                            "interval": 60,
+                            "timeout": 8000
                         }
                     ],
                     "stateChangeResponseTime": 1,

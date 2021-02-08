@@ -94,9 +94,6 @@ if [ "$1" = "Get" ]; then
 	    # If anything unexpected is retruned than the above, set to Off.
             echo 0
 	  ;;
-	  * )
-          echo 0
-	  ;;
         esac
       fi
     ;;
@@ -131,7 +128,7 @@ if [ "$1" = "Set" ]; then
      ;;
 
     On )
-     if [ "$4" = "true" ]; then
+     if [ "$4" = "1" ]; then
         # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
         curl -g http://$ip/setAircon?json={"ac1":{"info":{"state":"on"",""mode":"vent"",""fan":"auto"}}}
      else
