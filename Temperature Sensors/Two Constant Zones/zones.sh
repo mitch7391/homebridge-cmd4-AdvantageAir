@@ -34,7 +34,7 @@ if [ "$1" = "Set" ]; then
   case "$3" in
     # Set zone to open/close.
     On )
-      if [ "$4" = "true" ]; then
+      if [ "$4" = "1" ]; then
         curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"open"}}}}
       else
         curl -g http://$ip/setAircon?json={"ac1":{"zones":{"$5":{"state":"close"}}}}
