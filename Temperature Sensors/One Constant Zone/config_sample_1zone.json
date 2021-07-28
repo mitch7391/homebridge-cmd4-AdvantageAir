@@ -10,12 +10,25 @@
             "platform": "Cmd4",
             "name": "Cmd4",
             "outputConstants": false,
-            "restartRecover": false,
+            "restartRecover": true,
+            "Cmd4_Mode": "Polled",
+            "QueueStatMsgInterval": 100,
+            "statusMsg": true,
+            "timeout": 5000,
+            "stateChangeResponseTime": 0,
+            "QueueTypes": [
+                {
+                    "Queue": "7",
+                    "QueueType": "WoRm",
+                    "QueueInterval": 30
+                }
+            ],
             "accessories": [
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor1",
+                    "displayName": "Living_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Living_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -24,18 +37,24 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "Queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
+                    "Props": {
+                        "CurrentTemperature": {
+                            "maxValue": 100,
+                            "minValue": -100,
+                            "minStep": 0.1
+                        }
+                    },
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z01"
                 },
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor2",
+                    "displayName": "Theatre_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Theatre_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -44,18 +63,17 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z02"
                 },
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor3",
+                    "displayName": "Master_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Master_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -64,18 +82,17 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z03"
                 },
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor4",
+                    "displayName": "Craft_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Craft_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -84,18 +101,17 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z04"
                 },
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor5",
+                    "displayName": "Spare_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Spare_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -104,18 +120,17 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z05"
                 },
                 {
                     "type": "TemperatureSensor",
-                    "displayName": "My_TemperatureSensor",
-                    "currentTemperature": 50,
+                    "subType": "tempSensor6",
+                    "displayName": "Guest_Room",
+                    "currentTemperature": 25,
                     "statusFault": "NO_FAULT",
                     "name": "Guest_Room",
                     "Manufacturer": "Advantage Air Australia",
@@ -124,71 +139,74 @@
                     "polling": [
                         {
                             "characteristic": "currentTemperature",
-                            "interval": 50,
-                            "timeout": 8000
+                            "queue": "7"
                         }
                     ],
-                    "stateChangeResponseTime": 3,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z06"
                 },
                 {
                     "type": "Switch",
-                    "displayName": "My_Switch",
+                    "displayName": "Theatre",
                     "on": "FALSE",
                     "name": "Theatre",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z02"
                 },
                 {
                     "type": "Switch",
-                    "displayName": "My_Switch",
+                    "displayName": "Bedroom",
                     "on": "FALSE",
                     "name": "Bedroom",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z03"
                 },
                 {
                     "type": "Switch",
-                    "displayName": "My_Switch",
+                    "displayName": "Craft",
                     "on": "FALSE",
                     "name": "Craft",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z04"
                 },
                 {
                     "type": "Switch",
-                    "displayName": "My_Switch",
+                    "displayName": "Spare",
                     "on": "FALSE",
                     "name": "Spare",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z05"
                 },
                 {
                     "type": "Switch",
-                    "displayName": "My_Switch",
+                    "displayName": "Guest",
                     "on": "FALSE",
                     "name": "Guest",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z06"
                 },
@@ -199,39 +217,37 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "stateChangeResponseTime": 1,
+                    "Queue": "7",
+                    "Polling": true,
                     "state_cmd": "bash /home/pi/ezone.sh"
                 },
                 {
                     "type": "Thermostat",
-                    "displayName": "My_Thermostat",
+                    "displayName": "Aircon",
                     "currentHeatingCoolingState": "OFF",
                     "targetHeatingCoolingState": "OFF",
-                    "currentTemperature": 50,
-                    "targetTemperature": 37,
-                    "temperatureDisplayUnits": "CELCIUS",
-                    "name": "My_Thermostat",
+                    "currentTemperature": 25,
+                    "targetTemperature": 25,
+                    "temperatureDisplayUnits": "CELSIUS",
+                    "name": "Aircon",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
+                    "queue": "7",
                     "polling": [
                         {
-                            "characteristic": "currentHeatingCoolingState",
-                            "interval": 60,
-                            "timeout": 8000
+                            "characteristic": "currentHeatingCoolingState"
                         },
                         {
-                            "characteristic": "currentTemperature",
-                            "interval": 60,
-                            "timeout": 8000
+                            "characteristic": "targetHeatingCoolingState"
                         },
                         {
-                            "characteristic": "targetTemperature",
-                            "interval": 60,
-                            "timeout": 8000
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "targetTemperature"
                         }
                     ],
-                    "stateChangeResponseTime": 1,
                     "state_cmd": "bash /home/pi/ezone.sh"
                 }                
             ]
