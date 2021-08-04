@@ -42,6 +42,9 @@ Due to the current limitations in Homekit, multi-zoned ducted air conditioners a
 5. Versions of the shell script have been added for users who have two 'constant zones' (two storey house typically). According to Advantage Air only one constant zone has to be on at any time; some logic has been added to the shell scripts for two 'constant zones' to either shut off the zone or turn off the entire controller based on if the other 'constant zone' is open or not; to make sure your air conditioner and ducting are protected.
 6. Switches with feedback to open and close each zone. <B><I>NOTE: I do not recommend adding your 'constant zones' (usually zone 1, but there can be a second; represented as a 'C' in the app) as a Switch in Homekit as this zone is not meant to be turned off. I am not responsible for any damage to your ducting if you do manage to shut this zone (not sure it is possible, but just in case) and run the air conditioner.</B></I>
 
+## How to Keep Up-To-Date:
+As this is not a typical homebridge plug-in, you will not get prompted to update when I add improvements. The best way to keep up-to-date is to click the `Watch` button in the top right corner and select `All Activity` or `Custom` and then `Releases`. This will ensure you get an email everytime I push a new release with new features or improvements! Feel free to give me a `Star` as well if you are happy with the work.
+
 ## Further Notes:
 1. I have only tested this on my own E-zone Advantage Air controller, but the API is exactly the same for MyAir and the name devices at the begining of this README; that is actually where I was able to get the commands and learn how to structure them properly. The API can be found [here](http://advantageair.proboards.com/) once you have registered.
 2. I am not very savvy with all of this coding work and had a lot of help and direction as I learn as I go; this was a learning curve for me but I plan to keep working on this and improving it.
