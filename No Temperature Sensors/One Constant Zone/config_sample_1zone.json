@@ -15,7 +15,7 @@
             "stateChangeResponseTime": 0,
             "QueueTypes": [
                 {
-                    "Queue": "7",
+                    "Queue": "A",
                     "QueueType": "WoRm"
                 }
             ],
@@ -28,7 +28,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z02"
@@ -41,7 +41,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z03"
@@ -54,7 +54,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z04"
@@ -67,7 +67,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z05"
@@ -80,7 +80,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/zones.sh",
                     "state_cmd_suffix": "z06"
@@ -92,7 +92,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "7",
+                    "Queue": "A",
                     "Polling": true,
                     "state_cmd": "bash /home/pi/ezone.sh"
                 },
@@ -108,7 +108,7 @@
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
                     "SerialNumber": "Fujitsu e-zone2",
-                    "queue": "7",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentHeatingCoolingState"
