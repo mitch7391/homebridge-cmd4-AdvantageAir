@@ -10,17 +10,13 @@
             "platform": "Cmd4",
             "name": "Cmd4",
             "outputConstants": false,
-            "restartRecover": true,
-            "Cmd4_Mode": "Polled",
-            "QueueStatMsgInterval": 100,
             "statusMsg": true,
             "timeout": 5000,
             "stateChangeResponseTime": 0,
             "QueueTypes": [
                 {
                     "Queue": "7",
-                    "QueueType": "WoRm",
-                    "QueueInterval": 30
+                    "QueueType": "WoRm"
                 }
             ],
             "accessories": [
