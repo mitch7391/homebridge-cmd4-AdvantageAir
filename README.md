@@ -4,7 +4,11 @@
 
 </span>
 
-Catered shell scripts to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4).
+<I>Formerly: cmd-E-Zone-MyAir</I>
+
+Catered shell scripts to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
+
+No affiliation with Advantage Air or any of their products.
 
 ## Supported Control Units:
 * Confrimed:
