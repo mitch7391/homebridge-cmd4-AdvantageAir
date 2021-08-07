@@ -1,0 +1,91 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    "platforms": [
+        {
+            "platform": "Cmd4",
+            "name": "Cmd4",
+            "outputConstants": false,
+            "statusMsg": true,
+            "timeout": 5000,
+            "stateChangeResponseTime": 2,
+            "QueueTypes": [
+                {
+                    "Queue": "A",
+                    "QueueType": "WoRm"
+                }
+            ],
+            "accessories": [
+                {
+                    "type": "Switch",
+                    "displayName": "Theatre",
+                    "on": "FALSE",
+                    "name": "Theatre",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "zone10e",
+                    "SerialNumber": "Fujitsu zone10e",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/zone10e.sh",
+                    "state_cmd_suffix": "z02"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Bedroom",
+                    "on": "FALSE",
+                    "name": "Bedroom",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "zone10e",
+                    "SerialNumber": "Fujitsu zone10e",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/zone10e.sh",
+                    "state_cmd_suffix": "z03"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Craft",
+                    "on": "FALSE",
+                    "name": "Craft",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "zone10e",
+                    "SerialNumber": "Fujitsu zone10e",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/zone10e.sh",
+                    "state_cmd_suffix": "z04"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Spare",
+                    "on": "FALSE",
+                    "name": "Spare",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "zone10e",
+                    "SerialNumber": "Fujitsu zone10e",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/zone10e.sh",
+                    "state_cmd_suffix": "z05"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Guest",
+                    "on": "FALSE",
+                    "name": "Guest",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "zone10e",
+                    "SerialNumber": "Fujitsu zone10e",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/zone10e.sh",
+                    "state_cmd_suffix": "z06"
+                }                
+            ]
+        }
+    ]
+}
