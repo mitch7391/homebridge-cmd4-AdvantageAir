@@ -1,10 +1,20 @@
+<p align="center">
+
+<img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
+
+</p>
+
 <span align="center">
 
 # cmd4-AdvantageAir
 
 </span>
 
+<span align="center">
+ 
 <I>Formerly: cmd-E-Zone-MyAir</I>
+ 
+</span>
 
 Catered shell scripts to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
 
@@ -32,7 +42,7 @@ No affiliation with Advantage Air or any of their products.
 8. Edit your homebridge `config.json` using the samples included in each directory for your appropriate setup; this should be completed from the config-ui-x web UI.
 9. Restart Homebridge.
 
-## Screenshot:
+## How It Looks:
 <h3 align="center">
   <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Ezone.png">
 </h3>
