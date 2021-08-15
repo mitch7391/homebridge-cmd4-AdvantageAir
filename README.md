@@ -34,34 +34,37 @@ No affiliation with Advantage Air or any of their products.
 ## Installation:
 1. Install [Homebridge](https://github.com/homebridge/homebridge#installation).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in through the config-ui-x web UI or via terminal command: `sudo npm install -g --unsafe-perm homebridge-cmd4`. Note: you do not need to follow the extra installation steps on cmd4's page for this.
-3. Navigate through the directories above to find the situation that best represents your setup! Temperature sensors? Two storey home with two constant zones?
-4. Edit `ezone.sh` and `zones.sh` with the IP address of your Advantage Air controller. If you have two constant zones, then you will need to edit these at the top of `ezone.sh`
-5. Copy `ezone.sh` and `zones.sh` to a subdirectory of your `.homebridge` directory; e.g. `.homebridge/Cmd4Scripts/ezone.sh`. Mine is located in `/home/pi/ezone.sh`. 
-6. <B>OR</B> if you are less savvy like me, you can create the script in your homedrive of your raspberry pi using `sudo nano ezone.sh` and pasting the contents inside, then saving. Its pathway will be `/home/pi/ezone.sh`. Do the same for `zones.sh`. For HOOBS users this would create your shell scripts at the lcation: `/home/hoobs/.hoobs/ezone.sh`.
+3. For users with only One Constant Zone (single storey home), the script is the same for users with or without Temperature Sensors. For users with Two Constant Zones you will have to navigate through 'Old Scripts' directory to find your relevant scripts (there will be two scripts for these users); upgrading the Two Constant Zones scripts is on the To-Do List.
+4. Edit `AdvAir.sh` with the IP address of your Advantage Air controller. If you have two constant zones, then you will need to edit your IP Address and Constant Zones at the top of `ezone.sh` (you still need to use two scripts sorry!).
+5. Copy `AdvAir.sh` (or `ezone.sh` and `zones.sh`) to a subdirectory of your `.homebridge` directory; e.g. `.homebridge/Cmd4Scripts/AdvAir.sh`. Mine is located in `/home/pi/AdvAir.sh`. 
+6. <B>OR</B> if you are less savvy like me, you can create the script in your homedrive of your raspberry pi using `sudo nano AdvAir.sh` and pasting the contents inside, then saving. Its pathway in this case will be `/home/pi/AdvAir.sh`. For HOOBS users this would create your shell scripts at the lcation: `/home/hoobs/.hoobs/AdvAir.sh`.
 7. Install <B>jq</B>; `sudo apt-get install jq`. Make sure `curl` is installed (it should already be installed).
 8. Edit your homebridge `config.json` using the samples included in each directory for your appropriate setup; this should be completed from the config-ui-x web UI.
 9. Restart Homebridge.
 
 ## How It Looks:
-<h3 align="center">
-  <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Ezone.png">
-</h3>
+<p align="center">
+
+<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/beta/Screenshots/Room.png">
+<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/beta/Screenshots/Aircon.png">
+
+</p>
 
 ## About:
 Due to the current limitations in Homekit, multi-zoned ducted air conditioners are not represented as a single accessory. Our work around here is two create multiple accessories:
-1. A Thermostat with modes <B>OFF/HEAT/COOL</B> using the E-Zone/MyAir 'constant' zone (usually zone 1 in a one 'constant zone' setup) as the measured temperature for feedback. <B><I>NOTE:</B></I> <B>AUTO</B> mode in Homekit is not used in Advantage Air controllers, so it will set the controller to <B>OFF</B>. Setting <B>DRY</B> mode from the controller will then represent in Homekit as <B>OFF</B>. 
+1. A Thermostat with modes <B>OFF/HEAT/COOL</B> using the Advantage Air 'constant' zone (usually zone 1 in a one 'constant zone' setup) as the measured temperature for feedback. <B><I>NOTE:</B></I> <B>AUTO</B> mode in Homekit is not used in Advantage Air controllers, so it will set the controller to <B>OFF</B>. Setting <B>DRY</B> mode from the controller will then represent in Homekit as <B>OFF</B>. 
 2. A simple Fan with modes <B>OFF/ON</B> (for the time being) for the controller's <B>FAN</B> mode. <B><I>NOTE:</B></I> Turning the Fan accessory on in Homekit will turn off the Thermostat accessory, and turning the Thermostat accessory on in homekit will turn off the Fan Accessory. When the Fan is turned on in Homekit, it will also execute the <B>AUTO</B> mode in the respective Advantage Air app; just to keep it simple for now.
 3. Temperature Sensors with feedback from each zone. These also include the <B>FAULT</B> status in the accessory, this is determined by the error codes produced by the controller. <B><I>NOTE:</B></I> According to the Advantage Air developers there is only one fault code; which is used for low battery, dead battery and loss of connection to sensor. I could not get any further information about this and have only seen one fault myself.
-4. Versions of the shell script have been added for users who do not have the Temperature Sensors.
-5. Versions of the shell script have been added for users who have two 'constant zones' (two storey house typically). According to Advantage Air only one constant zone has to be on at any time; some logic has been added to the shell scripts for two 'constant zones' to either shut off the zone or turn off the entire controller based on if the other 'constant zone' is open or not; to make sure your air conditioner and ducting are protected.
+4. A sample version of the `config.json` has been added for users who do not have the Temperature Sensors.
+5. Versions of the shell scripts have been added for users who have two 'constant zones' (two storey house typically). According to Advantage Air only one constant zone has to be on at any time; some logic has been added to the shell scripts for two 'constant zones' to either shut off the zone or turn off the entire controller based on if the other 'constant zone' is open or not; to make sure your air conditioner and ducting are protected.
 6. Switches with feedback to open and close each zone. <B><I>NOTE: I do not recommend adding your 'constant zones' (usually zone 1, but there can be a second; represented as a 'C' in the app) as a Switch in Homekit as this zone is not meant to be turned off. I am not responsible for any damage to your ducting if you do manage to shut this zone (not sure it is possible, but just in case) and run the air conditioner.</B></I>
 
 ## How to Keep Up-To-Date:
 As this is not a typical homebridge plug-in, you will not get prompted to update when I add improvements. The best way to keep up-to-date is to click the `Watch` button in the top right corner and select `All Activity` or `Custom` and then `Releases`. This will ensure you get an email everytime I push a new release with new features or improvements! Feel free to give me a `Star` as well if you are happy with the work.
 
 ## Further Notes:
-1. I have only tested this on my own E-zone Advantage Air controller, but the API is exactly the same for MyAir and the name devices at the begining of this README; that is actually where I was able to get the commands and learn how to structure them properly. The API can be found [here](http://advantageair.proboards.com/) once you have registered.
-2. I am not very savvy with all of this coding work and had a lot of help and direction as I learn as I go; this was a learning curve for me but I plan to keep working on this and improving it.
+1. I have only tested this on my own E-zone Advantage Air controller, but the API is exactly the same for MyAir and the named devices at the begining of this README; that is actually where I was able to get the commands and learn how to structure them properly. The API can be found [here](http://advantageair.proboards.com/) once you have registered.
+2. I am not very savvy with all of this coding work and had a lot of help and direction as I 'learn as I go'; this was a learning curve for me but I plan to keep working on this and improving it.
 
 ## Potential Device Limitations:
 What we have discovered from over 8 months of trying to improve performance and reduce homebridge/cmd4 log warnings: 
