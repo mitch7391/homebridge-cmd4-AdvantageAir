@@ -47,6 +47,7 @@ No affiliation with Advantage Air or any of their products.
 
 <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Room.png">
 <img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Aircon.png">
+<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Sensors.png">
 
 </p>
 
