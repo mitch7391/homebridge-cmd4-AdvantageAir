@@ -362,7 +362,7 @@ if [ "$io" = "Get" ]; then
          ;;  # End of On
 
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
-      StatusFault )
+      StatusLowBattery )
          # Updates global variable jqResult
          queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
 
