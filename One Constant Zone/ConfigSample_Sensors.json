@@ -25,7 +25,7 @@
                     "subType": "tempSensor1",
                     "displayName": "Living_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Living_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -36,7 +36,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
@@ -47,7 +47,7 @@
                     "subType": "tempSensor2",
                     "displayName": "Theatre_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Theatre_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -58,7 +58,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
@@ -69,7 +69,7 @@
                     "subType": "tempSensor3",
                     "displayName": "Master_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Master_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -80,7 +80,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
@@ -91,7 +91,7 @@
                     "subType": "tempSensor4",
                     "displayName": "Craft_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Craft_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -102,7 +102,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
@@ -113,7 +113,7 @@
                     "subType": "tempSensor5",
                     "displayName": "Spare_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Spare_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -124,7 +124,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
@@ -135,7 +135,7 @@
                     "subType": "tempSensor6",
                     "displayName": "Guest_Room",
                     "currentTemperature": 25,
-                    "statusFault": "NO_FAULT",
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Guest_Room",
                     "Manufacturer": "Advantage Air Australia",
                     "Model": "e-zone",
@@ -146,7 +146,7 @@
                             "characteristic": "currentTemperature"
                         },
                         {
-                            "characteristic": "statusFault"
+                            "characteristic": "statusLowBattery"
                         }
                     ],
                     "state_cmd": "bash /home/pi/AdvAir.sh",
