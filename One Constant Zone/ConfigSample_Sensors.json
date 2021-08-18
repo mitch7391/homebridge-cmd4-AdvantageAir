@@ -1,0 +1,263 @@
+{
+    "bridge": {
+        "name": "Homebridge",
+        "username": "CC:22:3D:E3:CE:30",
+        "port": 51826,
+        "pin": "031-45-154"
+    },
+    "platforms": [
+        {
+            "platform": "Cmd4",
+            "name": "Cmd4",
+            "outputConstants": false,
+            "statusMsg": true,
+            "timeout": 5000,
+            "stateChangeResponseTime": 0,
+            "QueueTypes": [
+                {
+                    "Queue": "A",
+                    "QueueType": "WoRm"
+                }
+            ],
+            "accessories": [
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor1",
+                    "displayName": "Living_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Living_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z01"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor2",
+                    "displayName": "Theatre_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Theatre_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z02"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor3",
+                    "displayName": "Master_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Master_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z03"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor4",
+                    "displayName": "Craft_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Craft_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z04"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor5",
+                    "displayName": "Spare_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Spare_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z05"
+                },
+                {
+                    "type": "TemperatureSensor",
+                    "subType": "tempSensor6",
+                    "displayName": "Guest_Room",
+                    "currentTemperature": 25,
+                    "statusLowBattery": "BATTERY_LEVEL_LOW",
+                    "name": "Guest_Room",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "statusLowBattery"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z06"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Theatre",
+                    "on": "FALSE",
+                    "name": "Theatre",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z02"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Bedroom",
+                    "on": "FALSE",
+                    "name": "Bedroom",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z03"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Craft",
+                    "on": "FALSE",
+                    "name": "Craft",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z04"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Spare",
+                    "on": "FALSE",
+                    "name": "Spare",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z05"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Guest",
+                    "on": "FALSE",
+                    "name": "Guest",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh",
+                    "state_cmd_suffix": "z06"
+                },
+                {
+                    "type": "Fan",
+                    "on": "FALSE",
+                    "name": "Fan",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "Queue": "A",
+                    "Polling": true,
+                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                },
+                {
+                    "type": "Thermostat",
+                    "displayName": "Aircon",
+                    "currentHeatingCoolingState": "OFF",
+                    "targetHeatingCoolingState": "OFF",
+                    "currentTemperature": 25,
+                    "targetTemperature": 25,
+                    "temperatureDisplayUnits": "CELSIUS",
+                    "name": "Aircon",
+                    "Manufacturer": "Advantage Air Australia",
+                    "Model": "e-zone",
+                    "SerialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "currentHeatingCoolingState"
+                        },
+                        {
+                            "characteristic": "targetHeatingCoolingState"
+                        },
+                        {
+                            "characteristic": "currentTemperature"
+                        },
+                        {
+                            "characteristic": "targetTemperature"
+                        }
+                    ],
+                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                }                
+            ]
+        }
+    ]
+}
