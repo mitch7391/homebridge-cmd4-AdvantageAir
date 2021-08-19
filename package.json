@@ -1,0 +1,35 @@
+{
+   "name": "e-zone",
+   "description": "e-zone",
+   "license": "MIT",
+   "author": {
+      "name": "Mitch Williams"
+   },
+   "repository": {
+      "type": "git",
+      "url": "git://github.com/mitch7391/cmd4-AdvantageAir.git"
+   },
+   "homepage": "https://github.com/mitch7391/cmd4-AdvantageAir#readme",
+   "devDependencies": {
+      "bats": "^1.4.1",
+      "bats-assert": "github:ztombol/bats-assert",
+      "bats-support": "github:ztombol/bats-support",
+      "shellcheck": "^1.0.0"
+   },
+   "keywords": [
+      "e-zone",
+      "AdvantageAir",
+      "Cmd4",
+      "bash",
+      "shell",
+      "homebridge",
+      "plugin"
+   ],
+   "scripts": {
+      "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
+      "precheck": "if [ ! -d 'node_modules' ];then printf ' check is only done in a development environment\n';exit 1; fi",
+      "check": "shellcheck test/compare/*",
+      "test": "bats test/*.bats",
+      "bats": "bats"
+   }
+}
