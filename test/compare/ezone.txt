@@ -1,13 +1,5 @@
 #!/bin/bash
 
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further for the Advantage Air controller.
-
-# IP Address / Port:
-IP="192.168.0.173:2025"
-
-##################################################################################################################################################################################################
-##################################################################################################################################################################################################
-
 # Passed in Args
 length=$#
 device=""
@@ -24,8 +16,8 @@ rc=1
 
 
 if [ $length -le 1 ]; then
-   echo "Usage: $0 Get < AccessoryName > < characteristic > < Zone >"
-   echo "Usage: $0 Set < AccessoryName > < characteristic > < Value > < Zone >"
+   echo "Usage: $0 Get < AccessoryName > < characteristic >"
+   echo "Usage: $0 Set < AccessoryName > < characteristic > < Value >"
    exit 199
 fi
 
@@ -40,9 +32,11 @@ if [ $length -ge 3 ]; then
     characteristic=$3
 fi
 
-# Default zone
-zone="z01"
-zoneSpecified=false
+
+# IP Address / Port:
+IP="192.168.0.173:2025"
+
+
 
 logErrors="true"
 
@@ -161,6 +155,7 @@ function queryAndParseAirCon()
 
       if [ "$rc" = "0" ]; then
          # Updates global variable jqResult
+         # Updates global return code rc
          parseMyAirDataWithJq "$jqPath" "$exitOnFail"
 
          if [ "$rc" = "0" ]; then
@@ -175,27 +170,8 @@ function queryAndParseAirCon()
    done
 }
 
-
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
-
-   if [ $length -ge 4 ]; then
-      case $4 in
-         TEST_ON | TEST_OFF)
-            selfTest="$5"
-            ;;
-         *)
-            first="$(printf '%s' "$4" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=$4
-               zoneSpecified=true
-            else
-               echo "No zone specified for get" >&2
-               exit 199
-            fi
-         ;;
-      esac
-   fi
 
    # Check the last argument for self test.
    case ${!#} in
@@ -204,12 +180,11 @@ if [ "$io" = "Get" ]; then
          ;;
    esac
 
-
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
          # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+         queryAndParseAirCon "http://$IP/getSystemData"  '.aircons.ac1.zones.z01.measuredTemp'
 
          stdbuf -o0 -e0 echo "$jqResult"
 
@@ -288,121 +263,72 @@ if [ "$io" = "Get" ]; then
          fi
       ;;
 
+      #Fan Accessory
       On )
-         if [ $zoneSpecified = false ]; then
-            # Return value of Off if the zone is closed or the Control Unit is Off.
-            # Updates global variable jqResult
-            queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.info.state'
-
-            if [  "$jqResult" = '"off"' ]; then
-               stdbuf -o0 -e0 echo 0
-
-               exit 0
-            else
-               # Get the current mode of the Control Unit. Fan can only be On or Off; if not Vent, set all other modes to Off.
-               # Updates global variable jqResult
-               parseMyAirDataWithJq '.aircons.ac1.info.mode'
-               mode="$jqResult"
-
-               case "$mode" in
-                  '"heat"' )
-                     # Fan does not support Heat Mode.
-                     stdbuf -o0 -e0 echo 0
-
-                     exit 0
-                  ;;
-
-                  '"cool"' )
-                     # Fan does not support Cool Mode.
-                     stdbuf -o0 -e0 echo 0
-
-                     exit 0
-                  ;;
-
-                  '"vent"' )
-                     # Set Fan to On.
-                     stdbuf -o0 -e0 echo 1
-
-                     exit 0
-                  ;;
-
-                  '"dry"' )
-                     # Fan does not support Dry Mode.
-                     stdbuf -o0 -e0 echo 0
-
-                     exit 0
-                  ;;
-
-                  * )
-                     # If anything unexpected is retruned than the above, set to Off.
-                     stdbuf -o0 -e0 echo 0
-
-                     exit 0
-                  ;;
-               esac
-            fi
-         else
-
-            #damper open/closed = Switch on/off = 1/0
-            # Change to On just so we can leave it here for now
-            # and it will not get called
-            # Updates global variable jqResult
-            queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.state'
-
-            if [ "$jqResult" = '"open"' ]; then
-               stdbuf -o0 -e0 echo 1
-
-               exit 0
-            else
-               stdbuf -o0 -e0 echo 0
-
-               exit 0
-            fi
-         fi
-         ;;  # End of On
-
-      #Temp Sensor Fault Status = no fault/fault = 0/1-2
-      StatusLowBattery )
+         # Return value of Off if the zone is closed or the Control Unit is Off.
          # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
+         queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.info.state'
 
-         if [ "$jqResult" = '0' ]; then
+         if [  "$jqResult" = '"off"' ]; then
             stdbuf -o0 -e0 echo 0
 
             exit 0
          else
-            stdbuf -o0 -e0 echo 1
+            # Get the current mode of the Control Unit. Fan can only be On or Off; if not Vent, set all other modes to Off.
+            # Updates global variable jqResult
+            parseMyAirDataWithJq '.aircons.ac1.info.mode'
+            mode="$jqResult"
 
-            exit 0
+            case "$mode" in
+               '"heat"' )
+                  # Fan does not support Heat Mode.
+                  stdbuf -o0 -e0 echo 0
+
+                  exit 0
+               ;;
+
+               '"cool"' )
+                  # Fan does not support Cool Mode.
+                  stdbuf -o0 -e0 echo 0
+
+                  exit 0
+               ;;
+
+               '"vent"' )
+                  # Set Fan to On.
+                  stdbuf -o0 -e0 echo 1
+
+                  exit 0
+               ;;
+
+               '"dry"' )
+                  # Fan does not support Dry Mode.
+                  stdbuf -o0 -e0 echo 0
+
+                  exit 0
+               ;;
+
+               * )
+                  # If anything unexpected is retruned than the above, set to Off.
+                  stdbuf -o0 -e0 echo 0
+
+                  exit 0
+               ;;
+            esac
          fi
       ;;
-
    esac
 fi
+
 
 # For "Set" Directives
 if [ "$io" = "Set" ]; then
    value="1"
-   # For set, the fourth argument must be the value
-   if [ $length -le 3 ]; then
+   if [ $length -ge 4 ]; then
+      value=$4
+   else
       echo "No value specified for set" >&2
       exit 199
-   fi
-   value=$4
-
-   if [ $length -ge 5 ]; then
-      case $5 in
-         TEST_ON | TEST_OFF)
-            selfTest="$5"
-            ;;
-         *)
-            first="$(printf '%s' "$5" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=$5
-               zoneSpecified=true
-            fi
-         ;;
-      esac
    fi
 
    # Check the last argument for self test.
@@ -444,28 +370,16 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ]; then  # ( ezone )
-            if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
-               queryAirCon "http://$IP/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}" "1" "0"
+         if [ "$4" = "1" ]; then
+            # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
+            queryAirCon "http://$IP/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}" "1" "0"
 
-               exit 0
-            else
-               # Shut Off Control Unit.
-               queryAirCon "http://$IP/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
-
-               exit 0
-            fi
+            exit 0
          else
-            if [ "$value" = "1" ]; then
-               queryAirCon "http://$IP/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
+            # Shut Off Control Unit.
+            queryAirCon "http://$IP/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
 
-               exit 0
-            else
-               queryAirCon "http://$IP/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
-
-               exit 0
-            fi
+            exit 0
          fi
       ;;
    esac
