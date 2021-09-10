@@ -211,7 +211,7 @@ if [ "$io" = "Get" ]; then
          # Updates global variable jqResult
          queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
 
-         stdbuf -o0 -e0 echo "$jqResult"
+         echo "$jqResult"
 
          exit 0
       ;;
@@ -221,14 +221,14 @@ if [ "$io" = "Get" ]; then
          # Updates global variable jqResult
          queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.info.setTemp'
 
-         stdbuf -o0 -e0 echo "$jqResult"
+         echo "$jqResult"
 
          exit 0
       ;;
 
       # Sets display units to Celsius.
       TemperatureDisplayUnits )
-         stdbuf -o0 -e0 echo 0
+         echo 0
 
          exit 0
       ;;
@@ -240,7 +240,7 @@ if [ "$io" = "Get" ]; then
          queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.info.state'
 
          if [  "$jqResult" = '"off"' ]; then
-            stdbuf -o0 -e0 echo 0
+            echo 0
 
             exit 0
          else
@@ -252,35 +252,35 @@ if [ "$io" = "Get" ]; then
             case "$mode" in
                '"heat"' )
                   # Thermostat in Heat Mode.
-                  stdbuf -o0 -e0 echo 1
+                  echo 1
 
                   exit 0
                ;;
 
                '"cool"' )
                   # Thermostat in Cool Mode.
-                 stdbuf -o0 -e0 echo 2
+                 echo 2
 
                  exit 0
                ;;
 
                '"vent"' )
                   # Fan mode, set Thermostat to Off and Fan to On.
-                  stdbuf -o0 -e0 echo 0
+                  echo 0
 
                   exit 0
                ;;
 
                '"dry"' )
                   # No support for a dry mode by Apple, set to Off.
-                  stdbuf -o0 -e0 echo 0
+                  echo 0
 
                   exit 0
                ;;
 
                * )
                   # If anything unexpected is retruned than the above, return value Off.
-                  stdbuf -o0 -e0 echo 0
+                  echo 0
 
                   exit 0
                ;;
@@ -295,7 +295,7 @@ if [ "$io" = "Get" ]; then
             queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.info.state'
 
             if [  "$jqResult" = '"off"' ]; then
-               stdbuf -o0 -e0 echo 0
+               echo 0
 
                exit 0
             else
@@ -307,35 +307,35 @@ if [ "$io" = "Get" ]; then
                case "$mode" in
                   '"heat"' )
                      # Fan does not support Heat Mode.
-                     stdbuf -o0 -e0 echo 0
+                     echo 0
 
                      exit 0
                   ;;
 
                   '"cool"' )
                      # Fan does not support Cool Mode.
-                     stdbuf -o0 -e0 echo 0
+                     echo 0
 
                      exit 0
                   ;;
 
                   '"vent"' )
                      # Set Fan to On.
-                     stdbuf -o0 -e0 echo 1
+                     echo 1
 
                      exit 0
                   ;;
 
                   '"dry"' )
                      # Fan does not support Dry Mode.
-                     stdbuf -o0 -e0 echo 0
+                     echo 0
 
                      exit 0
                   ;;
 
                   * )
                      # If anything unexpected is retruned than the above, set to Off.
-                     stdbuf -o0 -e0 echo 0
+                     echo 0
 
                      exit 0
                   ;;
@@ -350,11 +350,11 @@ if [ "$io" = "Get" ]; then
             queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.state'
 
             if [ "$jqResult" = '"open"' ]; then
-               stdbuf -o0 -e0 echo 1
+               echo 1
 
                exit 0
             else
-               stdbuf -o0 -e0 echo 0
+               echo 0
 
                exit 0
             fi
@@ -367,11 +367,11 @@ if [ "$io" = "Get" ]; then
          queryAndParseAirCon "http://$IP/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
 
          if [ "$jqResult" = '0' ]; then
-            stdbuf -o0 -e0 echo 0
+            echo 0
 
             exit 0
          else
-            stdbuf -o0 -e0 echo 1
+            echo 1
 
             exit 0
          fi
