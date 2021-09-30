@@ -13,10 +13,10 @@
             "statusMsg": true,
             "timeout": 5000,
             "stateChangeResponseTime": 0,
-            "QueueTypes": [
+            "queueTypes": [
                 {
-                    "Queue": "A",
-                    "QueueType": "WoRm"
+                    "queue": "A",
+                    "queueType": "WoRm"
                 }
             ],
             "accessories": [
@@ -27,10 +27,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Living_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -49,10 +49,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Theatre_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -71,10 +71,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Master_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -93,10 +93,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Craft_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -115,10 +115,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Spare_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -137,10 +137,10 @@
                     "currentTemperature": 25,
                     "statusLowBattery": "BATTERY_LEVEL_LOW",
                     "name": "Guest_Room",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
                     "polling": [
                         {
                             "characteristic": "currentTemperature"
@@ -157,11 +157,11 @@
                     "displayName": "Theatre",
                     "on": "FALSE",
                     "name": "Theatre",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh",
                     "state_cmd_suffix": "z02"
                 },
@@ -170,11 +170,11 @@
                     "displayName": "Bedroom",
                     "on": "FALSE",
                     "name": "Bedroom",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh",
                     "state_cmd_suffix": "z03"
                 },
@@ -183,11 +183,11 @@
                     "displayName": "Craft",
                     "on": "FALSE",
                     "name": "Craft",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh",
                     "state_cmd_suffix": "z04"
                 },
@@ -196,11 +196,11 @@
                     "displayName": "Spare",
                     "on": "FALSE",
                     "name": "Spare",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh",
                     "state_cmd_suffix": "z05"
                 },
@@ -209,11 +209,11 @@
                     "displayName": "Guest",
                     "on": "FALSE",
                     "name": "Guest",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh",
                     "state_cmd_suffix": "z06"
                 },
@@ -221,11 +221,11 @@
                     "type": "Fan",
                     "on": "FALSE",
                     "name": "Fan",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
-                    "Queue": "A",
-                    "Polling": true,
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
                     "state_cmd": "bash /home/pi/AdvAir.sh"
                 },
                 {
@@ -237,9 +237,9 @@
                     "targetTemperature": 25,
                     "temperatureDisplayUnits": "CELSIUS",
                     "name": "Aircon",
-                    "Manufacturer": "Advantage Air Australia",
-                    "Model": "e-zone",
-                    "SerialNumber": "Fujitsu e-zone2",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": [
                         {
