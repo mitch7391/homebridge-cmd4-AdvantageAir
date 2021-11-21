@@ -1,0 +1,40 @@
+{
+    "env": {
+        "browser": false,
+        "commonjs": false,
+        "node": true,
+        "mocha": true,
+        "es2021": true
+    },
+    "globals": {
+       "assert" : "writeable",
+       "expect" : "writeable",
+       "sinon" : "writeable",
+       "window" : "writeable",
+       "ACC_EOL" : "readonly",
+       "DEVICE_EOL" : "readonly",
+       "FORMAT_EOL" : "readonly",
+       "UNITS_EOL" : "readonly",
+       "PERMS_EOL" : "readonly",
+       "CMD4_ACC_TYPE_ENUM" : "readonly",
+       "CMD4_DEVICE_TYPE_ENUM" : "readonly",
+       "cleanStatesDir" : "readonly",
+       "fs" : "writeable",
+       "HomebridgeAPI" : "writeable",
+       "Logger" : "writeable",
+       "platformAccessory_1" : "writeable",
+       "document": "readable"
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+        "ecmaVersion": 12
+    },
+    "rules": {
+       "no-fallthrough": ["error", { "commentPattern": "break[\\s\\w]*omitted"}],
+       "no-whitespace-before-property": ["error"],
+       "arrow-spacing": ["error"]
+    },
+    "ignorePatterns": [
+       "*.[0-9]*"
+    ]
+}

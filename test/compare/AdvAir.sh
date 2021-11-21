@@ -1,1 +1,1 @@
-../../One Constant Zone/AdvAir.sh
+../../AdvAir.sh
