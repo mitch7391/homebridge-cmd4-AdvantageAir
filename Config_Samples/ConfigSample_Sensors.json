@@ -39,8 +39,8 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z01"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z01 192.168.0.173"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -61,8 +61,8 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z02"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z02 192.168.0.173"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -83,8 +83,8 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z03"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z03 192.168.0.173"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -105,8 +105,8 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z04"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z04 192.168.0.173"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -127,8 +127,8 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z05"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z05 192.168.0.173"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -149,8 +149,21 @@
                             "characteristic": "statusLowBattery"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z06"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z06 192.168.0.173"
+                },
+                {
+                    "type": "Switch",
+                    "displayName": "Living",
+                    "on": "FALSE",
+                    "name": "Living",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": true,
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z01 192.168.0.173"
                 },
                 {
                     "type": "Switch",
@@ -162,8 +175,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z02"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z02 192.168.0.173"
                 },
                 {
                     "type": "Switch",
@@ -175,8 +188,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z03"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z03 192.168.0.173"
                 },
                 {
                     "type": "Switch",
@@ -188,8 +201,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z04"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z04 192.168.0.173"
                 },
                 {
                     "type": "Switch",
@@ -201,8 +214,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z05"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z05 192.168.0.173"
                 },
                 {
                     "type": "Switch",
@@ -214,8 +227,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z06"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z06 192.168.0.173"
                 },
                 {
                     "type": "Fan",
@@ -227,7 +240,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "192.168.0.173"
                 },
                 {
                     "type": "Thermostat",
@@ -256,7 +270,8 @@
                             "characteristic": "targetTemperature"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "192.168.0.173"
                 }                
             ]
         }
