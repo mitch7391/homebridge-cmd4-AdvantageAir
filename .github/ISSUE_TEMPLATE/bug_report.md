@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Raise a bug related report for cmd4-E-Zone-MyAir.
+about: Raise a bug related report for cmd4-AdvantageAir.
 title: "[Bug]"
 labels: bug
 assignees: mitch7391
@@ -39,13 +39,17 @@ assignees: mitch7391
 **Screenshots:**
 <!-- If applicable, add screenshots to help explain your problem. -->
 
-**Environment:**
+**Advantage Air System:**
+
+* **Control Unit:** e-zone / MyAir / MyAir3 / MyAir4 / MyPlace / zone10e / zone10
+* **Temperature Sensors**: Yes / No
+
+**Homebridge Environment:**
 
 * **Node.js Version**: <!-- node -v -->
 * **NPM Version**: <!-- npm -v -->
 * **Homebridge Version**: <!-- homebridge -V -->
 * **homebridge-cmd4 Version**: <!-- Check on homebridge-config-ui-x -->
 * **Operating System**: Raspbian / Ubuntu / Debian / Windows / macOS / Docker / other
-* **Process Supervisor**: Systemd / init.d / pm2 / launchctl / Docker / hb-service / other / none
 
 <!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
