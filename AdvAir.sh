@@ -462,6 +462,16 @@ if [ "$io" = "Get" ]; then
          fi
          ;;  # End of On
 
+      #Light Bulb service used for controlling damper % open
+      Brightness )
+         # Updates global variable jqResult
+         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.value'
+
+         echo "$jqResult"
+
+         exit 0
+      ;;
+
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
       StatusLowBattery )
          # Updates global variable jqResult
@@ -550,6 +560,14 @@ if [ "$io" = "Set" ]; then
                exit 0
             fi
          fi
+      ;;
+
+      #Light Bulb service for used controlling damper % open
+      Brightness )
+         #add comments here
+         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$value}}}}" "1" "0"
+
+         exit 0
       ;;
    esac
 fi
