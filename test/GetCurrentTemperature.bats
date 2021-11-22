@@ -25,7 +25,7 @@ teardown()
    e_status=$status
    e_lines=("${lines[@]}")
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON
-   assert_equal "$status" "$e_status" ]
+   assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "${e_lines[0]}"
    assert_equal "${lines[1]}" "${e_lines[1]}"
    assert_equal "${lines[2]}" "${e_lines[2]}"
@@ -80,4 +80,21 @@ teardown()
 @test "AdvAir ( zones        ) Test PassOn1 Get CurrentTemperature z03" {
    ln -s ./testData/dataPassOn1 ./data
    _common_compareAgainstZones Get Blah CurrentTemperature z03 TEST_ON
+}
+
+@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature noSensors" {
+   # We symbolically link the directory of the test we want to use.
+   ln -s ./testData/dataPassOn1 ./data
+   # Bats "run" gobbles up all the stdout. Remove for debugging
+   run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "25.4"
+   e_status=$status
+   e_lines=("${lines[@]}")
+   run ./compare/AdvAir.sh Get Blah CurrentTemperature noSensors TEST_ON
+   assert_equal "$status" "$e_status"
+   assert_equal "${lines[0]}" "${e_lines[0]}"
+   # The noSensors fixes this
+   assert_equal "${lines[1]}" "23"
 }
