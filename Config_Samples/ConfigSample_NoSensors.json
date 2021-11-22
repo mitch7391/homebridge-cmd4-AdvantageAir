@@ -21,69 +21,130 @@
             ],
             "accessories": [
                 {
-                    "type": "Switch",
+                    "type": "Lightbulb",
+                    "displayName": "Living",
+                    "on": "FALSE",
+                    "brightness": 50,
+                    "name": "Living",
+                    "manufacturer": "Advantage Air Australia",
+                    "model": "e-zone",
+                    "serialNumber": "Fujitsu e-zone2",
+                    "queue": "A",
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z01 192.168.0.173"
+                },
+                {
+                    "type": "Lightbulb",
                     "displayName": "Theatre",
                     "on": "FALSE",
+                    "brightness": 50,
                     "name": "Theatre",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z02"
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z02 192.168.0.173"
                 },
                 {
-                    "type": "Switch",
+                    "type": "Lightbulb",
                     "displayName": "Bedroom",
                     "on": "FALSE",
+                    "brightness": 50,
                     "name": "Bedroom",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z03"
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z03 192.168.0.173"
                 },
                 {
-                    "type": "Switch",
+                    "type": "Lightbulb",
                     "displayName": "Craft",
                     "on": "FALSE",
+                    "brightness": 50,
                     "name": "Craft",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z04"
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z04 192.168.0.173"
                 },
                 {
-                    "type": "Switch",
+                    "type": "Lightbulb",
                     "displayName": "Spare",
                     "on": "FALSE",
+                    "brightness": 50,
                     "name": "Spare",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z05"
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z05 192.168.0.173"
                 },
                 {
-                    "type": "Switch",
+                    "type": "Lightbulb",
                     "displayName": "Guest",
                     "on": "FALSE",
+                    "brightness": 50,
                     "name": "Guest",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh",
-                    "state_cmd_suffix": "z06"
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "brightness"
+                        }
+                    ],
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "z06 192.168.0.173"
                 },
                 {
                     "type": "Fan",
@@ -95,7 +156,8 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "192.168.0.173"
                 },
                 {
                     "type": "Thermostat",
@@ -124,7 +186,8 @@
                             "characteristic": "targetTemperature"
                         }
                     ],
-                    "state_cmd": "bash /home/pi/AdvAir.sh"
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
+                    "state_cmd_suffix": "192.168.0.173"
                 }                
             ]
         }
