@@ -6,17 +6,11 @@
 
 <span align="center">
 
-# cmd4-AdvantageAir
+# homebridge-cmd4-AdvantageAir
 
 </span>
 
-<span align="center">
- 
-<I>Formerly: cmd-E-Zone-MyAir</I>
- 
-</span>
-
-Catered shell scripts to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
+Catered shell script to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
 
 No affiliation with Advantage Air or any of their products.
 
@@ -29,7 +23,7 @@ No affiliation with Advantage Air or any of their products.
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
 * Unconfirmed:
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
-  * [zone10](https://apps.apple.com/au/app/zone10/id510581478)
+  * [zone10](https://apps.apple.com/au/app/zone10/id510581478) (Potentially confirmed to not be supported)
 
 ## How It Looks:
 <p align="center">
