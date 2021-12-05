@@ -758,7 +758,7 @@ class UiServer extends HomebridgePluginUiServer
 
    getGlobalNodeModulesPathForFile( file )
    {
-      let foundPath = "";
+      let fullPath = null;
 
       for ( let tryIndex = 1; tryIndex <= 5; tryIndex ++ )
       {
@@ -768,9 +768,18 @@ class UiServer extends HomebridgePluginUiServer
             {
               if ( commandExistsSync( "npm" ) )
               {
-                  const execSync = require('child_process').execSync;
-                  foundPath = execSync("npm root -g", {encoding: 'utf8'}).replace(/\n*$/, "");
-                  let fullPath = `${ foundPath }${ file }`;
+                  try {
+                     const execSync = require('child_process').execSync;
+                     let foundPath = execSync("npm root -g", {encoding: 'utf8'}).replace(/\n*$/, "");
+                     fullPath = `${ foundPath }${ file }`;
+                  } catch ( error )
+                  {
+                     if ( this.debug )
+                     {
+                        console.log( "Error: %s", error );
+                        console.log( "This error is a Debian packaging issye.  See: https://github.com/nodejs/node-v0.x-archive/issues/3911#issuecomment-8956154" );
+                     }
+                  }
 
                   if ( fs.existsSync( fullPath ) )
                      return fullPath;
@@ -787,7 +796,7 @@ class UiServer extends HomebridgePluginUiServer
                  if ( homebridgePath )
                  {
                     let dirname = path.dirname( homebridgePath );
-                    let fullPath = `${dirname}/..${ file }`;
+                    fullPath = `${dirname}/..${ file }`;
 
                     if ( fs.existsSync( fullPath ) )
                        return fullPath;
@@ -797,7 +806,7 @@ class UiServer extends HomebridgePluginUiServer
             }
             case 3:
             {
-               let fullPath = `/usr/local/lib/node_modules${ file }`;
+               fullPath = `/usr/local/lib/node_modules${ file }`;
 
                if ( fs.existsSync( fullPath ) )
                   return fullPath;
@@ -806,7 +815,7 @@ class UiServer extends HomebridgePluginUiServer
             }
             case 4:
             {
-               let fullPath = `/usr/lib/node_modules${ file }`;
+               fullPath = `/usr/lib/node_modules${ file }`;
 
                if ( fs.existsSync( fullPath ) )
                   return fullPath;
@@ -815,7 +824,7 @@ class UiServer extends HomebridgePluginUiServer
             }
             case 5:
             {
-               let fullPath = `/opt/homebrew/lib/node_modules${ file }`;
+               fullPath = `/opt/homebrew/lib/node_modules${ file }`;
 
                if ( fs.existsSync( fullPath ) )
                   return fullPath;
