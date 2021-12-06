@@ -13,6 +13,12 @@
             "statusMsg": true,
             "timeout": 5000,
             "stateChangeResponseTime": 0,
+            "constants": [
+                {
+                    "key": "${IP}",
+                    "value": "192.168.0.173"
+                }
+            ],
             "queueTypes": [
                 {
                     "queue": "A",
@@ -40,7 +46,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z01 192.168.0.173"
+                    "state_cmd_suffix": "z01 ${IP}"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -62,7 +68,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z02 192.168.0.173"
+                    "state_cmd_suffix": "z02 ${IP}"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -84,7 +90,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z03 192.168.0.173"
+                    "state_cmd_suffix": "z03 ${IP}"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -106,7 +112,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z04 192.168.0.173"
+                    "state_cmd_suffix": "z04 ${IP}"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -128,7 +134,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z05 192.168.0.173"
+                    "state_cmd_suffix": "z05 ${IP}"
                 },
                 {
                     "type": "TemperatureSensor",
@@ -150,7 +156,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z06 192.168.0.173"
+                    "state_cmd_suffix": "z06 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -163,7 +169,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z01 192.168.0.173"
+                    "state_cmd_suffix": "z01 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -176,7 +182,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z02 192.168.0.173"
+                    "state_cmd_suffix": "z02 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -189,7 +195,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z03 192.168.0.173"
+                    "state_cmd_suffix": "z03 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -202,7 +208,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z04 192.168.0.173"
+                    "state_cmd_suffix": "z04 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -215,7 +221,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z05 192.168.0.173"
+                    "state_cmd_suffix": "z05 ${IP}"
                 },
                 {
                     "type": "Switch",
@@ -228,7 +234,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z06 192.168.0.173"
+                    "state_cmd_suffix": "z06 ${IP}"
                 },
                 {
                     "type": "Fan",
@@ -241,7 +247,7 @@
                     "queue": "A",
                     "polling": true,
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "192.168.0.173"
+                    "state_cmd_suffix": "${IP}"
                 },
                 {
                     "type": "Thermostat",
@@ -271,7 +277,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "192.168.0.173"
+                    "state_cmd_suffix": "z01 ${IP}"
                 }                
             ]
         }
