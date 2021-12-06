@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea or improvement for cmd4-AdvantageAir.
+about: Suggest an idea or improvement for homebridge-cmd4-AdvantageAir.
 title: "[Feature Request]"
 labels: enhancement
 assignees: mitch7391
