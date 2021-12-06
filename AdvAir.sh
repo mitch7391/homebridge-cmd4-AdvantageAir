@@ -1,12 +1,10 @@
 #!/bin/bash
 
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further for the Advantage Air controller.
+# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
+# the Advantage Air controller and all of it's Homebridge users!
 
-# IP Address:
-IP="192.168.0.173"
-
-##################################################################################################################################################################################################
-##################################################################################################################################################################################################
+######################################################################################################################################################################
+######################################################################################################################################################################
 
 # Lets be explicit
 typeset -i a argSTART argEND
@@ -15,6 +13,7 @@ typeset -i a argSTART argEND
 # Passed in required Args
 #
 argEND=$#
+IP=""
 device=""
 io=""
 characteristic=""
@@ -32,7 +31,7 @@ rc=1
 #
 
 # Default zone
-zone="z01"
+zone=""
 zoneSpecified=false
 argSTART=4
 logErrors=true
@@ -306,7 +305,7 @@ if [ "$io" = "Get" ]; then
          if [ "$noSensors" = true ]; then
             # Uses the set temperature as the measured temperature
             # in lieu of having sensors.
-            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.setTemp'
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
          else
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
@@ -530,16 +529,21 @@ if [ "$io" = "Set" ]; then
       ;;
 
       TargetTemperature )
-         # Sets all zones to the current 'master' thermostat's value. All 10 allowable zones have been added just in case and do not need removing.
-         queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
-
-         exit 0
+         if [ "$noSensors" = true ]; then
+            # Only sets temperature to master temperature in the app
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
+            exit 0
+         else
+            # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
+            exit 0
+         fi
       ;;
 
       On )
          if [ $zoneSpecified = false ]; then  # ( ezone )
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
+               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}" "1" "0"
 
                exit 0
@@ -571,7 +575,6 @@ if [ "$io" = "Set" ]; then
       ;;
    esac
 fi
-
 
 echo "Unhandled $io $device $characteristic" >&2
 
