@@ -48,7 +48,8 @@
       "MyAir3",
       "MyAir4",
       "MyPlace",
-      "zone10e"
+      "zone10e",
+      "homebridge-plugin"
    ],
    "scripts": {
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
