@@ -15,18 +15,18 @@ class UiServer extends HomebridgePluginUiServer
    {
       super();
 
-      this.ADVAIR_SH = "/homebridge-cmd4AdvAir/AdvAir.sh";
+      this.ADVAIR_SH = "/homebridge-cmd4-AdvantageAir/AdvAir.sh";
       this.listOfConstants = { };
 
       // To enable debug, add the following to your config.json AT ANY TIME.
       // No restart required.
       // {
-      //    "platform": "Cmd4AdvAir",
+      //    "platform": "Cmd4AdvantageAir",
       //    "debug": true
       // },
       //
       // Note: remove the above or you will get the message:
-      // No plugin was found for the platform "Cmd4AdvAir" in your config.json. Please make
+      // No plugin was found for the platform "Cmd4AdvantageAir" in your config.json. Please make
       // sure the corresponding plugin is installed correctly.
       //
       // This error is not harmful, just annoying.
@@ -258,12 +258,12 @@ class UiServer extends HomebridgePluginUiServer
          return false;
       }
 
-      let cmd4AdvAirConfig = this.config.platforms.find( platform => platform[ "Cmd4AdvAir" ] !== null );
+      let cmd4AdvantageAirConfig = this.config.platforms.find( platform => platform[ "Cmd4AdvantageAir" ] !== null );
 
-      if ( cmd4AdvAirConfig && cmd4AdvAirConfig.debug )
+      if ( cmd4AdvantageAirConfig && cmd4AdvantageAirConfig.debug )
       {
-         console.log( `Setting debug for Cmd4AdvAir` );
-         this.debug = cmd4AdvAirConfig.debug;
+         console.log( `Setting debug for Cmd4AdvantageAir` );
+         this.debug = cmd4AdvantageAirConfig.debug;
       }
 
       if ( this.debug )
@@ -287,8 +287,8 @@ class UiServer extends HomebridgePluginUiServer
          // The old zone script
          if ( accessory.state_cmd.match( /ezone.sh/ ) )
             return true;
-         // The old zone script
-         if ( accessory.state_cmd.match( /zone.sh/ ) )
+         // The old zones script
+         if ( accessory.state_cmd.match( /zones.sh/ ) )
             return true;
          // The new AdvAir
          if ( accessory.state_cmd.match( /AdvAir.sh/ ) )
@@ -746,7 +746,7 @@ class UiServer extends HomebridgePluginUiServer
 
       if ( this.debug )
       {
-         console.log( chalk.red( `Remember to remove the "Cmd4AdvAir" debug entry from your config.json when done.` ) );
+         console.log( chalk.red( `Remember to remove the "Cmd4AdvantageAir" debug entry from your config.json when done.` ) );
       }
 
       // PASS !
