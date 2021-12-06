@@ -1,8 +1,8 @@
 {
-   "name": "homebridge-cmd4AdvAir",
-   "description": "ezone - Cmd4 Script For Advantage Air",
+   "name": "homebridge-cmd4-AdvantageAir",
+   "description": "Catered shell script to integrate air conditioner control units by Advantage Air",
    "license": "MIT",
-   "version": "2.0.1",
+   "version": "2.1.0",
    "author": {
       "name": "Mitch Williams"
    },
@@ -44,11 +44,11 @@
       "e-zone",
       "AdvantageAir",
       "Cmd4",
-      "bash",
-      "shell",
-      "homebridge",
-      "plugin",
-      "homebridge-plugin"
+      "MyAir",
+      "MyAir3",
+      "MyAir4",
+      "MyPlace",
+      "zone10e"
    ],
    "scripts": {
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
