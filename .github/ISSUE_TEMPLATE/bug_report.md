@@ -1,6 +1,6 @@
 ---
 name: Bug report
-about: Raise a bug related report for cmd4-AdvantageAir.
+about: Raise a bug related report for homebridge-cmd4-AdvantageAir.
 title: "[Bug]"
 labels: bug
 assignees: mitch7391
@@ -50,6 +50,7 @@ assignees: mitch7391
 * **NPM Version**: <!-- npm -v -->
 * **Homebridge Version**: <!-- homebridge -V -->
 * **homebridge-cmd4 Version**: <!-- Check on homebridge-config-ui-x -->
+* **homebridge-cmd4-AdvantageAir Version**: <!-- Check on homebridge-config-ui-x -->
 * **Operating System**: Raspbian / Ubuntu / Debian / Windows / macOS / Docker / other
 
 <!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
