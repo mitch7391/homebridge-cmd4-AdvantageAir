@@ -1,5 +1,6 @@
 {
    "name": "homebridge-cmd4-AdvantageAir",
+   "displayName": "Homebridge Cmd4 Advantage Air",
    "description": "Catered shell script to integrate air conditioner control units by Advantage Air",
    "license": "MIT",
    "version": "2.1.0",
