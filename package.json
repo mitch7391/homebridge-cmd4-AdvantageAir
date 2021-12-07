@@ -41,14 +41,18 @@
       "node": ">=10.24.0"
    },
    "keywords": [
-      "e-zone",
-      "AdvantageAir",
       "Cmd4",
+      "AdvantageAir",
+      "e-zone",
       "MyAir",
       "MyAir3",
       "MyAir4",
       "MyPlace",
-      "zone10e",
+      "zone10e",      
+      "bash",
+      "shell",
+      "homebridge",
+      "plugin",
       "homebridge-plugin"
    ],
    "scripts": {
