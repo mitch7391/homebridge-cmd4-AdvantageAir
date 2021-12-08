@@ -193,7 +193,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh'",
-                    "state_cmd_suffix": "z01 ${IP} noSensors"
+                    "state_cmd_suffix": "${IP} noSensors"
                 }                
             ]
         }
