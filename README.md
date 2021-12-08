@@ -1,14 +1,8 @@
 <p align="center">
-
 <img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
-
 </p>
 
-<span align="center">
-
 # homebridge-cmd4-AdvantageAir
-
-</span>
 
 Catered shell script to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
 
@@ -27,42 +21,28 @@ No affiliation with Advantage Air or any of their products.
 
 ## How It Looks:
 <p align="center">
-
-<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Room.png">
-<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Aircon.png">
-<img src="https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/Screenshots/Sensors.png">
-
+<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Room.png">
+<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Aircon.png">
+<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Sensors.png">
 </p>
 
 ## Installation:
-### Raspbian/HOOBS:
-1. Install Homebridge via these [instructions](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian).
+### Raspbian/HOOBS/macOS:
+1. Install Homebridge via these instructions for [Raspbian/HOOBS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function.
+
+![Install Cmd4](Screenshots/cmd4Install.png)
+
 3. Install `homebridge-cmd4-AdvantageAir` plug-in via the Homebridge UI 'plugins' tab search function.
+
+![Install Cmd4 Advantage Air](Screenshots/cmd4AdvAirInstall.png)
+
 4. Install <B>jq</B> via your Homebridge UI terminal or through ssh: 
-```
+```shell
+# Raspbian/Hoobs:
 sudo apt-get install jq
-```
-5. Check if <B>curl</B> is installed (it should already be):
-```
-curl -V
-```
-6. If <B>curl</B> does not return a version number, install via:
-```
-sudo apt-get install curl
-``` 
-7. Edit your homebridge `config.json` using the samples included in the directory `Config_Samples` above; this should be changed from the Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab. <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
-8. Restart Homebridge. 
-9. Go to the 'plugins' tab in Homebridge UI and locate `homebridge-cmd4-AdvantageAir` that you installed in Step 3. Click `SETTINGS` and it should launch the 'Advantage Air Shell Check'.
-10. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed.
 
-
-### macOS
-1. Install Homebridge via these [instructions](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
-2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function.
-3. Install `homebridge-cmd4-AdvantageAir` plug-in via the Homebridge UI 'plugins' tab search function.
-4. Install <B>jq</B> via your Homebridge UI terminal or through ssh: 
-```
+# macOS:
 brew install jq
 ```
 5. Check if <B>curl</B> is installed (it should already be):
@@ -70,16 +50,29 @@ brew install jq
 curl -V
 ```
 6. If <B>curl</B> does not return a version number, install via:
-```
+```shell
+# Raspbian/Hoobs:
+sudo apt-get install curl
+
+# macOS:
 brew install curl
 ``` 
-7. Edit your homebridge `config.json` using the samples included in the directory `Config_Samples` above; this should be changed from the Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab. <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
+7. Edit your homebridge `config.json` using the samples included in the directory `Config_Samples` above; this should be edited from the Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab. <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
 8. Restart Homebridge. 
-9. Go to the 'plugins' tab in Homebridge UI and locate `homebridge-cmd4-AdvantageAir` that you installed in Step 3. Click `SETTINGS` and it should launch the 'Advantage Air Shell Check'.
-10. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed.
+9. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Shell Check'.
+
+![Advantage Air Shell Check](Screenshots/AdvAirShellCheck.png)
+
+10. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
+
+<p align="center">
+  <img width="384px" src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/AdvAirShellCheckPassed.png">
+</p>
+
+![Advantage Air Shell Check Error](Screenshots/AdvAirShellCheckError.png)
 
 
-### Windows 10/11
+### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
 
 
@@ -89,7 +82,7 @@ Due to the current limitations in Homekit, multi-zoned ducted air conditioners a
 * A simple Fan with modes <B>OFF/ON</B> (low, medium, high coming in a future update!) for the controller's <B>FAN</B> mode. <B><I>NOTE:</B></I> Turning the Fan accessory on in Homekit will turn off the Thermostat accessory, and turning the Thermostat accessory on in homekit will turn off the Fan Accessory. When the Fan is turned on in Homekit, it will also execute the <B>AUTO</B> mode in the respective Advantage Air app; just to keep it simple for now.
 * Temperature Sensors with feedback from each zone. These also include the <B>FAULT</B> status in the accessory, this is determined by the error codes produced by the controller. <B><I>NOTE:</B></I> According to the Advantage Air developers there is only one fault code; which is used for low battery, dead battery and loss of connection to sensor. I could not get any further information about this and have only seen one fault myself.
 * Switches with feedback to open and close each zone for users with Temperature Sensors. These users only need to opne and close the zones. <B><I>NOTE: I do not recommend adding your 'constant zones' (usually zone 1, but there can be a second; represented as a 'C' in the app) as a Switch in Homekit as this zone is not meant to be turned off. I am not responsible for any damage to your ducting if you do manage to shut this zone (not sure it is possible, but just in case) and run the air conditioner.</B></I>
-* Light Bulb accessories are to be used in place of Switches for users without Temperature Sensors. These users will need to control the percentage open of their zones unlike the users with Temperature Sensors.
+* Light Bulbs are to be used in place of Switches for users without Temperature Sensors. These users will need to control the percentage open of their zones unlike the users with Temperature Sensors.
 
 
 ## How to Keep Up-To-Date:
