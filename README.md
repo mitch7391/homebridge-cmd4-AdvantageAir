@@ -9,7 +9,7 @@ Catered shell script to integrate air conditioner control units by Advantage Air
 No affiliation with Advantage Air or any of their products.
 
 ## Supported Control Units:
-* Confrimed:
+* Confirmed:
   * [e-zone](https://apps.apple.com/au/app/e-zone/id925994857)
   * [MyAir](https://apps.apple.com/au/app/myair/id481563583)
   * [MyAir3](https://apps.apple.com/au/app/myair3/id645762642)
@@ -19,12 +19,23 @@ No affiliation with Advantage Air or any of their products.
 * Unconfirmed:
   * [zone10](https://apps.apple.com/au/app/zone10/id510581478) (potentially confirmed to not be supported)
 
+
 ## How It Looks:
-<p align="center">
+### Thermostat (Aircon):
+![Thermostat](Screenshots/Aircon.png)
+
+### Zone Control and Temperature Sensors:
+<p align="left">
 <img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Room.png">
-<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Aircon.png">
 <img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/Sensors.png">
 </p>
+
+### Zone Control without Temperature Sensors: 
+<p align="left">
+<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/NoSensors.png">
+<img src="https://github.com/mitch7391/cmd4-AdvantageAir/blob/master/Screenshots/ZoneControl.png">
+</p>
+
 
 ## Installation:
 ### Raspbian/HOOBS/macOS:
