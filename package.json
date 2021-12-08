@@ -3,15 +3,15 @@
    "displayName": "Homebridge Cmd4 Advantage Air",
    "description": "Catered shell script to integrate air conditioner control units by Advantage Air",
    "license": "MIT",
-   "version": "2.1.0",
+   "version": "3.0.0",
    "author": {
       "name": "Mitch Williams"
    },
    "repository": {
       "type": "git",
-      "url": "git://github.com/mitch7391/cmd4-AdvantageAir.git"
+      "url": "git://github.com/mitch7391/homebridge-cmd4-AdvantageAir.git"
    },
-   "homepage": "https://github.com/mitch7391/cmd4-AdvantageAir#readme",
+   "homepage": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir#readme",
    "dependencies": {
       "@homebridge/plugin-ui-utils": "^0.0.19",
       "chalk": "^4.1.2",
@@ -35,7 +35,8 @@
       "homebridge-ui": "homebridge-ui",
       "test": "test",
       "tools": "tools",
-      "Screenshots": "Screenshots"
+      "Screenshots": "Screenshots",
+      "Config_Samples": "Config_Samples"
    },
    "engines": {
       "homebridge": ">=1.2.5",
