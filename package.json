@@ -60,11 +60,11 @@
    "scripts": {
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
       "precheck": "if [ ! -d 'node_modules' ];then printf ' check is only done in a development environment\n';exit 1; fi",
-      "check": "shellcheck test/compare/*",
+      "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh",
       "testjs": "node_modules/.bin/mocha ",
-      "test": "bats test/*.bats",
-      "bats": "bats",
+      "allBats": "bats test/*.bats",
       "lint": "eslint",
+      "test": "npm run allBats && npm run testjs && npm run check && npm run lint",
       "eslint": "eslint  --ext .js *.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
       "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'"
    }
