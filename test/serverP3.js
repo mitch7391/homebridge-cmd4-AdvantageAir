@@ -55,7 +55,7 @@ describe('Test homebridge-ui/server.js Part-3', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh",
+               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh",
                "state_cmd_suffix": "z02 ${IP} TEST_CMD4"
             }]
          }]
@@ -194,6 +194,7 @@ describe('Test homebridge-ui/server.js Part-3', () =>
       //server.debug = true;
 
       server.checkInstallationButtonPressed( );
+      console.log("retVal_g.message: %s", retVal_g.message);
 
       assert.include( retVal_g.message, `Passed`, `Polling must be an Array for AdvAir accessories` );
 
