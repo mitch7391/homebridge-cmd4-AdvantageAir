@@ -55,7 +55,7 @@ describe('Test homebridge-ui/server.js Part-2', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh",
+               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh",
                "state_cmd_suffix": "z02 ${IP} TEST_CMD4"
             }]
          }]
@@ -123,7 +123,7 @@ describe('Test homebridge-ui/server.js Part-2', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh",
+               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh",
                "state_cmd_suffix": "z02 ${IP} TEST_CMD4"
             };
 
@@ -161,7 +161,7 @@ describe('Test homebridge-ui/server.js Part-2', () =>
 
       server.checkInstallationButtonPressed( );
 
-      assert.include( retVal_g.message, `Invalid state_cmd for: "Theatre_Room". It should be:\n/opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh`, `state_cmd defined must be defined properly` );
+      assert.include( retVal_g.message, `Invalid state_cmd for: "Theatre_Room". It should be:\n/opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh`, `state_cmd defined must be defined properly` );
 
       // Finish our unit test
       done( );
@@ -213,7 +213,7 @@ describe('Test homebridge-ui/server.js Part-2', () =>
                [
                    { "characteristic": "on" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh",
+               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh",
                "state_cmd_suffix": "${IP} TEST_CMD4"
             };
 
@@ -244,7 +244,7 @@ describe('Test homebridge-ui/server.js Part-2', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4AdvAir/AdvAir.sh",
+               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh",
                "state_cmd_suffix": "${IP} TEST_CMD4"
             };
 
