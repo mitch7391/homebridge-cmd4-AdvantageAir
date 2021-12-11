@@ -2,44 +2,75 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.0.0 (2021-12-XX)
+
+Welcome to our Homebridge UI integration!!! 
+
+All the credit for this integration goes to the amazing John Talbot of [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4); I seriously cannot thank him enough! While this is still not its own independent plug-in, this integration will mimic a 'full' plug-in for Homebridge UI. This includes prompts for updates to your scripts, no longer having to edit the script and a configuration check tool to make sure you are set up correctly. Please take a look at the [README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master#readme) for more information.
+
+### Breaking Changes
+
+* Homebridge UI integration. While this change itself will not break your existing setup; the process of migrating over might while getting set up again if you make a mistake.
+* IP address is removed from the `AdvAir.sh` script. It is now added as a constant in the `homebridge-cmd4` config and in `"state_cmd_suffix"` (see [Config_Samples](https://github.com/mitch7391/cmd4-AdvantageAir/tree/master/Config_Samples) directory). There is no longer a need for users to edit the script!
+
+### Notable Changes
+
+* [#9](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/19): Add zone percentage control for users without temperature sensors. This is integrated as the Light Bulb acessory (see [Config_Samples](https://github.com/mitch7391/cmd4-AdvantageAir/tree/master/Config_Samples)).  
+
+### Bug Fixes
+
+* [#19](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/19): Add `noSensors` variable to fix issue with Thermostat Get CurrentTemperature for users without temperature sensors.
+* Side issue bug raised in [#9](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/9): `noSensors` variable fixes issue with Thermostat Set CurrentTemperature for users without temperature sensors.
+
+### Other Changes
+
+* README updated: Update supported units, update screenshots, update and streamline installation instructions.
+* Config samples updated: Update and streamline config samples. `noSensors` and `${IP}` added to `config.json`. Example added for users with some (but not all) zones using temperature sensors.
+* Issue templates updated.
+* PR template created.
+* CHANGELOG created.
+* Repo/Plug-in name changed from `cmd4-AdvantageAir` to `homebridge-cmd4-AdvantageAir`.
+* Dev unit tests expanded and updated.
+
+
 ## 2.3.0 (2021-09-30)
 
 ### Notable Changes
 
-* `config.json` changes to stop warnings in the upcoming homebridge-cmd4 v6.0.0 release
-* Characteristics now require the starting letter to be 'lower case' and not 'upper case'; this will pave the way for future work John Talbot puts in for cmd4 to have a `config-schema.json` in Homebridge UI
+* `config.json` changes to stop warnings in the upcoming homebridge-cmd4 v6.0.0 release.
+* Characteristics now require the starting letter to be 'lower case' and not 'upper case'; this will pave the way for future work John Talbot puts in for cmd4 to have a `config-schema.json` in Homebridge UI.
 
 
 ## 2.2.0 (2021-09-15)
 
 ### Notable Changes
 
-* Removed `stdbuf` dependency from scripts (could affect macOS user installs)
-* Install instructions in `README` have been split into Raspbian and macOS installs; still no Windows install instructions
-* `IP Address` / `Port Number` at start of script has had the port number moved into the script commands; so users do not need to think they need to change the port number or figure it out themselves
+* Removed `stdbuf` dependency from scripts (could affect macOS user installs).
+* Install instructions in `README` have been split into Raspbian and macOS installs; still no Windows install instructions.
+* `IP Address` / `Port Number` at start of script has had the port number moved into the script commands; so users do not need to think they need to change the port number or figure it out themselves.
 
 
 ## 2.1.0 (2021-08-22)
 
 ### Notable Changes
 
-* Addition of test scripts
+* Addition of test scripts.
 
 
 ## 2.0.0 (2021-08-18)
 
 ### Breaking Changes
 
-* New singular script `AdvAir.sh` to replace the need of two scripts `ezone.sh` and `zones.sh` ('Two Constant Zone' users will still have to use two scripts for now; sorry!)
-* Better error handling and reporting; script will attempt 5 iterations to receive a valid reading from the control unit
-* Introduction and use of homebridge-cmd4's new `WoRm` (Write once Read many) queue designed by John Talbot to better handle interactions with Advantage Air control unit's limitations
+* New singular script `AdvAir.sh` to replace the need of two scripts `ezone.sh` and `zones.sh` ('Two Constant Zone' users will still have to use two scripts for now; sorry!).
+* Better error handling and reporting; script will attempt 5 iterations to receive a valid reading from the control unit.
+* Introduction and use of homebridge-cmd4's new `WoRm` (Write once Read many) queue designed by John Talbot to better handle interactions with Advantage Air control unit's limitations.
 
 ### Notable Changes
 
-* Repo rename to `cmd4-AdvantageAir`; this is to more accurately capture the broader control units this API encompasses
-* Temperature Sensor Low Battery warning indications added
-* `config.json` improvements and clean-up
-* Documentation improvements in `README`
+* Repo rename to `cmd4-AdvantageAir`; this is to more accurately capture the broader control units this API encompasses.
+* Temperature Sensor Low Battery warning indications added.
+* `config.json` improvements and clean-up.
+* Documentation improvements in `README`.
 
 
 ## 1.2.0 (2021-02-08)
@@ -47,18 +78,18 @@ All notable changes to this project will be documented in this file. This projec
 ### Notable Changes
 
 * New `config.json` examples added for the new polling methods of cmd4 v3.0.x.
-* Updated `README`
+* Updated `README`.
 
 ### Bug Fixes
 
-* Fixed a couple of small bugs in shell scripts: use of `"true"` instead of `'1'` for `On` characteristic and double use of case `* )`
+* Fixed a couple of small bugs in shell scripts: use of `"true"` instead of `'1'` for `On` characteristic and double use of case `* )`.
 
 
 ## 1.1.0 (2021-01-22)
 
 ### Notable Changes
 
-* Added shell scripts for users without Temperature Sensors
-* Issue templates added for `Bug Report`, `Feature Request` and `Support Request`
-* 'House Keeping' of directories for better navigation to shell scripts needed
-* Updated `README`
+* Added shell scripts for users without Temperature Sensors.
+* Issue templates added for `Bug Report`, `Feature Request` and `Support Request`.
+* 'House Keeping' of directories for better navigation to shell scripts needed.
+* Updated `README`.
