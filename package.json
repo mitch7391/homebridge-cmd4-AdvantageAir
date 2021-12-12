@@ -63,6 +63,7 @@
       "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh",
       "testjs": "node_modules/.bin/mocha ",
       "allBats": "bats test/*.bats",
+      "bats": "bats",
       "lint": "eslint",
       "test": "npm run allBats && npm run testjs && npm run check && npm run lint",
       "eslint": "eslint  --ext .js *.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
