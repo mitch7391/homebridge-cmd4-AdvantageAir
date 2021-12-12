@@ -5,14 +5,10 @@ var jq;
 function checkInstallationButtonPressed( )
 {
    homebridge.showSpinner();
-   //homebridge.request( "/consoleLog", `main.js checkInstallationButtonPressed before CheckInst` );
    homebridge.request( "/checkInstallationButtonPressed" );
 }
 function advError( retVal )
 {
-   //console.log( `In Main.js server.js told me event.data.rc: ${ retVal.rc }  event.data.message: ${  retVal.message }` );
-   homebridge.request( "/consoleLog", `In Main.js server.js told me event.data.rc: ${ retVal.rc }  event.data.message: ${ retVal.message }` );
-
    // Turn off the spinner
    homebridge.hideSpinner();
 
@@ -83,9 +79,5 @@ function advError( retVal )
 //jquery listener
 jq( '#checkInstallationButton' ).on( 'click', ( ) =>
 {
-   //console.log("main.js click #checkInstallationButton" );
-
-   homebridge.request( "/consoleLog", `main.js click .checkInstallationButton` );
-
    checkInstallationButtonPressed();
 } );
