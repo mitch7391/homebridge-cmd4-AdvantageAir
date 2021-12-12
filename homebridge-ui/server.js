@@ -21,7 +21,7 @@ class UiServer extends HomebridgePluginUiServer
       // To enable debug, add the following to your config.json AT ANY TIME.
       // No restart required.
       // {
-      //    "platform": "Cmd4AdvantageAir",
+      //    "platform": "cmd4-AdvantageAir",
       //    "debug": true
       // },
       //
@@ -768,18 +768,19 @@ class UiServer extends HomebridgePluginUiServer
             {
               if ( commandExistsSync( "npm" ) )
               {
-                  try {
-                     const execSync = require('child_process').execSync;
-                     let foundPath = execSync("npm root -g", {encoding: 'utf8'}).replace(/\n*$/, "");
-                     fullPath = `${ foundPath }${ file }`;
-                  } catch ( error )
+                  // Use spawnSync as execSync does not allow capture of
+                  // stdio, even when using try/catch
+                  const spawnSync = require('child_process').spawnSync;
+                  let foundPath = spawnSync("npm", ["root", "-g"], {encoding: 'utf8'});
+                  if ( foundPath.stderr )
                   {
-                     if ( this.debug )
-                     {
-                        console.log( "Error: %s", error );
-                        console.log( "This error is a Debian packaging issye.  See: https://github.com/nodejs/node-v0.x-archive/issues/3911#issuecomment-8956154" );
-                     }
+                     console.log( "Error: %s", foundPath.stderr );
+                     console.log( "This error is a Debian packaging issue.  See: https://github.com/nodejs/node-v0.x-archive/issues/3911#issuecomment-8956154" );
+                     break;
                   }
+                  // Remove any trailing carriage returns and combine
+                  // with file.
+                  let fullPath = `${ foundPath.stdout.replace(/\n*$/, "")}${ file }`;
 
                   if ( fs.existsSync( fullPath ) )
                      return fullPath;
@@ -846,4 +847,3 @@ module.exports = UiServer;
 (function() {
    return new UiServer;
 })();
-
