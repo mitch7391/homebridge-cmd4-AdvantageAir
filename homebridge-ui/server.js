@@ -778,6 +778,9 @@ class UiServer extends HomebridgePluginUiServer
                      console.log( "This error is a Debian packaging issue.  See: https://github.com/nodejs/node-v0.x-archive/issues/3911#issuecomment-8956154" );
                      break;
                   }
+                  if ( ! foundPath.stdout )
+                    break;
+
                   // Remove any trailing carriage returns and combine
                   // with file.
                   let fullPath = `${ foundPath.stdout.replace(/\n*$/, "")}${ file }`;
