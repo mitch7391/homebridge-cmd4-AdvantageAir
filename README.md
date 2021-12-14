@@ -2,6 +2,13 @@
 <img src="https://github.com/homebridge/branding/raw/master/logos/homebridge-wordmark-logo-vertical.png" width="150">
 </p>
 
+<span align="center">
+  
+[![npm](https://badgen.net/npm/v/homebridge-cmd4-AdvantageAir/latest?icon=npm&label)](https://www.npmjs.com/package/homebridge-cmd4-AdvantageAir)
+[![npm](https://badgen.net/npm/dt/homebridge-cmd4-AdvantageAir?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-AdvantageAir)
+  
+</span>
+
 # homebridge-cmd4-AdvantageAir
 
 Catered shell script to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
