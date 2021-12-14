@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.0.0 (2021-12-XX)
+## 3.0.0 (2021-12-15)
 
 Welcome to our Homebridge UI integration!!! 
 
