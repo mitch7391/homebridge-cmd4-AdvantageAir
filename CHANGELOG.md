@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.0.1 (2021-12-15)
+
+Welcome to our Homebridge UI integration!!! 
+
+All the credit for this integration goes to the amazing John Talbot of [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4); I seriously cannot thank him enough! While this is still not its own independent plug-in, this integration will mimic a 'full' plug-in for Homebridge UI. This includes prompts for updates to your scripts, no longer having to edit the script and a configuration check tool to make sure you are set up correctly. Please take a look at the [README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master#readme) for more information.
+
+### Bug Fixes
+
+* NPM packages will not allow packages to be published if they have upper case letters in the name.
+
+
 ## 3.0.0 (2021-12-15)
 
 Welcome to our Homebridge UI integration!!! 

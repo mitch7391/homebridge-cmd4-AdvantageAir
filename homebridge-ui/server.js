@@ -15,7 +15,7 @@ class UiServer extends HomebridgePluginUiServer
    {
       super();
 
-      this.ADVAIR_SH = "/homebridge-cmd4-AdvantageAir/AdvAir.sh";
+      this.ADVAIR_SH = "/homebridge-cmd4-advantageair/AdvAir.sh";
       this.listOfConstants = { };
 
       // To enable debug, add the following to your config.json AT ANY TIME.
