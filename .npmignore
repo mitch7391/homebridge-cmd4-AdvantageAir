@@ -1,1 +1,13 @@
+# This file is inclusive of .gitignore
+
+# test does not get distributed to the client
 test
+
+# tools does not get distributed to the client
+tools
+
+# Screenshots does not get distributed to the client
+Screenshots
+
+# Config_Samples does not get distributed to the client
+Config_Samples

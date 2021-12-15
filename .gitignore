@@ -1,3 +1,5 @@
+# Ignore any swap files
 *.swp
+
+# Ignore node_modules as it gets installed via npm
 node_modules
-test_helper

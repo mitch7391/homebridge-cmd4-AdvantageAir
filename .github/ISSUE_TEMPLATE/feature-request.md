@@ -1,6 +1,6 @@
 ---
 name: Feature Request
-about: Suggest an idea or improvement for cmd4-E-Zone-MyAir.
+about: Suggest an idea or improvement for homebridge-cmd4-AdvantageAir.
 title: "[Feature Request]"
 labels: enhancement
 assignees: mitch7391
@@ -19,5 +19,9 @@ assignees: mitch7391
 **Additional context:**
 <!-- Add any other context or screenshots about the feature request here. -->
 
+**Advantage Air System:**
+
+* **Control Unit:** e-zone / MyAir / MyAir3 / MyAir4 / MyPlace / zone10e / zone10
+* **Temperature Sensors**: Yes / No
 
 <!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->

@@ -1,54 +1,72 @@
 #!/bin/bash
 
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further for the Advantage Air controller.
+# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
+# the Advantage Air controller and all of it's Homebridge users!
 
-# IP Address:
-IP="192.168.0.173"
+######################################################################################################################################################################
+######################################################################################################################################################################
 
-##################################################################################################################################################################################################
-##################################################################################################################################################################################################
+# Lets be explicit
+typeset -i a argSTART argEND
 
-# Passed in Args
-length=$#
+#
+# Passed in required Args
+#
+argEND=$#
+IP=""
 device=""
 io=""
 characteristic=""
+value="1"
 
-# By default selfTest is off
-selfTest="TEST_OFF"
-
+#
 # Global returned data
+#
 myAirData=""
 jqResult=""
 rc=1
 
-
-if [ $length -le 1 ]; then
-   echo "Usage: $0 Get < AccessoryName > < characteristic > < Zone >"
-   echo "Usage: $0 Set < AccessoryName > < characteristic > < Value > < Zone >"
-   exit 199
-fi
-
-
-if [ $length -ge 1 ]; then
-    io=$1
-fi
-if [ $length -ge 2 ]; then
-    device=$2
-fi
-if [ $length -ge 3 ]; then
-    characteristic=$3
-fi
+#
+# For optional args and arg parsing
+#
 
 # Default zone
-zone="z01"
+zone=""
 zoneSpecified=false
+argSTART=4
+logErrors=true
+noSensors=false
+# By default selfTest is off
+selfTest="TEST_OFF"
 
-logErrors="true"
+
+function showHelp()
+{
+   local rc="$1"
+   cat <<'   HELP_EOF'
+
+   Usage:
+     AdvAir.sh Get < AccessoryName > < characteristic > [ Options ]
+   or
+     AdvAir.sh Set < AccessoryName > < characteristic > < value > [ Options ]
+
+   Where Options maybe any of the following in any order:
+     z01, z02, z03 ...  The zone to Set or Query
+     XXX.XXX.XXX.XXX    The IP address of the AirCon to talk to
+     noSensors          If you do not have any sensors
+
+   Additional test options to the above are:
+     TEST_OFF           The default
+     TEST_ON            For npm run test
+     TEST_CMD4          In ones config.json and dev test data must be available.
+
+   HELP_EOF
+   exit "$rc"
+}
 
 function logError()
 {
-   if [ "$logErrors" != "true" ]; then
+   if [ "$logErrors" != true ]; then
       return
    fi
 
@@ -175,41 +193,123 @@ function queryAndParseAirCon()
    done
 }
 
+# main starts here
+
+if [ $argEND -le 1 ]; then
+   showHelp 199
+fi
+
+if [ $argEND -ge 1 ]; then
+   io=$1
+   if [ $argEND -ge 2 ]; then
+       device=$2
+   else
+      echo "Error - No device given for io: ${io}"
+      exit 1
+   fi
+
+   if [ $argEND -ge 3 ]; then
+       characteristic=$3
+   else
+      echo "Error - No Characteristic given for io: ${io} ${device}"
+      exit 1
+   fi
+
+   if [ "$io" = "Get" ]; then
+      argSTART=4
+   elif [[ "$io" == "Set" ]]; then
+      argSTART=5
+      if [ $argEND -ge 4 ]; then
+         value=$4
+      else
+         echo "Error - No value given to Set: ${io}"
+         exit 1
+      fi
+   else
+      echo "Error - Invalid io: ${io}"
+      exit 1
+   fi
+fi
+
+
+# For any unprocessed arguments
+if [ $argEND -ge $argSTART ]; then
+
+   # Scan the remaining options
+   for (( a=argSTART;a<=argEND;a++ ))
+   do
+      # convert argument number to its value
+      v=${!a}
+
+      optionUnderstood=false
+
+      # Check the actual option against patterns
+      case ${v} in
+         TEST_OFF)
+            # Standard production usage
+            selfTest=${v}
+            optionUnderstood=true
+            # Note: Only bash 4.0 has fallthrough and it's not portable.
+            ;;
+         TEST_ON)
+            # For npm run test
+            selfTest=${v}
+            optionUnderstood=true
+            ;;
+         TEST_CMD4)
+            # With Cmd4, but using test data. Causes no echo on try
+            selfTest=${v}
+            optionUnderstood=true
+           ;;
+         noSensors)
+            noSensors=true
+            optionUnderstood=true
+           ;;
+         *)
+            #
+            # See if the option starts with a 'z' for zone
+            #
+            first="$(printf '%s' "$v" | cut -c1 )"
+            if [ "$first" = z ]; then
+               zone=${v}
+               zoneSpecified=true
+               optionUnderstood=true
+            fi
+
+            #
+            # See if the option is in the format of an IP
+            #
+            if expr "$v" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
+               IP="$v"
+               if [ "$selfTest" = "TEST_ON" ]; then
+                  echo "Using IP: $v"
+               fi
+               optionUnderstood=true
+            fi
+
+            if [ "$optionUnderstood" = false ]; then
+               echo "Unknown Option: ${v}"
+               showHelp 1
+            fi
+       esac
+   done
+fi
+
 
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
 
-   if [ $length -ge 4 ]; then
-      case $4 in
-         TEST_ON | TEST_OFF)
-            selfTest="$5"
-            ;;
-         *)
-            first="$(printf '%s' "$4" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=$4
-               zoneSpecified=true
-            else
-               echo "No zone specified for get" >&2
-               exit 199
-            fi
-         ;;
-      esac
-   fi
-
-   # Check the last argument for self test.
-   case ${!#} in
-      TEST_ON | TEST_OFF)
-         selfTest=${!#}
-         ;;
-   esac
-
-
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
-         # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+         if [ "$noSensors" = true ]; then
+            # Uses the set temperature as the measured temperature
+            # in lieu of having sensors.
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
+         else
+            # Updates global variable jqResult
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+         fi
 
          echo "$jqResult"
 
@@ -361,6 +461,16 @@ if [ "$io" = "Get" ]; then
          fi
          ;;  # End of On
 
+      #Light Bulb service used for controlling damper % open
+      Brightness )
+         # Updates global variable jqResult
+         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.value'
+
+         echo "$jqResult"
+
+         exit 0
+      ;;
+
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
       StatusLowBattery )
          # Updates global variable jqResult
@@ -375,42 +485,24 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          fi
-      ;;
+         ;;  # End of StatusLowBattery
 
+      # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
+      StatusFault )
+         # Updates global variable jqResult
+         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
+         if [ "$jqResult" = '0' ]; then
+            echo 0
+         else
+            echo 1
+         fi
+         exit 0
+         ;;  # End of StatusFault
    esac
 fi
 
 # For "Set" Directives
 if [ "$io" = "Set" ]; then
-   value="1"
-   # For set, the fourth argument must be the value
-   if [ $length -le 3 ]; then
-      echo "No value specified for set" >&2
-      exit 199
-   fi
-   value=$4
-
-   if [ $length -ge 5 ]; then
-      case $5 in
-         TEST_ON | TEST_OFF)
-            selfTest="$5"
-            ;;
-         *)
-            first="$(printf '%s' "$5" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=$5
-               zoneSpecified=true
-            fi
-         ;;
-      esac
-   fi
-
-   # Check the last argument for self test.
-   case ${!#} in
-      TEST_ON | TEST_OFF)
-         selfTest=${!#}
-         ;;
-   esac
 
    case "$characteristic" in
       TargetHeatingCoolingState )
@@ -437,16 +529,21 @@ if [ "$io" = "Set" ]; then
       ;;
 
       TargetTemperature )
-         # Sets all zones to the current 'master' thermostat's value. All 10 allowable zones have been added just in case and do not need removing.
-         queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
-
-         exit 0
+         if [ "$noSensors" = true ]; then
+            # Only sets temperature to master temperature in the app
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
+            exit 0
+         else
+            # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
+            exit 0
+         fi
       ;;
 
       On )
          if [ $zoneSpecified = false ]; then  # ( ezone )
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support 'low', 'medium' and 'high' fan modes.
+               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}" "1" "0"
 
                exit 0
@@ -468,9 +565,16 @@ if [ "$io" = "Set" ]; then
             fi
          fi
       ;;
+
+      #Light Bulb service for used controlling damper % open
+      Brightness )
+         #add comments here
+         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$value}}}}" "1" "0"
+
+         exit 0
+      ;;
    esac
 fi
-
 
 echo "Unhandled $io $device $characteristic" >&2
 
