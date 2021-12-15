@@ -44,7 +44,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z01 ${IP}"
                 },
                 {
@@ -65,7 +65,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z02 ${IP}"
                 },
                 {
@@ -86,7 +86,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z03 ${IP}"
                 },
                 {
@@ -107,7 +107,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z04 ${IP}"
                 },
                 {
@@ -128,7 +128,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z05 ${IP}"
                 },
                 {
@@ -149,7 +149,7 @@
                             "characteristic": "brightness"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "z06 ${IP}"
                 },
                 {
@@ -162,7 +162,7 @@
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "${IP}"
                 },
                 {
@@ -192,7 +192,7 @@
                             "characteristic": "targetTemperature"
                         }
                     ],
-                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-AdvantageAir/AdvAir.sh'",
+                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "${IP} noSensors"
                 }                
             ]
