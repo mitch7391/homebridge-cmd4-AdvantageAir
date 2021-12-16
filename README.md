@@ -4,8 +4,8 @@
 
 <span align="center">
   
-[![npm](https://badgen.net/npm/v/homebridge-cmd4-AdvantageAir/latest?icon=npm&label)](https://www.npmjs.com/package/homebridge-cmd4-AdvantageAir)
-[![npm](https://badgen.net/npm/dt/homebridge-cmd4-AdvantageAir?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-AdvantageAir)
+[![npm](https://badgen.net/npm/v/homebridge-cmd4-advantageair/latest?icon=npm&label)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
+[![npm](https://badgen.net/npm/dt/homebridge-cmd4-advantageair?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
   
 </span>
 
