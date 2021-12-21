@@ -1,3 +1,12 @@
+---
+name: Bug Report
+about: Raise a bug related report for homebridge-cmd4-AdvantageAir.
+title: "[Bug]"
+labels: enhancement
+assignees: mitch7391
+
+---
+
 <!-- If using hastebin/pastebin or other text sharing website please make the lifespan long-->
 <!-- Remove any sensitive information, passwords, etc. -->
 
