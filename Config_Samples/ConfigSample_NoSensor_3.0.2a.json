@@ -143,6 +143,9 @@
                     "queue": "A",
                     "polling": [
                         {
+                            "characteristic": "on"
+                        },
+                        {
                             "characteristic": "brightness"
                         }
                     ],
