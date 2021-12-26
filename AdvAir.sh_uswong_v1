@@ -485,26 +485,25 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          fi
-#         if [ $fanSpecified = true ]; then
-            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.fan'
-            if [ $jqResult = '"low"' ]; then
-               echo 20
+         # Updates the current fan speed    
+         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.fan'
+         if [ $jqResult = '"low"' ]; then
+            echo 20
 
-               exit 0
-            elif [ $jqResult = '"medium"' ]; then
-               echo 50
+            exit 0
+         elif [ $jqResult = '"medium"' ]; then
+            echo 50
 
-               exit 0
-            elif [ $jqResult = '"high"' ]; then 
-               echo 80
+            exit 0
+         elif [ $jqResult = '"high"' ]; then 
+            echo 80
 
-               exit 0
-            else # one other possibility is "auto", then echo 100
-               echo 100
+            exit 0
+         else # one other possibility is "auto", then echo 100
+            echo 100
 
-               exit 0
-            fi
-#         fi
+            exit 0
+         fi
       ;;
 
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
@@ -605,7 +604,7 @@ if [ "$io" = "Set" ]; then
          fi
       ;;
 
-      #Light Bulb service for used controlling damper % open
+      #Light Bulb service for used controlling damper % open and fan speed (low, medium or high)
       Brightness )
          #add comments here
          if [ $zoneSpecified = true ]; then
@@ -616,7 +615,7 @@ if [ "$io" = "Set" ]; then
 	    # set fan speed (low, medium or high) depending on the % Brightness
             if [ $value -le 35 ]; then
                fspeed="low"
-            elif [ $value -gt 35 ] && [ $value -lt 70 ]; then
+            elif [ $value -gt 35 ] && [ $value -le 70 ]; then
                fspeed="medium"
             else
                fspeed="high"
