@@ -611,7 +611,7 @@ if [ "$io" = "Set" ]; then
             queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$value}}}}" "1" "0"
       
             exit 0
-         else
+         elif [ $fanSpecified = true ]; then
 	    # set fan speed (low, medium or high) depending on the % Brightness
             if [ $value -le 35 ]; then
                fspeed="low"
