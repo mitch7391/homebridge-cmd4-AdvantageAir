@@ -2,10 +2,10 @@
 
 # A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
 # the Advantage Air controller and all of it's Homebridge users!
-#
+
 # This version with uswong edits v1 (modified from Mitch's AdvAir.sh verion 3.0.2, so for convenient sake, I call this version 3.0.2a):
 # 1. added a "Fan Speed" button to control the speed on E-zone using LightBulb Brightness (26/12/2021)
-# 2. Set a default fan speed as "low" when the Aircon or fan is turned on.
+# 2. delete the setting of the fan to auto when Aircon Fan is turned on  
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
@@ -485,18 +485,18 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          fi
-         # Updates the current fan speed    
+         # Update the current fan speed
          queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.fan'
          if [ $jqResult = '"low"' ]; then
-            echo 20
+            echo 30   #30% as low speed
 
             exit 0
          elif [ $jqResult = '"medium"' ]; then
-            echo 50
+            echo 50   #50% as medium speed
 
             exit 0
          elif [ $jqResult = '"high"' ]; then 
-            echo 80
+            echo 90   #90% as high speed
 
             exit 0
          else # one other possibility is "auto", then echo 100
@@ -550,15 +550,13 @@ if [ "$io" = "Set" ]; then
             ;;
             1 )
                # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
-               # "fan:low" added by uswong to ensure that when aircon is turned on, the fan is set to low speed.
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:heat,fan:low}}}" "1" "0"
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:heat}}}" "1" "0"
 
                exit 0
             ;;
             2 )
                # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
-               # "fan:low" added by uswong to ensure that when aircon is turned on, the fan is set to low speed.
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:cool,fan:low}}}" "1" "0"
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:cool}}}" "1" "0"
 
                exit 0
             ;;
@@ -568,7 +566,7 @@ if [ "$io" = "Set" ]; then
       TargetTemperature )
          if [ "$noSensors" = true ]; then
             # Only sets temperature to master temperature in the app
-            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value,fan:low}}}" "1" "0"
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
             exit 0
          else
             # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
@@ -578,11 +576,10 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ]; then  # ( ezone )
+         if [ $zoneSpecified = false ] && [ $fanSpecified = false ]; then  # ( ezone )
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
-               # "fan:auto" changed to "fan:low" by uswong to ensure that when fan is turned on, the fan is set to low speed.
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:low}}}" "1" "0"
+               # Sets Control Unit to On, sets to Fan mode; opens the zone. Apple does not support low, medium and high fan modes, Control fan speed with the "Fan Speed" button..
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
 
                exit 0
             else
@@ -591,7 +588,7 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
-         else
+         elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
 
@@ -601,10 +598,14 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
+         elif [ $fanSpecified = true ]; then  # turn on the fan speed button always  
+            echo 1
+
+            exit 0
          fi
       ;;
 
-      #Light Bulb service for used controlling damper % open and fan speed (low, medium or high)
+      #Light Bulb service for used controlling damper % open and fan speed (0-35%:low, 36-70%:medium or 71-100%:high)
       Brightness )
          #add comments here
          if [ $zoneSpecified = true ]; then
