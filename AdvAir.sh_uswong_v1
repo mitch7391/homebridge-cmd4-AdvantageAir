@@ -3,7 +3,9 @@
 # A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
 # the Advantage Air controller and all of it's Homebridge users!
 #
-# This version with uswong v1 edits to add a "Fan Speed" button to control the speed using LightBulb Brightness (26/12/2021)
+# This version with uswong edits v1:
+# 1. add a "Fan Speed" button to control the speed using LightBulb Brightness (26/12/2021)
+# 2. Set a default fan speed as "low" when the Aircon or fan is turned on.
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
