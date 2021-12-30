@@ -6,53 +6,94 @@
 # A massive thanks also to Mitch Williams for his wonderful work on homebridge-smd4-advantageair. His work is going to benefit all who has Advantage Air controllers 
 # and is a die hard Apple Homekit fan. 
 #
-# This version is an experiement by @uswong (29/12/2021) modified from Mitch's AdvAir.sh verion 3.0.3 to include the following:
-# 1. added a "Fan Speed" accessory to control the fan speed using Fan/rotationSpeed
+# This version is an experiment by @uswong (29/12/2021) modified from Mitch's AdvAir.sh verion 3.0.3 to include the following:
+# 1. added codes for a "Fan/rotationSpeed" to control the fan speed
 # 2. removed {fan:auto} for "noSensors" users so that when the Aircon Vent is turned on, the fan rotationspeed is defaulted to the last known fan setting
 # 
 # Note: 
 # To achieve the above, some codes are changed and some added. They are marked with "## [@uswong]" and if many consecutive lines of codes are added, the last line is 
 # marked with "##"
 #
-# Below is a sample config.json file for item 1 and 2 above to work properly:
+# Below is a sample config.json file for item 1 and 2 above to work as intended: 
 #
-#               {
-#                   "type": "Fan",
-#                   "displayName": "Fan Speed",
-#                   "on": "FALSE",
-#                   "rotationSpeed": 100,
-#                   "name": "Fan Speed",
-#                   "manufacturer": "Advantage Air Australia",
-#                   "model": "e-zone",
-#                   "serialNumber": "Daikin e-zone",
-#                   "queue": "A",
-#                   "polling": [
-#                       {
-#                           "characteristic": "on"
-#                       },
-#                       {
-#                           "characteristic": "rotationSpeed"
-#                       }
-#                   ],
-#                   "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                   "state_cmd_suffix": "fanspeed ${IP}"
-#               },
-#               {
-#                   "type": "Fan",
-#                   "displayName": "Aircon Vent",
-#                   "on": "FALSE",
-#                   "name": "Aircon Vent",
-#                   "manufacturer": "Advantage Air Australia",
-#                   "model": "e-zone",
-#                   "serialNumber": "Daikin e-zone",
-#                   "queue": "A",
-#                   "polling": true,
-#
-#                   "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                   "state_cmd_suffix": "${IP} noSensors"
+#                {
+#                    "type": "Fan",
+#                    "displayName": "Aircon Vent",
+#                    "on": "FALSE",
+#                    "rotationSpeed": 100,
+#                    "name": "Aircon Vent",
+#                    "manufacturer": "Advantage Air Australia",
+#                    "model": "e-zone",
+#                    "serialNumber": "Daikin e-zone",
+#                    "queue": "A",
+#                    "polling": [
+#                        {
+#                            "characteristic": "on"
+#                        },
+#                        {
+#                            "characteristic": "rotationSpeed"
+#                        }
+#                    ],
+#                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
+#                    "state_cmd_suffix": "${IP} noSensors"
 #                },
+#                {
+#                    "type": "Thermostat",
+#                    "displayName": "Aircon",
+#                    "currentHeatingCoolingState": "OFF",
+#                    "targetHeatingCoolingState": "OFF",
+#                    "currentTemperature": 24,
+#                    "targetTemperature": 24,
+#                    "temperatureDisplayUnits": "CELSIUS",
+#                    "name": "Aircon",
+#                    "manufacturer": "Advantage Air Australia",
+#                    "model": "e-zone",
+#                    "serialNumber": "Daikin e-zone",
+#                    "queue": "A",
+#                    "polling": [
+#                        {
+#                            "characteristic": "currentHeatingCoolingState"
+#                        },
+#                        {
+#                            "characteristic": "targetHeatingCoolingState"
+#                        },
+#                        {
+#                            "characteristic": "currentTemperature"
+#                        },
+#                        {
+#                            "characteristic": "targetTemperature"
+#                        }
+#                    ],
+#                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
+#                    "state_cmd_suffix": "${IP} noSensors",
+#                    "linkedTypes": [
+#                        {
+#                            "type": "Fan",
+#                            "displayName": "Fan Speed",
+#                            "on": "FALSE",
+#                            "rotationSpeed": 100,
+#                            "name": "Fan Speed",
+#                            "manufacturer": "Advantage Air Australia",
+#                            "model": "e-zone",
+#                            "serialNumber": "Daikin e-zone",
+#                            "queue": "A",
+#                            "polling": [
+#                                {
+#                                    "characteristic": "on"
+#                                },
+#                                {
+#                                    "characteristic": "rotationSpeed"
+#                                }
+#                            ],
+#                            "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
+#                            "state_cmd_suffix": "fanspeed xxx.xxx.xxx.xxx"
+#                        }
+#                    ]
+#                }
 #
-# For "noSensors" users, please include the constant "noSensors" in the "state_cmd_suffix" as shown the sample above.
+# - For "noSensors" users, please include the constant "noSensors" in the "state_cmd_suffix" as shown the sample above. 
+# - For users who have sensors, pleae omit the "noSensors" parameter.
+# - For the time being before the issue is ressolved, please change the "xxx.xxx.xxx.xxx" to your physical ip address of your advantage air controller.
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
@@ -108,6 +149,7 @@ function showHelp()
      z01, z02, z03 ...  The zone to Set or Query
      XXX.XXX.XXX.XXX    The IP address of the AirCon to talk to
      noSensors          If you do not have any sensors
+     fanSpeed           If the accessory is used to control the fan speed  ## [@uswong] for fan speed control accessory
 
    Additional test options to the above are:
      TEST_OFF           The default
