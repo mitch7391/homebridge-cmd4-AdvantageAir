@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.0.3 (2021-12-29)
+
+Welcome to our Homebridge UI integration!!! 
+
+All the credit for this integration goes to the amazing John Talbot of [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4); I seriously cannot thank him enough! While this is still not its own independent plug-in, this integration will mimic a 'full' plug-in for Homebridge UI. This includes prompts for updates to your scripts, no longer having to edit the script and a configuration check tool to make sure you are set up correctly. Please take a look at the [README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master#readme) for more information.
+
+### Other Changes
+
+* Update `node` dependencies to run on all active LTS versions of `Node.js`; at the time of writing this is, `Node.js` v14 and v16. Preparation for `Homebridge Verified`.
+
+
 ## 3.0.2 (2021-12-23)
 
 Welcome to our Homebridge UI integration!!! 
