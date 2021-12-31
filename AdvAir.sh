@@ -1,98 +1,14 @@
 #!/bin/bash
 
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
-# the Advantage Air controller and all of it's Homebridge users!
-#
-# A massive thanks also to Mitch Williams for his wonderful work on homebridge-smd4-advantageair. His work is going to benefit all who has Advantage Air controllers 
-# and is a die hard Apple Homekit fan. 
-#
-# This version is an experiment by @uswong (29/12/2021) modified from Mitch's AdvAir.sh verion 3.0.3 to include the following:
-# 1. added codes for a "Fan/rotationSpeed" to control the fan speed
-# 2. removed {fan:auto} for "noSensors" users so that when the Aircon Vent is turned on, the fan rotationspeed is defaulted to the last known fan setting
-# 
-# Note: 
-# To achieve the above, some codes are changed and some added. They are marked with "## [@uswong]" and if many consecutive lines of codes are added, the last line is 
-# marked with "##"
-#
-# Below is a sample config.json file for item 1 and 2 above to work as intended: 
-#
-#                {
-#                    "type": "Fan",
-#                    "displayName": "Aircon Vent",
-#                    "on": "FALSE",
-#                    "rotationSpeed": 100,
-#                    "name": "Aircon Vent",
-#                    "manufacturer": "Advantage Air Australia",
-#                    "model": "e-zone",
-#                    "serialNumber": "Daikin e-zone",
-#                    "queue": "A",
-#                    "polling": [
-#                        {
-#                            "characteristic": "on"
-#                        },
-#                        {
-#                            "characteristic": "rotationSpeed"
-#                        }
-#                    ],
-#                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                    "state_cmd_suffix": "${IP} noSensors"
-#                },
-#                {
-#                    "type": "Thermostat",
-#                    "displayName": "Aircon",
-#                    "currentHeatingCoolingState": "OFF",
-#                    "targetHeatingCoolingState": "OFF",
-#                    "currentTemperature": 24,
-#                    "targetTemperature": 24,
-#                    "temperatureDisplayUnits": "CELSIUS",
-#                    "name": "Aircon",
-#                    "manufacturer": "Advantage Air Australia",
-#                    "model": "e-zone",
-#                    "serialNumber": "Daikin e-zone",
-#                    "queue": "A",
-#                    "polling": [
-#                        {
-#                            "characteristic": "currentHeatingCoolingState"
-#                        },
-#                        {
-#                            "characteristic": "targetHeatingCoolingState"
-#                        },
-#                        {
-#                            "characteristic": "currentTemperature"
-#                        },
-#                        {
-#                            "characteristic": "targetTemperature"
-#                        }
-#                    ],
-#                    "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                    "state_cmd_suffix": "${IP} noSensors",
-#                    "linkedTypes": [
-#                        {
-#                            "type": "Fan",
-#                            "displayName": "Fan Speed",
-#                            "on": "FALSE",
-#                            "rotationSpeed": 100,
-#                            "name": "Fan Speed",
-#                            "manufacturer": "Advantage Air Australia",
-#                            "model": "e-zone",
-#                            "serialNumber": "Daikin e-zone",
-#                            "queue": "A",
-#                            "polling": [
-#                                {
-#                                    "characteristic": "on"
-#                                },
-#                                {
-#                                    "characteristic": "rotationSpeed"
-#                                }
-#                            ],
-#                            "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                            "state_cmd_suffix": "${IP} fanSpeed"
-#                        }
-#                    ]
-#                }
-#
-# - For "noSensors" users, please include the constant "noSensors" in the "state_cmd_suffix" as shown the sample above. 
-# - For users who have sendors, pleae omit the "noSensors" parameter.
+######################################################################################################################################################################
+######################################################################################################################################################################
+#                                                                                                                                                                    #
+# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to  #
+# the Advantage Air controller and all of it's Homebridge users!                                                                                                     #
+#                                                                                                                                                                    #
+# A massive thanks also to @uswong for his ideas and contributions to adding 'rotationSpeed' to the Fan accessory and a "linkedType" 'Fan Speed' to the Thermostat   #
+# accessory for speed control (low/medium/high/auto). I am very pleased with the work and I think a lot of users will be too!                                        #
+#                                                                                                                                                                    #
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
@@ -126,13 +42,11 @@ zoneSpecified=false
 argSTART=4
 logErrors=true
 noSensors=false
+fanSpeed=false
+fspeed="low"
 # By default selfTest is off
 selfTest="TEST_OFF"
 
-## [@uswong] Fan speed control
-fanSpeed=false
-fspeed="low"
-##
 
 function showHelp()
 {
@@ -148,7 +62,7 @@ function showHelp()
      z01, z02, z03 ...  The zone to Set or Query
      XXX.XXX.XXX.XXX    The IP address of the AirCon to talk to
      noSensors          If you do not have any sensors
-     fanSpeed           If the accessory is used to control the fan speed  ## [@uswong] for fan speed control accessory
+     fanSpeed           If the accessory is used to control the fan speed
 
    Additional test options to the above are:
      TEST_OFF           The default
@@ -360,12 +274,10 @@ if [ $argEND -ge $argSTART ]; then
             noSensors=true
             optionUnderstood=true
            ;;
-         ## [@uswong] fanSpeed control
          fanSpeed)
             fanSpeed=true
             optionUnderstood=true
            ;;
-         ##
          *)
             #
             # See if the option starts with a 'z' for zone
@@ -489,7 +401,7 @@ if [ "$io" = "Get" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then ## [@uswong] added additional condition
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
@@ -541,7 +453,7 @@ if [ "$io" = "Get" ]; then
                   ;;
                esac
             fi
-         elif [ $zoneSpecified = true ]; then ## [@uswong] make this branch with specific condition
+         elif [ $zoneSpecified = true ]; then
 
             #damper open/closed = Switch on/off = 1/0
             # Change to On just so we can leave it here for now
@@ -559,7 +471,6 @@ if [ "$io" = "Get" ]; then
                exit 0
             fi
 
-         ## [@uswong] This branch is to set the state of "Fan Speed" accessory
          elif [ $fanSpeed = true ]; then
             # set the "Fan Speed" accessory to "on" only if the aircon state is "on"
             # Updates global variable jqResult
@@ -574,8 +485,6 @@ if [ "$io" = "Get" ]; then
 
                exit 0
             fi
-         ##
-
          fi
          ;;  # End of On
 
@@ -589,29 +498,32 @@ if [ "$io" = "Get" ]; then
          exit 0
       ;;
 
-      ## [@uswong] Fan service for controlling fan speed (low, medium and high)
+      # Fan service for controlling fan speed (low, medium and high)
       RotationSpeed )
          # Update the current fan speed
          queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.fan'
          if [ $jqResult = '"low"' ]; then
-            echo 25   #25% as low speed
+            #25% as low speed
+            echo 25
 
             exit 0
          elif [ $jqResult = '"medium"' ]; then
-            echo 50   #50% as medium speed
+            #50% as medium speed
+            echo 50
 
             exit 0
          elif [ $jqResult = '"high"' ]; then
-            echo 90   #90% as high speed
+            #90% as high speed
+            echo 90
 
             exit 0
-         else # one other possibility is "auto", then echo 100
+         else
+            # one other possibility is "auto", then echo 100
             echo 100
 
             exit 0
          fi
       ;;
-      ##
 
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
       StatusLowBattery )
@@ -683,10 +595,9 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then  # ( ezone ) ## [@uswong] added addition condition
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
-
                ## [@uswong] removed the {fan:auto} for "noSensors" users and control the fan rotation speed using the "Fan Speed" accessory instead
                if [ "$noSensors" = true ]; then
                   queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
@@ -695,15 +606,13 @@ if [ "$io" = "Set" ]; then
                   queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:autoAA}}}" "1" "0"
                   exit 0
                fi
-               ##
-
             else
                # Shut Off Control Unit.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
 
                exit 0
             fi
-         elif [ $zoneSpecified = true ]; then ## [@uswong] added additional condition
+         elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
 
@@ -714,14 +623,12 @@ if [ "$io" = "Set" ]; then
                exit 0
             fi
 
-         ## [@uswong] No on/off function for this "Fan Speed" accessory but keep it "on" for now to set the fan speed regardless of the Aircon state.
-         #  it will reset to the same state as the Aircon state when this accessory refreshes 
+         # No on/off function for this "Fan Speed" accessory but keep it "on" for now to set the fan speed regardless of the Aircon state.
+         # it will reset to the same state as the Aircon state when this accessory refreshes 
          elif [ $fanSpeed = true ]; then
             echo 1
 
             exit 0
-         ##
-
          fi
       ;;
 
@@ -733,7 +640,7 @@ if [ "$io" = "Set" ]; then
          exit 0
       ;;
 
-      ## [@uswong] Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:ezfan)
+      # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:ezfan)
       RotationSpeed )
          # fspeed=$value (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA)
          if [ $value -le 33 ]; then
@@ -743,7 +650,7 @@ if [ "$io" = "Set" ]; then
          elif [ $value -ge 68 ] && [ $value -le 99 ]; then
             fspeed="high"
          else
-            fspeed="autoAA"   # this is a bit uncertain, some controller is "auto", mine @uswong (E-zone/noSensors) is "autoAA"
+            fspeed="autoAA"   # [@uswong] this is a bit uncertain, some controller is "auto", mine @uswong (E-zone/noSensors) is "autoAA"
          fi
          queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
 
