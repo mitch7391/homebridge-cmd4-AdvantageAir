@@ -86,14 +86,13 @@
 #                                }
 #                            ],
 #                            "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-#                            "state_cmd_suffix": "fanspeed xxx.xxx.xxx.xxx"
+#                            "state_cmd_suffix": "${IP} fanSpeed"
 #                        }
 #                    ]
 #                }
 #
 # - For "noSensors" users, please include the constant "noSensors" in the "state_cmd_suffix" as shown the sample above. 
-# - For users who have sensors, pleae omit the "noSensors" parameter.
-# - For the time being before the issue is ressolved, please change the "xxx.xxx.xxx.xxx" to your physical ip address of your advantage air controller.
+# - For users who have sendors, pleae omit the "noSensors" parameter.
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
@@ -131,7 +130,7 @@ noSensors=false
 selfTest="TEST_OFF"
 
 ## [@uswong] Fan speed control
-fanSpecified=false
+fanSpeed=false
 fspeed="low"
 ##
 
@@ -361,6 +360,12 @@ if [ $argEND -ge $argSTART ]; then
             noSensors=true
             optionUnderstood=true
            ;;
+         ## [@uswong] fanSpeed control
+         fanSpeed)
+            fanSpeed=true
+            optionUnderstood=true
+           ;;
+         ##
          *)
             #
             # See if the option starts with a 'z' for zone
@@ -371,14 +376,6 @@ if [ $argEND -ge $argSTART ]; then
                zoneSpecified=true
                optionUnderstood=true
             fi
-
-            ## [@uswong] see if the option starts with a 'f' for fan speed accessory
-            if [ "$first" = f ]; then
-               fanSpecified=true
-               optionUnderstood=true
-            fi
-            ##
-
             #
             # See if the option is in the format of an IP
             #
@@ -492,7 +489,7 @@ if [ "$io" = "Get" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ] && [ $fanSpecified = false ]; then ## [@uswong] added additional condition
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then ## [@uswong] added additional condition
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
@@ -563,8 +560,8 @@ if [ "$io" = "Get" ]; then
             fi
 
          ## [@uswong] This branch is to set the state of "Fan Speed" accessory
-         elif [ $fanSpecified = true ]; then
-            # set the "fan speed" button to "on" only if the aircon state is "on"
+         elif [ $fanSpeed = true ]; then
+            # set the "Fan Speed" accessory to "on" only if the aircon state is "on"
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
 
@@ -686,7 +683,7 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ] && [ $fanSpecified = false ]; then  # ( ezone ) ## [@uswong] added addition condition
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then  # ( ezone ) ## [@uswong] added addition condition
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
 
@@ -717,9 +714,9 @@ if [ "$io" = "Set" ]; then
                exit 0
             fi
 
-         ## [@uswong] No on/off function for this "Fan Speed" accessory but keep it "ON" for now to set the fan speed regardless of the Aircon state.
+         ## [@uswong] No on/off function for this "Fan Speed" accessory but keep it "on" for now to set the fan speed regardless of the Aircon state.
          #  it will reset to the same state as the Aircon state when this accessory refreshes 
-         elif [ $fanSpecified = true ]; then
+         elif [ $fanSpeed = true ]; then
             echo 1
 
             exit 0

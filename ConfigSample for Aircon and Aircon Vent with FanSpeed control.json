@@ -1,11 +1,6 @@
-The following is a sample config.json for Aircon and Aircon Vent accessories with FanSpeed control.
+The following is a sample config.json for "Aircon" accessory with FanSpeed control and "Aircon Vent" accessory with FanSpeed control.
 
-- For users who has sensors, please omit "noSensors" in "state-cmd-suffix" and 
-
-- for now (30/12/2021) until issue resolved, you need to change the ip address (xxx.xxx.xxx.xxx) to the ip address of your Advantage Air controller 
-within the "state-cmd-suffix".
-
-
+- For users who has sensors, please omit "noSensors" in "state-cmd-suffix".
 
 
                 {
@@ -78,7 +73,7 @@ within the "state-cmd-suffix".
                                 }
                             ],
                             "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-                            "state_cmd_suffix": "fanspeed xxx.xxx.xxx.xxx"
+                            "state_cmd_suffix": "${IP} fanSpeed"
                         }
                     ]
                 }
