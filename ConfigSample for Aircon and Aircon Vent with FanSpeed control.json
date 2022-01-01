@@ -22,7 +22,7 @@ The following is a sample config.json for "Aircon" accessory with FanSpeed contr
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-                    "state_cmd_suffix": "${IP} noSensors"
+                    "state_cmd_suffix": "${IP}"
                 },
                 {
                     "type": "Thermostat",
