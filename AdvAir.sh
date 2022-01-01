@@ -518,7 +518,7 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          else
-            # one other possibility is "auto", then echo 100
+            # one other possibility is "autoAA/auto", then echo 100
             echo 100
 
             exit 0
@@ -595,23 +595,20 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
+         # Uses the On characteristic for Fan/Vent mode.
          if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
-               ## [@uswong] removed the {fan:auto} for "noSensors" users and control the fan rotation speed using the "Fan Speed" accessory instead
-               if [ "$noSensors" = true ]; then
-                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
-                  exit 0
-               else
-                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:autoAA}}}" "1" "0"
-                  exit 0
-               fi
+               # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
+               
+               exit 0
             else
                # Shut Off Control Unit.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
 
                exit 0
             fi
+         # Uses the On characteristic for zone switches.
          elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
@@ -640,9 +637,9 @@ if [ "$io" = "Set" ]; then
          exit 0
       ;;
 
-      # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:ezfan)
+      # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)
       RotationSpeed )
-         # fspeed=$value (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA)
+         # fspeed=$value (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)
          if [ $value -le 33 ]; then
             fspeed="low"
          elif [ $value -ge 34 ] && [ $value -le 67 ]; then
@@ -650,13 +647,20 @@ if [ "$io" = "Set" ]; then
          elif [ $value -ge 68 ] && [ $value -le 99 ]; then
             fspeed="high"
          else
-            fspeed="autoAA"   # [@uswong] this is a bit uncertain, some controller is "auto", mine @uswong (E-zone/noSensors) is "autoAA"
+            # Check to see if user has 'ezfan' mode active.
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.aaAutoFanModeEnabled'
+            if [ "$jqResult" = '"true"' ]; then
+               # Auto mode for 'ezfan' users.
+               fspeed="autoAA"
+            else
+               # Auto mode for non 'ezfan' users.
+               fspeed="auto"
+            fi
          fi
          queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
 
          exit 0
       ;;
-      ##
 
    esac
 fi
