@@ -648,7 +648,7 @@ if [ "$io" = "Set" ]; then
             fspeed="high"
          else
             # Check to see if user has 'ezfan' mode active.
-            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.aaAutoFanModeEnabled'
+            parseMyAirDataWithJq '.aircons.ac1.info.aaAutoFanModeEnabled'
             if [ "$jqResult" = 'true' ]; then
                # Auto mode for 'ezfan' users.
                fspeed="autoAA"
