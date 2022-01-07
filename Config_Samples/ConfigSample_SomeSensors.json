@@ -198,12 +198,21 @@
                     "type": "Fan",
                     "displayName": "Fan",
                     "on": "FALSE",
+                    "rotationSpeed": 100,
                     "name": "Fan",
                     "manufacturer": "Advantage Air Australia",
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
                     "polling": true,
+                    "polling": [
+                        {
+                            "characteristic": "on"
+                        },
+                        {
+                            "characteristic": "rotationSpeed"
+                        }
+                    ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
                     "state_cmd_suffix": "${IP}"
                 },
