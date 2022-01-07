@@ -539,19 +539,8 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          fi
-         ;;  # End of StatusLowBattery
+       ;;  # End of StatusLowBattery
 
-      # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
-      StatusFault )
-         # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
-         if [ "$jqResult" = '0' ]; then
-            echo 0
-         else
-            echo 1
-         fi
-         exit 0
-         ;;  # End of StatusFault
    esac
 fi
 
