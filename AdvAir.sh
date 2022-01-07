@@ -647,15 +647,8 @@ if [ "$io" = "Set" ]; then
          elif [ $value -ge 68 ] && [ $value -le 99 ]; then
             fspeed="high"
          else
-            # Check to see if user has 'ezfan' mode active.
-            parseMyAirDataWithJq '.aircons.ac1.info.aaAutoFanModeEnabled'
-            if [ "$jqResult" = 'true' ]; then
-               # Auto mode for 'ezfan' users.
-               fspeed="autoAA"
-            else
-               # Auto mode for non 'ezfan' users.
-               fspeed="auto"
-            fi
+            # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
+            fspeed="autoAA"
          fi
          queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
 
