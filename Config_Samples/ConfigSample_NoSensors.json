@@ -202,7 +202,30 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-                    "state_cmd_suffix": "${IP} noSensors"
+                    "state_cmd_suffix": "${IP} noSensors",
+                    "linkedTypes": [
+                        {
+                            "type": "Fan",
+                            "displayName": "Fan Speed",
+                            "on": "FALSE",
+                            "rotationSpeed": 100,
+                            "name": "Fan Speed",
+                            "manufacturer": "Advantage Air Australia",
+                            "model": "e-zone",
+                            "serialNumber": "Daikin e-zone",
+                            "queue": "A",
+                            "polling": [
+                                {
+                                    "characteristic": "on"
+                                },
+                                {
+                                    "characteristic": "rotationSpeed"
+                                }
+                            ],
+                            "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
+                            "state_cmd_suffix": "${IP} fanSpeed"
+                        }
+                    ]
                 }                
             ]
         }
