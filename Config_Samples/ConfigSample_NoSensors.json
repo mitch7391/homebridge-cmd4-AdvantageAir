@@ -212,7 +212,7 @@
                             "name": "Fan Speed",
                             "manufacturer": "Advantage Air Australia",
                             "model": "e-zone",
-                            "serialNumber": "Daikin e-zone",
+                            "serialNumber": "Fujitsu e-zone2",
                             "queue": "A",
                             "polling": [
                                 {
