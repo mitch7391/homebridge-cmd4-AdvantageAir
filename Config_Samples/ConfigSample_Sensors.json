@@ -290,7 +290,7 @@
                         {
                             "type": "Fan",
                             "displayName": "Fan Speed",
-                            "on": "FALSE",
+                            "on": "TRUE",
                             "rotationSpeed": 100,
                             "name": "Fan Speed",
                             "manufacturer": "Advantage Air Australia",
@@ -298,9 +298,6 @@
                             "serialNumber": "Fujitsu e-zone2",
                             "queue": "A",
                             "polling": [
-                                {
-                                    "characteristic": "on"
-                                },
                                 {
                                     "characteristic": "rotationSpeed"
                                 }
