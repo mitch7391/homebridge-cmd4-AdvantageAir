@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.1.0-beta.2 (2022-01-08)
+## 3.1.0-beta.3 (2022-01-09)
 
 Special thanks to the amazing @uswong for adding the new fan speed feature! 
 
@@ -12,16 +12,19 @@ Special thanks to the amazing @uswong for adding the new fan speed feature!
    * Speeds: 1-33% (low), 34-67% (medium), 68-99% (high) and 100% ('auto' or 'ezfan').
 * Fan speed added to Thermostat accessory via new [`"linkedType"`](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki#thermostat-with-fan-speed) config options.
    * Speeds: 1-33% (low), 34-67% (medium), 68-99% (high) and 100% ('auto' or 'ezfan').
-* 'ezfan' mode now accepted for users who have activated it 
+* 'ezfan' mode now accepted for users who have activated it. 
 * New [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page to help explain and create your `config.json`. Still a work in progress; screenshots to come!
 * Homebridge Verified!!!
 
 ### Other Changes
 
+* Thermostat 'Fan Speed' `"linkedType"` is set to always appear on.
 * If you do not opt into using fan speeds for the Fan and/or Thermostat; setting mode commands (`cool`/`heat`/`on`) will now default to the last known speed set in the Advantage Air app (low/medium/high/auto/'ezfan'). It used to always set to `auto` speed when changing modes.
+* Removal of unused `statusFault` and redundant new code from `AdvAir.sh`.
 
 ### Bug Fixes
 
+* Zone percentage (`brightness`) value input will round to the nearest 5% or the Advantage Air system will not take the value sent.
 * Removal of new query/parse method to determine 'ezfan' users from 3.1.0-beta.1. Hardcoded `"autoAA"` seems to work for all.
 * Dev Tests: Fix timeout issues with `server.js`.
 
