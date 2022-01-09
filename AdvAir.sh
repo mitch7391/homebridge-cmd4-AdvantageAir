@@ -472,21 +472,12 @@ if [ "$io" = "Get" ]; then
             fi
 
          elif [ $fanSpeed = true ]; then
-            # set the "Fan Speed" accessory to "on" only if the aircon state is "on"
-            # Updates global variable jqResult
-            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
-
-           if [ "$jqResult" = '"on"' ]; then
+            # set the "Fan Speed" accessory to "on" at all time
                echo 1
 
                exit 0
-            else
-               echo 0
-
-               exit 0
-            fi
          fi
-         ;;  # End of On
+      ;;  # End of On
 
       #Light Bulb service used for controlling damper % open
       Brightness )
@@ -589,7 +580,7 @@ if [ "$io" = "Set" ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
-               
+
                exit 0
             else
                # Shut Off Control Unit.
@@ -608,21 +599,15 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
-
-         # No on/off function for this "Fan Speed" accessory but keep it "on" for now to set the fan speed regardless of the Aircon state.
-         # it will reset to the same state as the Aircon state when this accessory refreshes 
-         elif [ $fanSpeed = true ]; then
-            echo 1
-
-            exit 0
          fi
       ;;
 
       #Light Bulb service for used controlling damper % open
       Brightness )
-         #add comments here
-         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$value}}}}" "1" "0"
+         #round the $value to its nearst 5%
+         damper=$(expr $(expr $(expr $value + 2) / 5) \* 5)
 
+         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
          exit 0
       ;;
 
