@@ -299,6 +299,9 @@
                             "queue": "A",
                             "polling": [
                                 {
+                                    "characteristic": "on"
+                                },
+                                {
                                     "characteristic": "rotationSpeed"
                                 }
                             ],
