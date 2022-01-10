@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.1.0-beta.3 (2022-01-09)
+## 3.1.0-beta.4 (2022-01-10)
 
-Special thanks to the amazing @uswong for adding the new fan speed feature! 
+Special thanks to the amazing @uswong for adding the new fan speed feature fixing the zone percentage bug! 
 
 ### Notable Changes
 
