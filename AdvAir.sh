@@ -599,6 +599,11 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
+
+         elif [ $fanSpeed = true ]; then
+            # No real on/off function but issue "exit 0" to let cmd4 know that action is satisfied
+
+            exit 0
          fi
       ;;
 
