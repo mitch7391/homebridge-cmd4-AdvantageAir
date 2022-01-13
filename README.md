@@ -100,7 +100,7 @@ I have not successfully set this up on a Windows OS Homebridge server yet. If yo
 
 
 ## Further Notes
-You can read more about this project on the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page.
+You can read more about this project and how to create your config on the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page.
 
 ## How to Keep Up-To-Date:
 In version 3.0.0 and up, this repo is able to be added like a regular plug-in through Homebridge UI even though it is not a typical 'full' plug-in! By adding it through Homebridge UI, you no longer have to manually update the scripts yourself and they will be rolled out to you in updates via Homebridge UI. Feel free to give me a `Star` as well if you are happy with the work as it is nice to know how many people use this project!
