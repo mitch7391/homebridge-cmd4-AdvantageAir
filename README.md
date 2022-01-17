@@ -110,7 +110,7 @@ In version 3.0.0 and up, this repo is able to be added like a regular plug-in th
 * Open Issues/Tickets.
 * Report Bugs/Errors.
 * Suggest Improvements and Features you would like to see!
-* Help test the beta releases!
+* Help test the beta releases! See the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki#beta-testing) to find out how to 'sign up'.  
 * Create a fork, add or fix something yourself and create a Pull Request to be merged back into this repo!
 * Let me know if you have a Control Unit or App that works that is not confirmed in my [Supported List](https://github.com/mitch7391/cmd4-AdvantageAir#supported-control-units)!
 * Let me know if you can figure out how to get this running on Windows 10/11 Homebridge.
