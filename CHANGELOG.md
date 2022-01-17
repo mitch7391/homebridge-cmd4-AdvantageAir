@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.1.0 (2022-01-XX)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding the new fan speed feature and fixing the zone percentage bug! Thank you to all who participated in the beta testing! 
+
+### Notable Changes
+
+* Fan speed added to Fan accessory via charcteristic `rotationSpeed`. See new Fan config [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#fan)!
+   * Speeds: 1-33% (low), 34-67% (medium), 68-99% (high) and 100% ('auto' or 'ezfan').
+* Fan speed added to Thermostat accessory via new `"linkedType"` config options; see new Thermostat config [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#thermostat-with-fan-speed). You may need to delete the [Homebridge cache](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/27#issuecomment-997779309) when updating this accessory.
+   * Speeds: 1-33% (low), 34-67% (medium), 68-99% (high) and 100% ('auto' or 'ezfan'). 
+* New [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page to help explain and create your `config.json`.
+* <B>Homebridge Verified!!!</B>
+
+### Other Changes
+
+* Thermostat 'Fan Speed' `"linkedType"` is set to always appear on.
+* If you do not opt into using fan speeds for the Fan and/or Thermostat; setting mode commands (`cool`/`heat`/`on`) will now default to the last known speed set in the Advantage Air app (low/medium/high/auto/'ezfan'). It used to always set to `auto` speed when changing modes.
+* Removal of unused `statusFault` and redundant new code from `AdvAir.sh`.
+* Streamlining and updates for the README. Moving of some information to the new Wiki.
+
+### Bug Fixes
+
+* Fix for Zone percentage (`brightness`) which would not send value to the controller if it was not rounded to 5%; value input now will round to the nearest 5%.
+* Fix for users with 'ezfan' mode defaulting to 'high'; 'ezfan' mode now accepted as 100% speed.
+* Dev Tests: Fix timeout issues with `server.js`.
+
+
 ## 3.0.3 (2021-12-29)
 
 Welcome to our Homebridge UI integration!!! 
