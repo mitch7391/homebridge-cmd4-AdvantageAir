@@ -9,7 +9,7 @@ assignees: mitch7391
 
 <!-- Provide a general summary in the Title above -->
 
-**Is your pull request related to a problem? Please describe:**
+**Is your pull request related to a problem or a new feature? Please describe:**
 <!-- A clear and concise description of what the problem is. E.g. "Mitch, there needs to be a button to buy you a coffee!" -->
 
 **Describe the solution you'd have implemented:**
@@ -18,10 +18,12 @@ assignees: mitch7391
 **Do your changes pass unit testing ( npm run test ) :**
 - [x] Yes
 - [ ] No
+<!-- If unclear, I can update these afterwards. -->
 
 **Do your changes pass lint testing ( npm run lint ) :**
 - [x] Yes
 - [ ] No
+<!-- If unclear, I can update these afterwards. -->
 
 **Additional context:**
 <!-- Add any other context or screenshots about the pull request here. -->

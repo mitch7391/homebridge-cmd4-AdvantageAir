@@ -1,8 +1,14 @@
 #!/bin/bash
 
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to
-# the Advantage Air controller and all of it's Homebridge users!
-
+######################################################################################################################################################################
+######################################################################################################################################################################
+#                                                                                                                                                                    #
+# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to  #
+# the Advantage Air controller and all of it's Homebridge users!                                                                                                     #
+#                                                                                                                                                                    #
+# A massive thanks also to @uswong for his ideas and contributions to adding 'rotationSpeed' to the Fan accessory and a "linkedType" 'Fan Speed' to the Thermostat   #
+# accessory for speed control (low/medium/high/auto). I am very pleased with the work and I think a lot of users will be too!                                        #
+#                                                                                                                                                                    #
 ######################################################################################################################################################################
 ######################################################################################################################################################################
 
@@ -36,6 +42,8 @@ zoneSpecified=false
 argSTART=4
 logErrors=true
 noSensors=false
+fanSpeed=false
+fspeed="low"
 # By default selfTest is off
 selfTest="TEST_OFF"
 
@@ -54,6 +62,7 @@ function showHelp()
      z01, z02, z03 ...  The zone to Set or Query
      XXX.XXX.XXX.XXX    The IP address of the AirCon to talk to
      noSensors          If you do not have any sensors
+     fanSpeed           If the accessory is used to control the fan speed
 
    Additional test options to the above are:
      TEST_OFF           The default
@@ -265,6 +274,10 @@ if [ $argEND -ge $argSTART ]; then
             noSensors=true
             optionUnderstood=true
            ;;
+         fanSpeed)
+            fanSpeed=true
+            optionUnderstood=true
+           ;;
          *)
             #
             # See if the option starts with a 'z' for zone
@@ -275,7 +288,6 @@ if [ $argEND -ge $argSTART ]; then
                zoneSpecified=true
                optionUnderstood=true
             fi
-
             #
             # See if the option is in the format of an IP
             #
@@ -389,7 +401,7 @@ if [ "$io" = "Get" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ]; then
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
@@ -441,7 +453,7 @@ if [ "$io" = "Get" ]; then
                   ;;
                esac
             fi
-         else
+         elif [ $zoneSpecified = true ]; then
 
             #damper open/closed = Switch on/off = 1/0
             # Change to On just so we can leave it here for now
@@ -458,8 +470,14 @@ if [ "$io" = "Get" ]; then
 
                exit 0
             fi
+
+         elif [ $fanSpeed = true ]; then
+            # set the "Fan Speed" accessory to "on" at all time
+               echo 1
+
+               exit 0
          fi
-         ;;  # End of On
+      ;;  # End of On
 
       #Light Bulb service used for controlling damper % open
       Brightness )
@@ -469,6 +487,33 @@ if [ "$io" = "Get" ]; then
          echo "$jqResult"
 
          exit 0
+      ;;
+
+      # Fan service for controlling fan speed (low, medium and high)
+      RotationSpeed )
+         # Update the current fan speed
+         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.fan'
+         if [ $jqResult = '"low"' ]; then
+            #25% as low speed
+            echo 25
+
+            exit 0
+         elif [ $jqResult = '"medium"' ]; then
+            #50% as medium speed
+            echo 50
+
+            exit 0
+         elif [ $jqResult = '"high"' ]; then
+            #90% as high speed
+            echo 90
+
+            exit 0
+         else
+            # one other possibility is "autoAA/auto", then echo 100
+            echo 100
+
+            exit 0
+         fi
       ;;
 
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
@@ -485,19 +530,8 @@ if [ "$io" = "Get" ]; then
 
             exit 0
          fi
-         ;;  # End of StatusLowBattery
+       ;;  # End of StatusLowBattery
 
-      # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
-      StatusFault )
-         # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.error'
-         if [ "$jqResult" = '0' ]; then
-            echo 0
-         else
-            echo 1
-         fi
-         exit 0
-         ;;  # End of StatusFault
    esac
 fi
 
@@ -541,10 +575,11 @@ if [ "$io" = "Set" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ]; then  # ( ezone )
+         # Uses the On characteristic for Fan/Vent mode.
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode and Auto; opens the zone. Apple does not support low, medium and high fan modes.
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}" "1" "0"
+               # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
 
                exit 0
             else
@@ -553,7 +588,8 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
-         else
+         # Uses the On characteristic for zone switches.
+         elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
 
@@ -563,16 +599,41 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             fi
+
+         elif [ $fanSpeed = true ]; then
+            # No real on/off function but issue "exit 0" to let cmd4 know that action is satisfied
+
+            exit 0
          fi
       ;;
 
       #Light Bulb service for used controlling damper % open
       Brightness )
-         #add comments here
-         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$value}}}}" "1" "0"
+         #round the $value to its nearst 5%
+         damper=$(expr $(expr $(expr $value + 2) / 5) \* 5)
+
+         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
+         exit 0
+      ;;
+
+      # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)
+      RotationSpeed )
+         # fspeed=$value (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)
+         if [ $value -le 33 ]; then
+            fspeed="low"
+         elif [ $value -ge 34 ] && [ $value -le 67 ]; then
+            fspeed="medium"
+         elif [ $value -ge 68 ] && [ $value -le 99 ]; then
+            fspeed="high"
+         else
+            # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
+            fspeed="autoAA"
+         fi
+         queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
 
          exit 0
       ;;
+
    esac
 fi
 

@@ -1,14 +1,60 @@
 const sinon = require('sinon');
 const assert = require( "chai" ).assert;
 
-var UiServer;
 
 describe('Test homebridge-ui/server.js', () =>
 {
    let homebridge = [];
    let config_g = {};
+   var UiServer;
    var server;
    var retVal_g;
+   // node_modules is platform dependant. We need to figure this out
+   // in order for testing to work on all platforms
+   let node_modules_g = "";
+   let ADVAIR_SH = "AdvAir.sh";
+
+   before(() =>
+   {
+      // This proc fakes UIServer to think it is in a child process
+      // Otherwise it will not run.
+      process.send = function( msg ) { };
+
+      // The server uses the 'connected' variable to determine if it is to stay alive
+      // after a while, otherwise it will terminate.
+      process.connected = true;
+
+      // Require a new server
+      UiServer = require("../homebridge-ui/server");
+      console.log( "Creating 1 server for speed up" );
+      server = new UiServer();
+
+      delete process['send' ];
+
+      ADVAIR_SH = server.ADVAIR_SH;
+
+      // Create a stub so that advError sets our global error message variable.
+      //sinon.stub( server, "advError").callsFake( function( retVal ){ retVal_g = retVal });
+
+      // Create a stub so  that updateConfiguration returns our config.json look alike
+      //sinon.stub( server, "updateConfigFirstTime").callsFake( function( firstTime ){ server.config = config_g });
+
+      // Create a function of the UiServer to exit when called.
+      server.disconnect = function( ) {
+         setTimeout( () =>
+         {
+            process.exit( 0 );
+         }, 1500);
+      }
+
+      node_modules_g = server.getGlobalNodeModulesPathForFile( "" );
+      if ( node_modules_g == null )
+      {
+         console.log( "ERROR: cannot determine node_modules for testing" );
+         process.exit( 1 );
+      }
+
+   }); // before
 
    beforeEach(() =>
    {
@@ -49,28 +95,17 @@ describe('Test homebridge-ui/server.js', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh",
+               "state_cmd": `bash ${ node_modules_g }/homebridge-cmd4-advantageair/AdvAir.sh`,
                "state_cmd_suffix": "z02 ${IP} TEST_CMD4"
             }]
          }]
       };
 
+      // Put it back in case it gets changed
+      server.ADVAIR_SH = ADVAIR_SH;
+
       // Set the global return value to something
       retVal_g = { rc: true, message: "" };
-
-      // This proc fakes UIServer to think it is in a child process
-      // Otherwise it will not run.
-      process.send = function( msg ) { };
-
-      // The server uses the 'connected' variable to determine if it is to stay alive
-      // after a while, otherwise it will terminate.
-      process.connected = true;
-
-      // Require a new server
-      UiServer = require("../homebridge-ui/server");
-      server = new UiServer();
-
-      delete process['send' ];
 
       // Create a stub so that advError sets our global error message variable.
       sinon.stub( server, "advError").callsFake( function( retVal ){ retVal_g = retVal });
@@ -102,7 +137,7 @@ describe('Test homebridge-ui/server.js', () =>
    it('Test Check #5B. See if Cmd4 is installed from node_modules', function ( done )
    {
       // Create a stub For the test to fail.
-      sinon.stub( server, "getGlobalNodeModulesPathForFile").callsFake( function( fileToFind ){ if ( fileToFind == "/homebridge-cmd4/index.js" ) return null; else return `/usr/local/lib/node_modules/${ fileToFind }`; });
+      sinon.stub( server, "getGlobalNodeModulesPathForFile").callsFake( function( fileToFind ){ if ( fileToFind == "/homebridge-cmd4/index.js" ) return null; else return `${ node_modules_g }/${ fileToFind }`; });
 
       //server.debug = true;
 
@@ -114,7 +149,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #6. No AdvAir.sh FAILS', function ( done )
    {
@@ -130,11 +165,12 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    // Works
    it('Test Check #6. AdvAir.sh Passes', function ( done )
    {
+      // server.debug = true;
 
       server.checkInstallationButtonPressed( );
 
@@ -143,8 +179,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-
-   });
+   }).timeout( 5000 );
 
    it('Test Check #7 & 32. For No Cmd4 Accessories will be detected', function ( done )
    {
@@ -163,7 +198,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #8A. Constants must be an Array.', function ( done )
    {
@@ -179,7 +214,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #8B. Constants must have a key.', function ( done )
    {
@@ -195,7 +230,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #8C. Constants must have a value.', function ( done )
    {
@@ -211,7 +246,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #8D. Key must start with ${', function ( done )
    {
@@ -227,7 +262,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #8E. Key must end with }', function ( done )
    {
@@ -243,7 +278,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #9. Check for no Advantage Air Accessories', function ( done )
    {
@@ -260,7 +295,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #10. Check See if any Advantage Air accessory has a defined name', function ( done )
    {
@@ -276,7 +311,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #11. Check See if any Advantage Air accessory has a defined displayName', function ( done )
    {
@@ -292,7 +327,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #12. Duplicate Display Names', function ( done )
    {
@@ -313,7 +348,7 @@ describe('Test homebridge-ui/server.js', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh",
+               "state_cmd": `bash ${ node_modules_g }/homebridge-cmd4-advantageair/AdvAir.sh`,
                "state_cmd_suffix": "z02 ${IP} TEST_CMD4"
             };
 
@@ -326,7 +361,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #13. The state_cmd must be defined for the Air accessory', function ( done )
    {
@@ -342,7 +377,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #14. See if the state_cmd does not match the cmd4AdvAir.sh', function ( done )
    {
@@ -353,12 +388,12 @@ describe('Test homebridge-ui/server.js', () =>
 
       server.checkInstallationButtonPressed( );
 
-      assert.include( retVal_g.message, `Invalid state_cmd for: "Theatre_Room". It should be:\n/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh`, `state_cmd defined must be defined properly` );
+      assert.include( retVal_g.message, `Invalid state_cmd for: "Theatre_Room". It should be:\n${ node_modules_g }/homebridge-cmd4-advantageair/AdvAir.sh`, `state_cmd defined must be defined properly` );
       assert.equal( retVal_g.rc, false, `Return code must be false` );
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #15. See if the state_cmd_suffix is defined for the Air accessory', function ( done )
    {
@@ -374,7 +409,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #16. The state_cmd_suffix must have an IP for the Air accessory', function ( done )
    {
@@ -390,7 +425,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #17A. The state_cmd_suffix must have a zone or noSensors EXCEPT Fan accessories', function ( done )
    {
@@ -408,7 +443,7 @@ describe('Test homebridge-ui/server.js', () =>
                [
                    { "characteristic": "on" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh",
+               "state_cmd": `bash ${ node_modules_g }/homebridge-cmd4-advantageair/AdvAir.sh`,
                "state_cmd_suffix": "${IP} TEST_CMD4"
             };
 
@@ -422,7 +457,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #17B. The state_cmd_suffix must have a zone or noSensors EXCEPT Thermostat accessories', function ( done )
    {
@@ -440,7 +475,7 @@ describe('Test homebridge-ui/server.js', () =>
                [
                    { "characteristic": "currentTemperature" }
                ],
-               "state_cmd": "bash /opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh",
+               "state_cmd": `bash ${ node_modules_g }/homebridge-cmd4-advantageair/AdvAir.sh`,
                "state_cmd_suffix": "${IP} TEST_CMD4"
             };
 
@@ -454,7 +489,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #17C. The state_cmd_suffix must have a zone or noSensors for Sensors accessories', function ( done )
    {
@@ -471,7 +506,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #18. queueTypes array must pass.', function ( done )
    {
@@ -491,7 +526,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #19. QueueTypes must be an array.', function ( done )
    {
@@ -508,7 +543,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #20. Duplicate queues must not exist.', function ( done )
    {
@@ -528,7 +563,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #21. Duplicate queues must not exist.', function ( done )
    {
@@ -545,7 +580,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #22. queue name must be an string.', function ( done )
    {
@@ -562,7 +597,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #23. queue must be defined in queueTypes.', function ( done )
    {
@@ -579,7 +614,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #24A. For AdvAir accessories polling must be defined.', function ( done )
    {
@@ -596,7 +631,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be a Boolean with false (Fails).', function ( done )
    {
@@ -613,7 +648,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be a Boolean with true (Passes).', function ( done )
    {
@@ -630,7 +665,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be an Array.', function ( done )
    {
@@ -646,5 +681,5 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   });
+   }).timeout( 5000 );
 });
