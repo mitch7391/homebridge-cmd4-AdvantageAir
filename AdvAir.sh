@@ -39,16 +39,22 @@ rc=1
 # Default zone
 zone=""
 zoneSpecified=false
-##2[@uswong] - added to include a timer capability                                 
-timerEnabled=false
-##2
 argSTART=4
 logErrors=true
+noSensors=true
 fanSpeed=false
 fspeed="low"
 # By default selfTest is off
 selfTest="TEST_OFF"
 
+##1[@uswong] define some variables for zone open checking
+zoneArray=(z01 z02 z03 z04 z05 z06 z07 z08 z09 z10)
+zoneOpen=0
+##1
+
+##2[@uswong] - added to include a timer capability                                 
+timerEnabled=false
+##2
 
 function showHelp()
 {
@@ -324,8 +330,22 @@ if [ "$io" = "Get" ]; then
       # Gets the current temperature.
       CurrentTemperature )
 
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.system.hasSensors' ##3[@uswong] added to get "hasSensors" info
-         if [ $jqResult = false ]; then  ##3[@uswong] - changed "$noSensors" = true to "$jqResult" = false
+         ##3[@uswong] added to determine whether Temperature Senors are used in this system
+         queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+
+         #check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
+         for (( a=0;a<=9;a++ ))
+
+         do
+         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
+            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
+               noSensors=false
+               break
+            fi
+         done
+         ##3
+
+         if [ $noSensors = true ]; then 
             # Uses the set temperature as the measured temperature
             # in lieu of having sensors.
             parseMyAirDataWithJq '.aircons.ac1.info.setTemp'
@@ -613,8 +633,23 @@ if [ "$io" = "Set" ]; then
       ;;
 
       TargetTemperature )
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.system.hasSensors'  ##3[@uswong] added to get "hasSensors" information
-         if [ $jqResult = false ]; then  ##3[@uswong] - changed "$noSensors" = true to "$jqResult" = false
+
+         ##3[@uswong] added to determine whether Temperature Senors are used in this system
+         queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+
+         #check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
+         for (( a=0;a<=9;a++ ))
+
+         do
+         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
+            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
+               noSensors=false
+               break
+            fi
+         done
+         ##3
+
+         if [ $noSensors = true ]; then 
             # Only sets temperature to master temperature in the app
             queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
             exit 0
@@ -660,10 +695,6 @@ if [ "$io" = "Set" ]; then
                else
                   cZone="z$jqResult"
                fi 
-
-               # define some local variables
-               zoneArray=(z01 z02 z03 z04 z05 z06 z07 z08 z09 z10)
-               zoneOpen=0
 
                #check how many zones are open
                for (( a=0;a<=9;a++ ))
