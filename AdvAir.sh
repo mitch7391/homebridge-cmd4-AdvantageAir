@@ -330,7 +330,7 @@ if [ "$io" = "Get" ]; then
       # Gets the current temperature.
       CurrentTemperature )
 
-         ##3[@uswong] added to determine whether Temperature Senors are used in this system
+         ##3[@uswong] added to determine whether Temperature Sensors are used in this system
          queryAirCon "http://$IP:2025/getSystemData" "1" "0"
 
          #check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
@@ -548,11 +548,11 @@ if [ "$io" = "Get" ]; then
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
             if [ "$jqResult" = '"on"' ]; then
                parseMyAirDataWithJq '.aircons.ac1.info.countDownToOff'
-               echo "$jqResult"
+               echo $(expr $jqResult / 10)
                exit 0
             else
                parseMyAirDataWithJq '.aircons.ac1.info.countDownToOn'
-               echo "$jqResult"
+               echo $(expr $jqResult / 10)
                exit 0
             fi
          fi
@@ -748,12 +748,16 @@ if [ "$io" = "Set" ]; then
          ##1
          ##2[@uswong] added to include the timer capability
          elif [ $timerEnabled = true ]; then
+            # make 1% to 10 minutes and capped at a max of 720 minutes
+            timerInMinutes=$(expr $value \* 10)
+            timerInMinutes=$(($timerInMinutes < 720? $timerInMinutes : 720))
+            # 
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
             if [ "$jqResult" = '"on"' ]; then
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:$value}}}" "1" "0"
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
                exit 0
             else
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:$value}}}" "1" "0"
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
                exit 0
             fi
          fi
