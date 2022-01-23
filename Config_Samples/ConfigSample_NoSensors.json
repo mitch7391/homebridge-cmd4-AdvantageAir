@@ -202,7 +202,7 @@
                         }
                     ],
                     "state_cmd": "'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'",
-                    "state_cmd_suffix": "${IP} noSensors",
+                    "state_cmd_suffix": "${IP}",
                     "linkedTypes": [
                         {
                             "type": "Fan",
