@@ -51,7 +51,7 @@ selfTest="TEST_OFF"
 zoneArray=(z01 z02 z03 z04 z05 z06 z07 z08 z09 z10)
 zoneOpen=0
 
-# For timer capability                                 
+# For timer capability
 timerEnabled=false
 
 function showHelp()
@@ -326,27 +326,24 @@ if [ "$io" = "Get" ]; then
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
-
-         # Added to determine whether Temperature Sensors are used in this system
          queryAirCon "http://$IP:2025/getSystemData" "1" "0"
-
-         # Check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
-         for (( a=0;a<=9;a++ ))
-
-         do
-         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
-            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
-               noSensors=false
-               break
-            fi
-         done
-
-         if [ $noSensors = true ]; then 
-            # Uses the set temperature as the measured temperature in lieu of having sensors.
-            parseMyAirDataWithJq '.aircons.ac1.info.setTemp'
-         else
+         if [ "$noSensors" = false ] && [ $zoneSpecified = false ]; then
+            # Get the constant zone info from the system
+            parseMyAirDataWithJq '.aircons.ac1.info.constant1'
+               if [ $jqResult != 10 ];then
+                  cZone="z0$jqResult"
+               else
+                  cZone="z$jqResult"
+               fi
             # Updates global variable jqResult
-            parseMyAirDataWithJq '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$cZone"'.measuredTemp'
+         elif [ $zoneSpecified = true ]; then
+            # Updates global variable jqResult
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+         elif [ "$noSensors" = true ]; then
+            # Uses the set temperature as the measured temperature
+            # in lieu of having sensors.
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
          fi
 
          echo "$jqResult"
@@ -505,7 +502,7 @@ if [ "$io" = "Get" ]; then
                parseMyAirDataWithJq '.aircons.ac1.info.countDownToOn'
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}" "1" "0"
                # If "countDownToOn" is 0 then switch the timer off
-               if [ "$jqResult" = '0' ]; then 
+               if [ "$jqResult" = '0' ]; then
                   echo 0
                   exit 0
                else
@@ -527,7 +524,7 @@ if [ "$io" = "Get" ]; then
                   exit 0
                fi
             fi
- 
+
          elif [ $fanSpeed = true ]; then
             # Set the "Fan Speed" accessory to "on" at all time
                echo 1
@@ -649,7 +646,7 @@ if [ "$io" = "Set" ]; then
             fi
          done
 
-         if [ $noSensors = true ]; then 
+         if [ $noSensors = true ]; then
             # Only sets temperature to master temperature in the app
             queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
             exit 0
@@ -683,18 +680,18 @@ if [ "$io" = "Set" ]; then
             else
                # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
                # > if the only zone open is the constant zone, leave it open and set it to 100%.
-               # > if the constant zone is already closed, and the only open zone is set to close, 
+               # > if the constant zone is already closed, and the only open zone is set to close,
                #  the constant zone will open and set to 100% while closing that zone.
 
                queryAirCon "http://$IP:2025/getSystemData" "1" "0"
 
-               # Get the constant zone info from the system 
+               # Get the constant zone info from the system
                parseMyAirDataWithJq '.aircons.ac1.info.constant1'
                if [ $jqResult != 10 ];then
                   cZone="z0$jqResult"
                else
                   cZone="z$jqResult"
-               fi 
+               fi
 
                # Check how many zones are open
                for (( a=0;a<=9;a++ ))
