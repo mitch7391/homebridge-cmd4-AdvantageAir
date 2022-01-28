@@ -326,7 +326,19 @@ if [ "$io" = "Get" ]; then
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
+         # Added to determine whether Temperature Sensors are used in this system
          queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+         
+         # Check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
+         for (( a=0;a<=9;a++ ))
+         do
+         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
+            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
+               noSensors=false
+               break
+            fi
+         done
+
          if [ "$noSensors" = false ] && [ $zoneSpecified = false ]; then
             # Get the constant zone info from the system
             parseMyAirDataWithJq '.aircons.ac1.info.constant1'
@@ -335,14 +347,13 @@ if [ "$io" = "Get" ]; then
                else
                   cZone="z$jqResult"
                fi
-            # Updates global variable jqResult
+            # Use constant zone for Thermostat temperature reading
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$cZone"'.measuredTemp'
          elif [ $zoneSpecified = true ]; then
-            # Updates global variable jqResult
+            # Use zone for Temperature Sensor temp reading
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
          elif [ "$noSensors" = true ]; then
-            # Uses the set temperature as the measured temperature
-            # in lieu of having sensors.
+            # Uses the set temperature as the measured temperature in lieu of having sensors.
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
          fi
 
