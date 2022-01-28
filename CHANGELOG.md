@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.2.0-beta.0 (2022-01-23)
+## 3.2.0-beta.1 (2022-01-28)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features! Thank you to all who participated in the beta testing! 
 
@@ -11,6 +11,8 @@ Special thanks to the amazing [uswong](https://github.com/uswong) for adding the
 * Zone closing check to ensure that at least one zone is open at all time as a secondary layer of protection for your ducting.
    * If you close all zones, it will open your Constant Zone damper to 100%.
 * No longer require the use of `noSensors` in your `config.json`. The script determines if you have sensors or not.
+* Temperature Sensor users no longer require to add zone (`z01`, `z02`, etc.) to `"state_cmd_suffix"` of Thermostat in your `config.json`. The script determines and sets it as your Constant Zone.
+   * You can still set a zone if you prefer to choose a different zone to your Constant Zone. 
 * Countdown timer added as a Lightbulb accessory; config can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#timer).
    * Depending on if your Advantage Air system is on or off will determine if the countdown is to turn the system on or off when it reaches 0.
    * New constant `timer` will need to be added to the `"state_cmd_suffix"` of this accessory.
