@@ -618,10 +618,7 @@ class UiServer extends HomebridgePluginUiServer
             if ( ! accessory.type.match( /^Fan/ ) &&
                  ! accessory.type.match( /^Thermostat/ ) )
             {
-               if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
-                    state_cmd_suffix.match( /noSensors/ )
-                      )
-                  )
+               if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) )
                {
                   this.advError(
                   { "rc": false,
