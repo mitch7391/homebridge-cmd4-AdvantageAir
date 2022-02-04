@@ -2,13 +2,13 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.2.0-beta.1 (2022-01-28)
+## 3.2.0 (2022-02-04)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features! Thank you to all who participated in the beta testing! 
 
 ### Notable Changes
 
-* Zone closing check to ensure that at least one zone is open at all time as a secondary layer of protection for your ducting.
+* Zone closing check to ensure that at least one zone is open at all times as a secondary layer of protection for your ducting.
    * If you close all zones, it will open your Constant Zone damper to 100%.
 * No longer require the use of `noSensors` in your `config.json`. The script determines if you have sensors or not.
 * Temperature Sensor users no longer require to add zone (`z01`, `z02`, etc.) to `"state_cmd_suffix"` of Thermostat in your `config.json`. The script determines and sets it as your Constant Zone.
@@ -22,7 +22,8 @@ Special thanks to the amazing [uswong](https://github.com/uswong) for adding the
 
 ### Other Changes
 
-* Dev dependancy `nanoid` bumped to `v3.1.31`.
+* Shell Check Tool updated for new configurations. Always check you `config.json` with this after making changes!
+* Dev dependancy `nanoid` security update to `v3.1.31`.
 
 
 ## 3.1.0 (2022-01-18)
