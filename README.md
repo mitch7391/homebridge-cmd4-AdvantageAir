@@ -119,7 +119,7 @@ In version 3.0.0 and up, this repo is able to be added like a regular plug-in th
 
 ## Special Thanks:
 1. The evolution, improvements and continuously tireless work of [John Talbot](https://github.com/ztalbot2000), who has not only improved these shell scripts beyond measure and created the Homebridge UI integration; but continues to improve [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) to further cater to this work and my end users.
-2. The hard work and valued coding experince of [Ung Sing Wong](https://github.com/uswong) that has led to the Thermostat/Fan speed feature and zone percentage bug fix; and no doubt more to come in the future!
+2. The hard work and valued coding experince of [Ung Sing Wong](https://github.com/uswong) that has led to the many amazing features in a short space of time; and no doubt more to come in the future!
 3. This would never have kicked off without the patience and kindness of [TimofeyK](https://github.com/TimofeyK) helping out a new starter find his feet.
 4. Lastly, but certainly not least, is my beautiful Wife who has put up with what has become an obsession of mine to get our air conditioner and many other devices into Homekit. May she forever be misunderstood by Siri for my amusement...
 
