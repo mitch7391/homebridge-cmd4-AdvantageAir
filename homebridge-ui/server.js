@@ -609,25 +609,38 @@ class UiServer extends HomebridgePluginUiServer
                return;
             }
 
-
             //
             // Check #17
-            // The state_cmd_suffix must have a zone or noSensors for an Air accessory
+            // The state_cmd_suffix must have a zone or timer for an Air accessory
             // except a Fan or a Thermostat
             //
             if ( ! accessory.type.match( /^Fan/ ) &&
                  ! accessory.type.match( /^Thermostat/ ) )
             {
-               if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
-                    state_cmd_suffix.match( /noSensors/ )
-                      )
-                  )
+               if ( accessory.type.match( /Lightbulb/ ) )
                {
-                  this.advError(
-                  { "rc": false,
-                    "message": `state_cmd_suffix has no zone for: "${ accessory.displayName }"`
-                  });
-                  return;
+                   if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
+                    state_cmd_suffix.match( /timer/ )
+                      )
+                   )
+                   {
+                      this.advError(
+                      { "rc": false,
+                        "message": `state_cmd_suffix has no zone or is missing constant 'timer' for: "${ accessory.displayName }"`
+                      });
+                      return;
+                   }
+               }
+               else
+               {
+                  if ( ! state_cmd_suffix.match( /z[0-9][0-9]/ ) )
+                  {
+                      this.advError(
+                      { "rc": false,
+                        "message": `state_cmd_suffix has no zone for: "${ accessory.displayName }"`
+                      });
+                      return;
+                  }
                }
             }
 

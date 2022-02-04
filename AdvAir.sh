@@ -41,12 +41,18 @@ zone=""
 zoneSpecified=false
 argSTART=4
 logErrors=true
-noSensors=false
+noSensors=true
 fanSpeed=false
 fspeed="low"
 # By default selfTest is off
 selfTest="TEST_OFF"
 
+# Define some variables for zone open checking
+zoneArray=(z01 z02 z03 z04 z05 z06 z07 z08 z09 z10)
+zoneOpen=0
+
+# For timer capability
+timerEnabled=false
 
 function showHelp()
 {
@@ -61,8 +67,8 @@ function showHelp()
    Where Options maybe any of the following in any order:
      z01, z02, z03 ...  The zone to Set or Query
      XXX.XXX.XXX.XXX    The IP address of the AirCon to talk to
-     noSensors          If you do not have any sensors
      fanSpeed           If the accessory is used to control the fan speed
+     timer              To use a Lightbulb accessory as a timer
 
    Additional test options to the above are:
      TEST_OFF           The default
@@ -155,6 +161,11 @@ function parseMyAirDataWithJq()
    # Updates global variable jqResult
    jqResult=$(echo "$myAirData" | jq -e "$jqPath")
    rc=$?
+
+   # Added to ensure that if "$jqResult = false", rc is set to 0 because $jqResult = false is an acceptable answer.
+   if [ $jqResult = false ]; then
+      rc=0
+   fi
 
    if [ "$rc" != "0" ]; then
       if [ "$exitOnFail" = "1" ]; then
@@ -270,12 +281,14 @@ if [ $argEND -ge $argSTART ]; then
             selfTest=${v}
             optionUnderstood=true
            ;;
-         noSensors)
-            noSensors=true
-            optionUnderstood=true
-           ;;
+         # If the accessory is used to control the fan speed
          fanSpeed)
             fanSpeed=true
+            optionUnderstood=true
+           ;;
+         # Aded to include a timer capability
+         timer)
+            timerEnabled=true
             optionUnderstood=true
            ;;
          *)
@@ -307,20 +320,41 @@ if [ $argEND -ge $argSTART ]; then
    done
 fi
 
-
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
 
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
-         if [ "$noSensors" = true ]; then
-            # Uses the set temperature as the measured temperature
-            # in lieu of having sensors.
-            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
-         else
-            # Updates global variable jqResult
+         # Added to determine whether Temperature Sensors are used in this system
+         queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+         
+         # Check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
+         for (( a=0;a<=9;a++ ))
+         do
+         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
+            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
+               noSensors=false
+               break
+            fi
+         done
+
+         if [ "$noSensors" = false ] && [ $zoneSpecified = false ]; then
+            # Get the constant zone info from the system
+            parseMyAirDataWithJq '.aircons.ac1.info.constant1'
+               if [ $jqResult != 10 ];then
+                  cZone="z0$jqResult"
+               else
+                  cZone="z$jqResult"
+               fi
+            # Use constant zone for Thermostat temperature reading
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$cZone"'.measuredTemp'
+         elif [ $zoneSpecified = true ]; then
+            # Use zone for Temperature Sensor temp reading
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.measuredTemp'
+         elif [ "$noSensors" = true ]; then
+            # Uses the set temperature as the measured temperature in lieu of having sensors.
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.setTemp'
          fi
 
          echo "$jqResult"
@@ -401,7 +435,7 @@ if [ "$io" = "Get" ]; then
       ;;
 
       On )
-         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ] && [ $timerEnabled = false ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
             queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
@@ -471,22 +505,67 @@ if [ "$io" = "Get" ]; then
                exit 0
             fi
 
+         # Added to get the timer current setting
+         elif [ $timerEnabled = true ]; then
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
+            # If the aircon state is "off", set "countDownToOff" to 0
+            if [ "$jqResult" = '"off"' ]; then
+               parseMyAirDataWithJq '.aircons.ac1.info.countDownToOn'
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}" "1" "0"
+               # If "countDownToOn" is 0 then switch the timer off
+               if [ "$jqResult" = '0' ]; then
+                  echo 0
+                  exit 0
+               else
+                  # If "countDownToOn" is not 0, switch on the timer
+                  echo 1
+                  exit 0
+               fi
+            else
+               # If the aircon state is "on", set "countDownToOn" to 0
+               parseMyAirDataWithJq '.aircons.ac1.info.countDownToOff'
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:0}}}" "1" "0"
+               if [ "$jqResult" = "0" ]; then
+                  # If "countDownToOff" is 0 then switch the timer off
+                  echo 0
+                  exit 0
+               else
+                  # If "contDownToOff" is not 0 then switch on the timer
+                  echo 1
+                  exit 0
+               fi
+            fi
+
          elif [ $fanSpeed = true ]; then
-            # set the "Fan Speed" accessory to "on" at all time
+            # Set the "Fan Speed" accessory to "on" at all time
                echo 1
 
                exit 0
+
          fi
       ;;  # End of On
 
       #Light Bulb service used for controlling damper % open
       Brightness )
-         # Updates global variable jqResult
-         queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.value'
-
-         echo "$jqResult"
-
-         exit 0
+         # Gets the timer and zone damper % information
+         if [ $zoneSpecified = true ]; then
+            # Get the zone damper % open
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.zones.'"$zone"'.value'
+            echo "$jqResult"
+            exit 0
+         elif [ $timerEnabled = true ]; then
+            # Get the timer countdown value
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
+            if [ "$jqResult" = '"on"' ]; then
+               parseMyAirDataWithJq '.aircons.ac1.info.countDownToOff'
+               echo $(expr $jqResult / 10)
+               exit 0
+            else
+               parseMyAirDataWithJq '.aircons.ac1.info.countDownToOn'
+               echo $(expr $jqResult / 10)
+               exit 0
+            fi
+         fi
       ;;
 
       # Fan service for controlling fan speed (low, medium and high)
@@ -563,7 +642,22 @@ if [ "$io" = "Set" ]; then
       ;;
 
       TargetTemperature )
-         if [ "$noSensors" = true ]; then
+
+         # Added to determine whether Temperature Senors are used in this system
+         queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+
+         # Check if any zones have "rssi" value != 0 and != "null", if so, set noSensors=false
+         for (( a=0;a<=9;a++ ))
+
+         do
+         parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.rssi'
+            if [ $jqResult != 0 ] && [ $jqResult != "null" ]; then
+               noSensors=false
+               break
+            fi
+         done
+
+         if [ $noSensors = true ]; then
             # Only sets temperature to master temperature in the app
             queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
             exit 0
@@ -576,7 +670,7 @@ if [ "$io" = "Set" ]; then
 
       On )
          # Uses the On characteristic for Fan/Vent mode.
-         if [ $zoneSpecified = false ] && [ $fanSpeed = false ]; then
+         if [ $zoneSpecified = false ] && [ $fanSpeed = false ] && [ $timerEnabled = false ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
                queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
@@ -595,11 +689,58 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             else
-               queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
+               # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
+               # > if the only zone open is the constant zone, leave it open and set it to 100%.
+               # > if the constant zone is already closed, and the only open zone is set to close,
+               #  the constant zone will open and set to 100% while closing that zone.
 
+               queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+
+               # Get the constant zone info from the system
+               parseMyAirDataWithJq '.aircons.ac1.info.constant1'
+               if [ $jqResult != 10 ];then
+                  cZone="z0$jqResult"
+               else
+                  cZone="z$jqResult"
+               fi
+
+               # Check how many zones are open
+               for (( a=0;a<=9;a++ ))
+               do
+                  parseMyAirDataWithJq '.aircons.ac1.zones.'${zoneArray[a]}'.state'
+                  if [ "$jqResult" = '"open"' ]; then
+                     zoneOpen=$(expr $zoneOpen + 1)
+                  fi
+               done
+
+               if [ $zoneOpen -gt 1 ]; then
+                  # If there are more than 1 zone open, it is safe to close this zone.
+                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
+                  exit 0
+               elif [ $zone = $cZone ]; then
+                  # If only 1 zone open and is the constant zone. do not close but set to  100%
+                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:100}}}}" "1" "0"
+                  exit 0
+               else
+                  # If only 1 zone open and is not the constant zone, open the constant zone and close this zone
+                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0"
+                  sleep 0.5
+                  # Set the constant zone to 100%
+                  queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$cZone:{value:100}}}}" "1" "0"
+                  exit 0
+               fi
+            fi
+         # Added to include the timer capability
+         elif [ $timerEnabled = true ]; then
+            if [ "$value" = "0" ]; then
+               # Set both "countDownToOn" and "countDownToOff" to 0, otherwise do nothing
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:0}}}" "1" "0"
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}" "1" "0"
+               exit 0
+            else
+               # Do nothing
                exit 0
             fi
-
          elif [ $fanSpeed = true ]; then
             # No real on/off function but issue "exit 0" to let cmd4 know that action is satisfied
 
@@ -607,13 +748,30 @@ if [ "$io" = "Set" ]; then
          fi
       ;;
 
-      #Light Bulb service for used controlling damper % open
+      #Light Bulb service for used controlling damper % open and timer
       Brightness )
-         #round the $value to its nearst 5%
-         damper=$(expr $(expr $(expr $value + 2) / 5) \* 5)
+         # Modified to include the conditional statements for damper %
+         if [ $zoneSpecified = true ]; then
+            # Round the $value to its nearst 5%
+            damper=$(expr $(expr $(expr $value + 2) / 5) \* 5)
 
-         queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
-         exit 0
+            queryAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
+            exit 0
+         # Added to include the timer capability
+         elif [ $timerEnabled = true ]; then
+            # Make 1% to 10 minutes and capped at a max of 720 minutes
+            timerInMinutes=$(expr $value \* 10)
+            timerInMinutes=$(($timerInMinutes < 720? $timerInMinutes : 720))
+
+            queryAndParseAirCon "http://$IP:2025/getSystemData" '.aircons.ac1.info.state'
+            if [ "$jqResult" = '"on"' ]; then
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
+               exit 0
+            else
+               queryAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
+               exit 0
+            fi
+         fi
       ;;
 
       # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)
