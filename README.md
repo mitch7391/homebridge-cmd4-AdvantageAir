@@ -28,8 +28,10 @@ No affiliation with Advantage Air.
 
 * Extras:
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
-     * Lights 
-     * Garage Door
+     - [x] Lights 
+     - [x] Garage Door
+     - [ ] Motion Sensors
+     - [ ] Relay Kit (Blinds, Gates, etc.)
 
 <I><B> Note: </B> [zone10](https://apps.apple.com/au/app/zone10/id510581478) does not appear to work with this plug-in. </I>
 
