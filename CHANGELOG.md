@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.3.0-beta.0 (2022-02-09)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features!
+
+### Notable Changes
+
+* MyPlace [Extras](https://www.advantageair.com.au/small-smarts-add-ons/) support!!!
+  * Lights added - both simple on/off and dimmable.
+  * Garage Door.
+
+### Other Changes
+
+* MyPlace smart eco-systems required large scale under the hood changes to manage the communication between Cmd4 and the Advantage Air Controllers. Greater detail can be found in this [Pull Request](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/pull/37).
+
+
 ## 3.2.0 (2022-02-04)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features! Thank you to all who participated in the beta testing! 
