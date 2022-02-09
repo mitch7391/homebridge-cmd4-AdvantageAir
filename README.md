@@ -15,18 +15,23 @@
 
 Catered shell script to integrate air conditioner control units by Advantage Air into Homekit using the plug-in [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4). 
 
-No affiliation with Advantage Air or any of their products.
+No affiliation with Advantage Air.
 
 ## Supported Control Units:
-* Confirmed:
+* Air Conditioning:
   * [e-zone](https://apps.apple.com/au/app/e-zone/id925994857)
   * [MyAir](https://apps.apple.com/au/app/myair/id481563583)
   * [MyAir3](https://apps.apple.com/au/app/myair3/id645762642)
   * [MyAir4](https://apps.apple.com/au/app/myair4/id925994861)
-  * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299) (Lights, Garage Door, other extras not supported)
+  * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
-* Unconfirmed:
-  * [zone10](https://apps.apple.com/au/app/zone10/id510581478) (potentially confirmed to not be supported)
+
+* Extras:
+  * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
+     * Lights 
+     * Garage Door
+
+<I><B> Note: </B> [zone10](https://apps.apple.com/au/app/zone10/id510581478) does not appear to work with this plug-in. </I>
 
 
 ## How It Looks:
@@ -50,7 +55,7 @@ No affiliation with Advantage Air or any of their products.
 
 
 ## Installation:
-### Raspbian/HOOBS/macOS:
+### Raspbian/HOOBS/macOS/NAS:
 1. Install Homebridge via these instructions for [Raspbian/HOOBS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function.
 
@@ -67,6 +72,9 @@ sudo apt-get install jq
 
 # macOS:
 brew install jq
+
+# Synology/QNAP NAS
+apk add jq
 ```
 5. Check if <B>curl</B> is installed (it should already be):
 ```
@@ -79,10 +87,13 @@ sudo apt-get install curl
 
 # macOS:
 brew install curl
+
+# Synology/QNAP NAS
+apk add curl
 ``` 
 7. Edit your homebridge `config.json` by modifying the samples included in the directory [Config_Samples](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master/Config_Samples) or by reading through and following the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation) guide to create your own config. This should all be edited from the Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab. <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
 8. Restart Homebridge. 
-9. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Shell Check'.
+9. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Check'.
 
 ![Advantage Air Shell Check](Screenshots/AdvAirShellCheck.png)
 
