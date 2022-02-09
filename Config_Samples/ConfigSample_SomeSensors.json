@@ -11,7 +11,7 @@
             "name": "Cmd4",
             "outputConstants": false,
             "statusMsg": true,
-            "timeout": 5000,
+            "timeout": 60000,
             "stateChangeResponseTime": 0,
             "constants": [
                 {
