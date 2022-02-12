@@ -26,6 +26,8 @@ No affiliation with Advantage Air.
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
 
+<I><B> Note: </B> [zone10](https://apps.apple.com/au/app/zone10/id510581478) does not appear to work with this plug-in. </I>
+
 * Extras:
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
      - [x] Lights 
@@ -33,7 +35,7 @@ No affiliation with Advantage Air.
      - [ ] Motion Sensors
      - [ ] Relay Kit (Blinds, Gates, etc.)
 
-<I><B> Note: </B> [zone10](https://apps.apple.com/au/app/zone10/id510581478) does not appear to work with this plug-in. </I>
+<I><B> Note: </B> Config for these extras can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#myplace-extras). </I>
 
 
 ## How It Looks:
