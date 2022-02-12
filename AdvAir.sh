@@ -207,9 +207,9 @@ function queryAirCon()
    if [ $fileCache = false ]; then # Updates global variable myAirData
       # A file "$CURL_INVOKED_FILE_FLAG" is used as as proxy to tell the sebsequuent getValue requests that there is an earlier 'curl' command
       # been issued and is still running.  If the file "$CURL_INVOKED_FILE_FLAG" is present and is <= 60s old, then the Get request will wait
-      # for 2s and ckeck again every second up to a max of 62 seconds or until the proxy file is deleted whichever is earlier. The deletion
-      # of the proxy file is an indication of the completion of the earlier 'curl' command and its output will be copied by the subsequent
-      # getValue requests in waiting.
+      # for up to a max of 62 seconds or until the proxy file is deleted whichever is earlier. The deletion of the proxy file is an indication of
+      # the completion of the earlier 'curl' command and its output will be copied by the subsequent getValue requests in waiting.
+      # 
       # In a very rare situation when a 'Set' command was received, aircon set and the cache file $MY_AIRDATA_FILE deleted and the first
       # getValue 'curl' command after that took unusually long time and timed out, the consequence of Cmd4 timed out is /tmp/myAirData-*.txt
       # won't get renamed to $MY_AIRDATA_FILE and the "$CURL_INVOKED_FILE_FLAG" proxy file won't get deleted neither.
@@ -347,7 +347,7 @@ function parseMyAirDataWithJq()
          # Do not output to stderr as this defeats the purpose
          # of squashing error messages
          logError "jq failed" "$rc" "$jqResult" "$io $device $characteristic" "$jqPath"
-         echo "parseMyAirDataWithJQ faited${test} rc=$rc jqResult=$jqResult $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
+         echo "parseMyAirDataWithJQ failed${test} rc=$rc jqResult=$jqResult $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
          exit $rc
       fi
    elif [ "$selfTest" = "TEST_ON" ]; then
@@ -427,10 +427,10 @@ function queryIdByName()
    # Scan for the unique IDs of lights or things by their names using jq command.
    # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
    if [ "$path" = "light" ]; then
-      ids=$(echo "$myAirData" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      ids=$( echo "$myAirData" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
       rc=$?
    elif [ "$path" = "thing" ]; then
-      ids=$(echo "$myAirData" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      ids=$( echo "$myAirData" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
       rc=$?
    else
       rc=2
