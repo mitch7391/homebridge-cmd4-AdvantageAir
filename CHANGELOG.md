@@ -2,19 +2,24 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.3.0-beta.0 (2022-02-09)
+## 3.3.0-beta.1 (2022-02-13)
 
-Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features!
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
 ### Notable Changes
 
 * MyPlace [Extras](https://www.advantageair.com.au/small-smarts-add-ons/) support!!!
-  * Lights added - both simple on/off and dimmable.
-  * Garage Door.
+  * Lights - both simple on/off and dimmable. Config examples can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#lightbulbs-1).
+  * Garage Door Opener. Config example can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#garage-door-opener).
+* MyPlace users with the extras should set `"timeout"` in their config to `60000`.
 
 ### Other Changes
 
 * MyPlace smart eco-systems required large scale under the hood changes to manage the communication between Cmd4 and the Advantage Air Controllers. Greater detail can be found in this [Pull Request](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/pull/37).
+
+### Bug Fixes
+
+* Shellcheck cleared out over 60 syntax errors in the script that could have posed issues.
 
 
 ## 3.2.0 (2022-02-04)
