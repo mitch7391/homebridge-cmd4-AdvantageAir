@@ -117,19 +117,16 @@ I have not successfully set this up on a Windows OS Homebridge server yet. If yo
 ## Further Notes
 You can read more about this project and how to create your config on the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page.
 
-## How to Keep Up-To-Date:
-In version 3.0.0 and up, this repo is able to be added like a regular plug-in through Homebridge UI even though it is not a typical 'full' plug-in! By adding it through Homebridge UI, you no longer have to manually update the scripts yourself and they will be rolled out to you in updates via Homebridge UI. Feel free to give me a `Star` as well if you are happy with the work as it is nice to know how many people use this project!
-
 
 ## How You Can Help:
 * Open Issues/Tickets.
 * Report Bugs/Errors.
 * Suggest Improvements and Features you would like to see!
 * Help test the beta releases! See the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki#beta-testing) to find out how to 'sign up'.  
-* Create a fork, add or fix something yourself and create a Pull Request to be merged back into this repo!
+* Create a fork, add or fix something yourself and create a Pull Request to be merged back into this project and released!
 * Let me know if you have a Control Unit or App that works that is not confirmed in my [Supported List](https://github.com/mitch7391/cmd4-AdvantageAir#supported-control-units)!
 * Let me know if you can figure out how to get this running on Windows 10/11 Homebridge.
-* Feel free to let me know you are loving the set up!
+* Feel free to let me know you are loving the project by give me a `Star`! It is nice to have an idea how many people use this project! 
 
 
 ## Special Thanks:
