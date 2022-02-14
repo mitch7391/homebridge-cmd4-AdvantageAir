@@ -68,6 +68,7 @@ thingSpecified=false
 QUERY_AIRCON_LOG_FILE="/tmp/queryAirCon_calls${test}.log"
 CURL_INVOKED_FILE_FLAG="/tmp/curl-invoked${test}"
 MY_AIRDATA_FILE="/tmp/myAirData${test}.txt"
+UNIT_TEST_GET_SYSTEM_DATA_FILE="getSystemData.txt"
 MY_AIRDATA_ID_FILE="/tmp/myAirData_id${test}.txt"
 MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants${test}.txt"
 
@@ -154,6 +155,29 @@ function queryAirCon()
    #                      terminal/stdout unless you redirect it.
    # --show-error        (Show error (to stderr) even when -s is used. DO NOT USE
    #                      Cmd4 will get to stderr, "curl failed, rc=1" which is annoying
+
+   # selfTest specifies a specific data file
+   if [ "$selfTest" = "TEST_ON" ]; then
+      myAirData=$( cat "data/${UNIT_TEST_GET_SYSTEM_DATA_FILE}${iteration}" )
+      rc=$?
+
+      # For Testing, you can compare whats sent
+      if [ "$io" = "Set" ]; then
+         echo "Setting url: $url";
+      fi
+
+      if [ "$rc" != "0" ]; then
+         if [ "$exitOnFail" = "1" ]; then
+            # The result cannot be trusted with a bad return code
+            # Do not output to stderr as this defeats the purpose
+            # of squashing error messages
+            logError "curl failed" "$rc" "$myAirData" "$url" ""
+            exit $rc
+         fi
+      fi
+
+      return
+   fi
 
    # Modified heavily from V3.2.0 to manage the communication between Cmd4 and the AdvantageAir (AA) system:
    #
@@ -256,13 +280,9 @@ function queryAirCon()
          t3=$(($(date '+%s') + RANDOM))
          echo "$t2 $t3" > "$CURL_INVOKED_FILE_FLAG"
 
-         if [ "$selfTest" = "TEST_OFF" ]; then
-            curl -o "/tmp/myAirData-$t3.txt" -s -g "$url"
-            rc=$?
-         elif [ "$selfTest" = "TEST_ON" ]; then
-            cat "$HOME/myAirData_test.txt" > "/tmp/myAirData-${t3}.txt"
-            rc=$?
-         fi
+         curl -o "/tmp/myAirData-$t3.txt" -s -g "$url"
+         rc=$?
+
          t4=$(date '+%s')
          dt=$((t4 - t2))
 
@@ -286,6 +306,7 @@ function queryAirCon()
       rm "$QUERY_AIRCON_LOG_FILE"
    fi
    if [ "$rc" != "0" ]; then
+      # Note: with caching, I bet this never gets used anymore
       if [ "$exitOnFail" = "1" ]; then
          # The result cannot be trusted with a bad return code
          # Do not output to stderr as this defeats the purpose
