@@ -335,10 +335,19 @@ function setAirCon()
    if [ "$selfTest" = "TEST_OFF" ]; then
       curl --fail -s -g "$url"
       rc=$?
+
+      if [ "$keepDel" = "" ] || [ "$keepDel" -le "1" ]; then
+         if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
+      fi
+   else
+      myAirData=$( cat "./data/getSystemData.txt${iteration}" )
+      rc=$?
+      # For Testing, you can compare whats sent
+      if [ "$io" = "Set" ]; then
+         echo "Setting url: $url";
+      fi
    fi
-   if [ "$keepDel" = "" ] || [ "$keepDel" -le "1" ]; then
-      if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
-   fi
+
    if [ "$rc" != "0" ]; then
       if [ "$exitOnFail" = "1" ]; then
          # The result cannot be trusted with a bad return code
