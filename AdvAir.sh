@@ -615,9 +615,10 @@ if [ "$io" = "Get" ]; then
             noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
             cZone=$( echo "$myAirConstants" | awk '{print $2}' )
          else
-            queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+            # queryAirCon "http://$IP:2025/getSystemData" "1" "0"
             # get the number of zones
-            parseMyAirDataWithJq ".aircons.ac1.info.noOfZones"
+            # parseMyAirDataWithJq ".aircons.ac1.info.noOfZones"
+            queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.noOfZones"
             nZones=$jqResult
             # Check if any zones have "rssi" value != 0  if so, set noSensors=false
             for (( a=1;a<=nZones;a++ ))
@@ -638,13 +639,16 @@ if [ "$io" = "Get" ]; then
          fi
          if [ $noSensors = false ] && [ $zoneSpecified = false ]; then
             # Use constant zone for Thermostat temperature reading
-            queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.zones.$cZone.measuredTemp"
+            # queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.zones.$cZone.measuredTemp"
+            parseMyAirDataWithJq ".aircons.ac1.zones.$cZone.measuredTemp"
          elif [ $zoneSpecified = true ]; then
             # Use zone for Temperature Sensor temp reading
-            queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.zones.$zone.measuredTemp"
+            # queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.zones.$zone.measuredTemp"
+            parseMyAirDataWithJq ".aircons.ac1.zones.$zone.measuredTemp"
          elif [ $noSensors = true ]; then
             # Uses the set temperature as the measured temperature in lieu of having sensors.
-            queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.setTemp"
+            # queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.setTemp"
+            parseMyAirDataWithJq ".aircons.ac1.info.setTemp"
          fi
          echo "$jqResult"
          exit 0
