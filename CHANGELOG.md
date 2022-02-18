@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.3.0-beta.1 (2022-02-13)
+## 3.3.0-beta.2 (2022-02-18)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
@@ -20,6 +20,7 @@ Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot20
 ### Bug Fixes
 
 * Shellcheck cleared out over 60 syntax errors in the script that could have posed issues.
+* Dev unit test fixes.
 
 
 ## 3.2.0 (2022-02-04)
