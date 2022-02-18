@@ -20,7 +20,7 @@ beforeEach()
    # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn5 ./data
    beforeEach
-   if [ -f "/tmp/myAirContants.txt" ]; then rm "/tmp/myAirConstants.txt";fi
+   if [ -f "/tmp/myAirContants.txt_TEST" ]; then rm "/tmp/myAirConstants.txt_TEST";fi
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
    assert_equal "$status" 0
