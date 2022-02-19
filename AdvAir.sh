@@ -63,6 +63,7 @@ thingSpecified=false
 
 #Temporary files
 QUERY_AIRCON_LOG_FILE="/tmp/queryAirCon_calls.log"
+QUERY_IDBYNAME_LOG_FILE="/tmp/queryIdByName.log"
 CURL_INVOKED_FILE_FLAG="/tmp/curl-invoked"
 MY_AIRDATA_FILE="/tmp/myAirData.txt"
 MY_AIRDATA_ID_FILE="/tmp/myAirData_id.txt"
@@ -433,30 +434,52 @@ function queryIdByName()
       fi
    fi
 
-   # Scan for the unique IDs of lights or things by their names using jq command.
-   # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
-   if [ "$path" = "light" ]; then
-      ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-      rc=$?
-   elif [ "$path" = "thing" ]; then
-      ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-      rc=$?
-   else
-      rc=2
-   fi
-   if [ "$ids" != "" ];then
-      eval "idArray_g=($ids)"
-   fi
-   # for diagnostic purpuses, delete '#' from the next two lines to output the diagnostic log
-   # dt=$(date '+%s')
-   # echo "queryIdByName_jq${test} $io path=$path name=$name idArray_g=${idArray_g[@]}" >> /tmp/idArray.log
-   if [ "$rc" != "0" ]; then
-      # The result cannot be trusted with a bad return code
-      # Do not output to stderr as this defeats the purpose
-      # of squashing error messages
-      logError "queryIdByName_jq${test} failed $io" "$rc" "${idArray_g[@]}" "$path" "$name"
-      exit $rc
-   fi
+   for i in 0 1 2 3 4
+   do
+      # Scan for the unique IDs of lights or things by their names using jq command.
+      # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
+      if [ "$path" = "light" ]; then
+         ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+         rc=$?
+      elif [ "$path" = "thing" ]; then
+         ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+         rc=$?
+      else
+         rc=2
+      fi
+      if [ "$ids" != "" ];then
+         eval "idArray_g=($ids)"
+      fi
+
+      # for diagnostic purpuses
+      t6=$(date '+%s')
+      echo "queryIdByName_jq${test} $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+      # Delete the log if it is > 15 MB
+      fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
+      if [ "$fSize" -gt 15728640 ];then
+         rm "$QUERY_IDBYNAME_LOG_FILE"
+      fi
+
+      if [ "$rc" != "0" ]; then
+         if [ "$i" = "4" ]; then
+            # The result cannot be trusted with a bad return code
+            # Output to stderr only after 5 tries               
+            logError "queryIdByName_jq${test} failed" "$rc" "id=${ids}" "${path}" "$name"
+            echo "queryIdByName_jq${test}_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+            exit $rc
+         else # jq failure is most likely due to bad myAirData_id.txt, get a fresh copy and try again
+            sleep 1.0
+            until [ -f "$MY_AIRDATA_FILE" ]
+               do
+                  sleep 1.0
+               done
+            cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
+            myAirData=$(cat "$MY_AIRDATA_ID_FILE")
+         fi
+      else
+         break
+      fi
+   done
 }
 
 # main starts here
@@ -514,6 +537,7 @@ if [ $argEND -ge $argSTART ]; then
             test="_TEST"
             # re-define Temporary files
             QUERY_AIRCON_LOG_FILE="${QUERY_AIRCON_LOG_FILE}${test}"
+            QUERY_IDBYNAME_LOG_FILE="${QUERY_IDBYNAME_LOG_FILE}${test}"
             CURL_INVOKED_FILE_FLAG="${CURL_INVOKED_FILE_FLAG}${test}"
             MY_AIRDATA_FILE="${MY_AIRDATA_FILE}${test}"
             MY_AIRDATA_ID_FILE="${MY_AIRDATA_ID_FILE}${test}"
@@ -621,10 +645,6 @@ if [ "$io" = "Get" ]; then
             echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
          fi
 
-         # While we have the $myAirData, let's create or update $MY_AIRDATA_ID_FILE cache file for lights and things accessories
-         # we do this here because this characteristic only got refreshed every 60s and is more than enough for this cache file
-         echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
-
          if [ $noSensors = false ] && [ $zoneSpecified = false ]; then
             # Use constant zone for Thermostat temperature reading
             parseMyAirDataWithJq ".aircons.ac1.zones.$cZone.measuredTemp"
@@ -691,14 +711,14 @@ if [ "$io" = "Get" ]; then
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
             queryIdByName "thing" "$thingName"
-            #
             parseMyAirDataWithJq ".myThings.things.\"${idArray_g[0]}\".value"
             if [ "$jqResult" = 100 ]; then
                echo 0
+               exit 0
             else
                echo 1
+               exit 0
             fi
-            exit 0
          fi
       ;;
       On )
@@ -788,16 +808,26 @@ if [ "$io" = "Get" ]; then
                echo 1
                exit 0
          elif [ $lightSpecified = true ]; then
+
+            # Udate $MY_AIRDATA_ID_FILE cache file every 12 hours, if not present, create one for lights and things accessories
+            if [ -f "$MY_AIRDATA_ID_FILE" ]; then
+               getFileStatDtFsize "$MY_AIRDATA_ID_FILE"
+               if [ "$dt" -gt 43200 ]; then
+                  echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+               fi
+            else
+               echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+            fi
+
             queryIdByName "light" "$lightName"
-            length=${#idArray_g[@]}
-            # check the state of the lights based on its unique id
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".state"
             if [ "$jqResult" = '"on"' ]; then
                echo 1
+               exit 0
             else
                echo 0
+               exit 0
             fi
-            exit 0
          fi
       ;;  # End of On
       #Light Bulb service used for controlling damper % open
@@ -825,7 +855,6 @@ if [ "$io" = "Get" ]; then
          # get the lights dim level
          elif [ $lightSpecified = true ]; then
             queryIdByName "light" "$lightName"
-            length=${#idArray_g[@]}
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".value"
             echo "$jqResult"
             exit 0
@@ -914,14 +943,15 @@ if [ "$io" = "Set" ]; then
                      keepDel=$((length - a))
                      setAirCon "http://$IP:2025/setThing?json={id:\"${idArray_g[a]}\",value:0}" "1" "0" "$keepDel"
                   done
+               exit 0
             else
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
                      setAirCon "http://$IP:2025/setThing?json={id:\"${idArray_g[a]}\",value:100}" "1" "0" "$keepDel"
                   done
+               exit 0
             fi
-            exit 0
          fi
       ;;
       On )
@@ -1000,14 +1030,15 @@ if [ "$io" = "Set" ]; then
                      keepDel=$((length - a))
                      setAirCon "http://$IP:2025/setLight?json={id:\"${idArray_g[a]}\",state:on}" "1" "0" "$keepDel"
                   done
+               exit 0
             else
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
                      setAirCon "http://$IP:2025/setLight?json={id:\"${idArray_g[a]}\",state:off}" "1" "0" "$keepDel"
                   done
+               exit 0
             fi
-            exit 0
          fi
       ;;
       #Light Bulb service for used controlling damper % open and timer
