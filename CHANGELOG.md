@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.3.0-beta.1 (2022-02-13)
+## 3.3.0-beta.3 (2022-02-19)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
@@ -16,10 +16,12 @@ Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot20
 ### Other Changes
 
 * MyPlace smart eco-systems required large scale under the hood changes to manage the communication between Cmd4 and the Advantage Air Controllers. Greater detail can be found in this [Pull Request](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/pull/37).
+* MyPlace Extras are now independent of the aircon system; for those who do not want to add the aircon system to HomeKit.
 
 ### Bug Fixes
 
 * Shellcheck cleared out over 60 syntax errors in the script that could have posed issues.
+* Dev unit test fixes.
 
 
 ## 3.2.0 (2022-02-04)
