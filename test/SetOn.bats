@@ -20,8 +20,9 @@ teardown()
    e_status=$status
    e_lines=("${lines[@]}")
    run ./compare/AdvAir.sh Set Fan On 1 192.168.0.173 TEST_ON
+   # No longer the same
+   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
    assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "${e_lines[0]}"
 
 }
 
@@ -33,7 +34,8 @@ teardown()
    e_status=$status
    e_lines=("${lines[@]}")
    run ./compare/AdvAir.sh Set Fan On 1 192.168.0.173 TEST_ON
-   assert_equal "${lines[0]}" "${e_lines[0]}"
+   # No longer the same
+   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
    assert_equal "$status" "$e_status"
 }
 
@@ -44,7 +46,8 @@ teardown()
    e_status=$status
    e_lines=("${lines[@]}")
    run ./compare/AdvAir.sh Set Fan On 1 192.168.0.173 TEST_ON
-   assert_equal "${lines[0]}" "${e_lines[0]}"
+   # No longer the same
+   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
    assert_equal "$status" "$e_status"
 
 }
