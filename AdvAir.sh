@@ -68,6 +68,7 @@ CURL_INVOKED_FILE_FLAG="/tmp/curl-invoked"
 MY_AIRDATA_FILE="/tmp/myAirData.txt"
 MY_AIRDATA_ID_FILE="/tmp/myAirData_id.txt"
 MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants.txt"
+ZONEOPEN_FILE="/tmp/zoneOpen.txt"
 
 # Unit test myAirData file
 UNIT_TEST_GET_SYSTEM_DATA_FILE="data/getSystemData.txt"
@@ -119,16 +120,16 @@ function getFileStatDtFsize()
    # This script is to determine the creatine time of a file using 'stat' command and calculate the age of the file in seconds
    # and also get the file size in bytes
    # 'stat' command has different parameters in MacOS
-   # The return variables of this script: t0 = creation time of the file since Epoch
+   # The return variables of this script: t0 = last changed time of the file since Epoch
    #                                      t1 = current time in since Epoch
-   #                                      dt = the age of the file in seconds
+   #                                      dt = the age of the file in seconds since last changed
    #                                      fSize = the size of the file in bytes
    case "$OSTYPE" in
       darwin*)
-         t0=$( stat -r "$fileName" | awk '{print $12}' )  # for Mac users
+         t0=$( stat -r "$fileName" | awk '{print $11}' )  # for Mac users
       ;;
       *)
-         t0=$( stat -c %Y "$fileName" )
+         t0=$( stat -c %Z "$fileName" )
       ;;
    esac
    t1=$(date '+%s')
@@ -386,10 +387,10 @@ function queryAndParseAirCon()
          if [ "$rc" = "0" ]; then
             break
          else
-            sleep 1.0
+            sleep 1.2
          fi
       else
-         sleep 1.0
+         sleep 1.2
       fi
    done
 }
@@ -542,6 +543,7 @@ if [ $argEND -ge $argSTART ]; then
             MY_AIRDATA_FILE="${MY_AIRDATA_FILE}${test}"
             MY_AIRDATA_ID_FILE="${MY_AIRDATA_ID_FILE}${test}"
             MY_AIR_CONSTANTS_FILE="${MY_AIR_CONSTANTS_FILE}${test}"
+            ZONEOPEN_FILE="${ZONEOPEN_FILE}${test}"
             optionUnderstood=true
             ;;
          TEST_CMD4)
@@ -611,47 +613,59 @@ if [ $zoneSpecified = false ] && [ $fanSpeed = false ] && [ $timerEnabled = fals
 fi
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
+
    queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.state"
+
+   # Create a system-wide $MY_AIRDATA_CONSTANTS_FILE cache file if not present 
+   if [ ! -f "$MY_AIR_CONSTANTS_FILE" ]; then
+      # get the number of zones
+      parseMyAirDataWithJq ".aircons.ac1.info.noOfZones"
+      nZones=$jqResult
+      # Check if any zones have "rssi" value != 0  if so, set noSensors=false
+      for (( a=1;a<=nZones;a++ ))
+      do
+         zoneStr=$( printf "z%02d" "$a" )
+         parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.rssi"
+         if [ "$jqResult" != 0 ]; then
+            noSensors=false
+            break
+         fi
+      done
+      # parse the first constant zone from myAirData
+      parseMyAirDataWithJq ".aircons.ac1.info.constant1"
+      cZone=$( printf "z%02d" "$jqResult" )
+      echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
+   fi
+
+   # Create a $MY_AIRDATA_ID_FILE cache file for lights and things accessories if not present. If present, refresh every 12 hours.
+      if [ $lightSpecified = true ] || [ $thingSpecified = true ]; then
+         if [ -f "$MY_AIRDATA_ID_FILE" ]; then
+            getFileStatDtFsize "$MY_AIRDATA_ID_FILE"
+            if [ "$dt" -gt 43200 ]; then
+               echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+            fi
+         else
+            echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+         fi
+      fi
+
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
          # check whether Temperature Sensors are used in this system and also check the constant zone for this system
 
-         # If the system wide constants cache file is present, read from it otherwise create one
+         # Read the system-wide constants from $MY_AIR_CONSTANTS_FILE cache file
+         myAirConstants=$( cat "$MY_AIR_CONSTANTS_FILE" )
+         noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
+         cZone=$( echo "$myAirConstants" | awk '{print $2}' )
 
-         if [ -f "$MY_AIR_CONSTANTS_FILE" ]; then
-            myAirConstants=$( cat "$MY_AIR_CONSTANTS_FILE" )
-            noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
-            cZone=$( echo "$myAirConstants" | awk '{print $2}' )
-         else
-            # get the number of zones
-            parseMyAirDataWithJq ".aircons.ac1.info.noOfZones"
-            nZones=$jqResult
-            # Check if any zones have "rssi" value != 0  if so, set noSensors=false
-            for (( a=1;a<=nZones;a++ ))
-            do
-               zoneStr=$( printf "z%02d" "$a" )
-               parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.rssi"
-               if [ "$jqResult" != 0 ]; then
-                   noSensors=false
-                   break
-               fi
-            done
-            # parse the first constant zone from myAirData
-            parseMyAirDataWithJq ".aircons.ac1.info.constant1"
-            cZone=$( printf "z%02d" "$jqResult" )
-            # write the noSensor, cZone and nZones info to a file $MY_AIR_CONSTANTS_FILE as a cache file
-            # this cache file will not be refreshed automatically unless deleted or the host system rebooted
-            echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
-         fi
-
-         if [ $noSensors = false ] && [ $zoneSpecified = false ]; then
+         if [ "$noSensors" = false ] && [ $zoneSpecified = false ]; then
             # Use constant zone for Thermostat temperature reading
             parseMyAirDataWithJq ".aircons.ac1.zones.$cZone.measuredTemp"
          elif [ $zoneSpecified = true ]; then
             # Use zone for Temperature Sensor temp reading
             parseMyAirDataWithJq ".aircons.ac1.zones.$zone.measuredTemp"
-         elif [ $noSensors = true ]; then
+         elif [ "$noSensors" = true ]; then
             # Uses the set temperature as the measured temperature in lieu of having sensors.
             parseMyAirDataWithJq ".aircons.ac1.info.setTemp"
          fi
@@ -808,17 +822,6 @@ if [ "$io" = "Get" ]; then
                echo 1
                exit 0
          elif [ $lightSpecified = true ]; then
-
-            # Udate $MY_AIRDATA_ID_FILE cache file every 12 hours, if not present, create one for lights and things accessories
-            if [ -f "$MY_AIRDATA_ID_FILE" ]; then
-               getFileStatDtFsize "$MY_AIRDATA_ID_FILE"
-               if [ "$dt" -gt 43200 ]; then
-                  echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
-               fi
-            else
-               echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
-            fi
-
             queryIdByName "light" "$lightName"
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".state"
             if [ "$jqResult" = '"on"' ]; then
@@ -988,10 +991,20 @@ if [ "$io" = "Set" ]; then
                   parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.state"
                   if [ "$jqResult" = '"open"' ]; then
                      zoneOpen=$((zoneOpen + 1))
+                  elif [ "$jqResult" = "null" ] && [ -f "$ZONEOPEN_FILE" ]; then
+                     getFileStatDtFsize "$ZONEOPEN_FILE"
+                     if [ "$dt" -lt 10 ]; then
+                        zoneOpen=$( cat "$ZONEOPEN_FILE" )
+                        zoneOpen=$((zoneOpen - 1))
+                        echo "$zoneOpen" > "$ZONEOPEN_FILE"
+                        break 
+                     fi
                   fi
                done
-               if [ $zoneOpen -gt 1 ]; then
+               if [ "$zoneOpen" -gt 1 ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
+                  # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
+                  echo "$zoneOpen" > "$ZONEOPEN_FILE"
                   setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
                   exit 0
                elif [ "$zone" = "$cZone" ]; then
