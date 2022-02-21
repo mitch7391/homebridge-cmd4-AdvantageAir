@@ -281,7 +281,7 @@ function queryAirCon()
          else
             if [ -f "/tmp/myAirData-${t3}.txt" ]; then rm "/tmp/myAirData-${t3}.txt"; fi
             if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then rm "$CURL_INVOKED_FILE_FLAG"; fi
-            echo "queryAirCon_curl_failed${test} $t2 $t4 $dt $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            echo "queryAirCon_curl_failed${test} $t2 $t4 $dt rc=$rc itr=$iteration $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
          fi
       fi
    fi
@@ -979,28 +979,33 @@ if [ "$io" = "Set" ]; then
                # > if the only zone open is the constant zone, leave it open and set it to 100%.
                # > if the constant zone is already closed, and the only open zone is set to close,
                #  the constant zone will open and set to 100% while closing that zone.
+
                # retrieve the constant zone number of zones from from the cache file
                myAirConstants=$( cat "$MY_AIR_CONSTANTS_FILE" )
                cZone=$( echo "$myAirConstants" | awk '{print $2}' )
                nZones=$( echo "$myAirConstants" | awk '{print $3}' )
-               queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+
                # Check how many zones are open
-               for (( a=1;a<=nZones;a++ ))
-               do
-                  zoneStr=$( printf "z%02d" "$a" )
-                  parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.state"
-                  if [ "$jqResult" = '"open"' ]; then
-                     zoneOpen=$((zoneOpen + 1))
-                  elif [ "$jqResult" = "null" ] && [ -f "$ZONEOPEN_FILE" ]; then
-                     getFileStatDtFsize "$ZONEOPEN_FILE"
-                     if [ "$dt" -lt 10 ]; then
-                        zoneOpen=$( cat "$ZONEOPEN_FILE" )
-                        zoneOpen=$((zoneOpen - 1))
-                        echo "$zoneOpen" > "$ZONEOPEN_FILE"
-                        break 
+               if [ -f "$ZONEOPEN_FILE" ]; then
+                  getFileStatDtFsize "$ZONEOPEN_FILE"
+                  if [ "$dt" -ge 10 ]; then rm "$ZONEOPEN_FILE"; fi
+               fi
+               if [ -f "$ZONEOPEN_FILE" ]; then
+                  zoneOpen=$( cat "$ZONEOPEN_FILE" )
+                  zoneOpen=$((zoneOpen - 1))
+                  echo "$zoneOpen" > "$ZONEOPEN_FILE"
+               else
+                  queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+                  for (( a=1;a<=nZones;a++ ))
+                  do
+                     zoneStr=$( printf "z%02d" "$a" )
+                     parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.state"
+                     if [ "$jqResult" = '"open"' ]; then
+                        zoneOpen=$((zoneOpen + 1))
                      fi
-                  fi
-               done
+                  done
+               fi
+
                if [ "$zoneOpen" -gt 1 ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
                   # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
