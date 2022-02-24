@@ -51,11 +51,19 @@ fspeed="low"
 selfTest="TEST_OFF"
 test=""
 
+# Define the aircon system "ac1", "ac2", etc,  default to "ac1" if not explicitly specified
+ac="ac1"
+
 # Define some variables for zone open checking
+zoneOpen=0
+
 zoneOpen=0
 
 # For timer capability
 timerEnabled=false
+
+# For flip capability for things' open/close, up/down mode
+flipEnabled=false
 
 #for lights and things (like garage, etc) controls
 lightSpecified=false
@@ -170,7 +178,7 @@ function queryAirCon()
    # The purpose of this is to prevent an excessive amount of queries to the AdvantageAir System otherwise will jam the AA system and
    # make it unresponsive.
 
-   local fileCache=false
+   local useFileCache=false
 
    if [ -f "$MY_AIRDATA_FILE" ]; then
       getFileStatDtFsize "$MY_AIRDATA_FILE"
@@ -179,7 +187,7 @@ function queryAirCon()
       # indication of incomplete myAirData json file.
 
       if [ "$dt" -le 90 ] && [ "$fSize" -gt 2000 ]; then
-         fileCache=true
+         useFileCache=true
          myAirData=$( cat "$MY_AIRDATA_FILE" )
          rc=0
 
@@ -187,6 +195,9 @@ function queryAirCon()
       # /tmp directory, it means that an earlier getValue 'curl' command was actually completed but Cmd4 getValue timed out.
       # To recover, do the following:
 
+      elif [ "$fSize" -le 2000 ]; then
+         t2=$(date '+%s')
+         echo "queryAirCon_calls${test} $t2 $dt fSize=$fSize invalid MyAirData $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
       elif [ "$dt" -gt 180 ]; then
          if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then
             t23=$( cat "$CURL_INVOKED_FILE_FLAG" )
@@ -208,9 +219,9 @@ function queryAirCon()
 
    # log for diagnostic purposes
    t2=$(date '+%s')
-   echo "queryAirCon_calls${test} $t2 $dt $iteration $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+   echo "queryAirCon_calls${test} $t2 $dt itr=$iteration $useFileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
 
-   if [ $fileCache = false ]; then # Updates global variable myAirData
+   if [ $useFileCache = false ]; then # Updates global variable myAirData
       # A file "$CURL_INVOKED_FILE_FLAG" is used as as proxy to tell the sebsequuent getValue requests that there is an earlier 'curl' command
       # been issued and is still running.  If the file "$CURL_INVOKED_FILE_FLAG" is present and is <= 60s old, then the Get request will wait
       # for up to a max of 62 seconds or until the proxy file is deleted whichever is earlier. The deletion of the proxy file is an indication of
@@ -237,7 +248,7 @@ function queryAirCon()
             rm -f /tmp/myAirData-*.txt
             rm "$CURL_INVOKED_FILE_FLAG"
             dt=$((dt * -1))
-            echo "queryAirCon_curl_timedOut${test} ${t2} $dt $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            echo "queryAirCon_curl_timedOut${test} ${t2} $dt itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
          else
             while [ -f "$CURL_INVOKED_FILE_FLAG" ]
                do
@@ -252,7 +263,7 @@ function queryAirCon()
             rc=0
             t4=$(date '+%s')
             dt=$((t4 - t2))
-            echo "queryAirCon_copy${test} $t2 $t4 $dt $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            echo "queryAirCon_copy${test} $t2 $t4 $dt $useFileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
          fi
       # create a proxy file "$CURL_INVOKED_FILE_FLAG" if there isn't one there already
       # run the getValue 'curl' command and output to a temporary file - this is the prevent the file been accessed while being written
@@ -277,11 +288,11 @@ function queryAirCon()
             mv "/tmp/myAirData-${t3}.txt" "$MY_AIRDATA_FILE"
             rm -f /tmp/myAirData-*.txt
             rm "$CURL_INVOKED_FILE_FLAG"
-            echo "queryAirCon_curl${test} $t2 $t4 $dt $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            echo "queryAirCon_curl${test} $t2 $t4 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
          else
             if [ -f "/tmp/myAirData-${t3}.txt" ]; then rm "/tmp/myAirData-${t3}.txt"; fi
             if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then rm "$CURL_INVOKED_FILE_FLAG"; fi
-            echo "queryAirCon_curl_failed${test} $t2 $t4 $dt rc=$rc itr=$iteration $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            echo "queryAirCon_curl_failed${test} $t2 $t4 $dt rc=$rc itr=$iteration $useFileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
          fi
       fi
    fi
@@ -365,51 +376,92 @@ function parseMyAirDataWithJq()
    fi
 }
 
-function queryAndParseAirCon()
+function queryAirConWithIterations()
 {
    local url="$1"
-   local jqPath="$2"
+   local exitOnFail="0"
    # Try 5 times, the last returning the error found.
    for i in 0 1 2 3 4
    do
       if [ "$selfTest" = "TEST_ON" ]; then
          echo "Try $i"
       fi
-      local exitOnFail="0"
       if [ "$i" = "4" ]; then
          exitOnFail="1"
       fi
       # Updates global variable myAirData
       queryAirCon "$url" "$exitOnFail" "$i"
       if [ "$rc" = "0" ]; then
-         # Updates global variable jqResult
-         parseMyAirDataWithJq "$jqPath" "$exitOnFail"
-         if [ "$rc" = "0" ]; then
-            break
-         else
-            sleep 1.2
-         fi
+         break
       else
          sleep 1.2
       fi
    done
 }
 
+function createMyAirConstantsFile()
+{
+   # Create a system-wide $MY_AIRDATA_CONSTANTS_FILE cache file if not present
+   # Only call this function after a queryAirConWithIterations call
+   # get the number of zones
+   parseMyAirDataWithJq ".aircons.$ac.info.noOfZones"
+   nZones=$jqResult
+   # Check if any zones have "rssi" value != 0  if so, set noSensors=false
+   for (( a=1;a<=nZones;a++ ))
+   do
+      zoneStr=$( printf "z%02d" "$a" )
+      parseMyAirDataWithJq ".aircons.$ac.zones.$zoneStr.rssi"
+      if [ "$jqResult" != 0 ]; then
+         noSensors=false
+         break
+      fi
+   done
+   # parse the first constant zone from myAirData
+   parseMyAirDataWithJq ".aircons.$ac.info.constant1"
+   cZone=$( printf "z%02d" "$jqResult" )
+   echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
+}
+
+function createUpdateMyAirDataIdFile()
+{
+   # Create a $MY_AIRDATA_ID_FILE cache file for lights and things accessories if not present. If present, refresh every 12 hours.
+   # Only call this function after a queryAirConWithIterations call
+   if [ -f "$MY_AIRDATA_ID_FILE" ]; then
+      getFileStatDtFsize "$MY_AIRDATA_ID_FILE"
+         if [ "$dt" -gt 43200 ]; then
+            echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+         fi
+   else
+      echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
+   fi
+}
+
+function getMyAirDataFromIdFile()
+{
+   # get myAirData from $MY_AIRDATA_ID_FILE cache file, if for some reasons the cache file is not present then
+   # create one from $MY_AIRDATA_FILE
+
+   if [ -f "$MY_AIRDATA_ID_FILE" ]; then
+      myAirData=$(cat "$MY_AIRDATA_ID_FILE")
+   else
+      until [ -f "$MY_AIRDATA_FILE" ]
+         do
+            sleep 1.0
+         done
+      cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
+      myAirData=$(cat "$MY_AIRDATA_ID_FILE")
+   fi
+}
+
 function queryIdByName()
 {
    local path="$1"
    local name="$2"
+   local exitOnFail="$3"
+   local iteration="$4"
 
    # This script is to extract the ID(s) of a light by its name or a thing (garage, blinds, etc) by its name
-   # A name may be associated with 2 or more physcial lights/things hence 2 or more IDs`
-   # A name can contain up to 4 words separated by space(s) but AA system has a limit of 12 characters including the space
-   # The recommendation for a light/thing's name is to try not to use space as word separator to avoid any ambiguity:
-   #     e.g. Two lights with names "Bath 2 DL", "Bath 2 Ex DL" will have ambiguity issue. When scanning for "Bath 2 DL",
-   #     the IDs for both lights will be extracted because both lights contain the words "Bath", "2" and "DL".
-   #     To resolve this kind of ambiguity, use underscore instead of space as word separator. When underscore is used instead
-   #     space, multi-words name will become a single word name. In this example, the two light names will become "Bath_2_DL",
-   #     "Bath_2_Ex_DL" and they will have no ambiguity issue.
-   # If the name contains 4 words separated by a space, then it needs to be separated for ID scanning purposes.
+   # A name may contain up to 4 separate words
 
    local name1 name2 name3 name4
    local ids=""
@@ -419,66 +471,65 @@ function queryIdByName()
    name3=$(echo "$name"|cut -d" " -f3)
    name4=$(echo "$name"|cut -d" " -f4)
 
-   # Obtain the unique ID by its name from a cache dataset $MY_AIRDATA_ID_FILE, if for some reasons the file is not present then
-   # create one from $MY_AIRDATA_FILE
+   # Scan for the unique IDs of lights or things by their names using jq command.
+   # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
+   if [ "$path" = "light" ]; then
+      ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      rc=$?
+   elif [ "$path" = "thing" ]; then
+      ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      rc=$?
+   else
+      rc=5
+   fi
+   if [ "$ids" != "" ];then
+      eval "idArray_g=($ids)"
+   fi
 
-   if [ "$io" = "Set" ]; then
-      if [ -f "$MY_AIRDATA_ID_FILE" ]; then
-         myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-      else
-         until [ -f "$MY_AIRDATA_FILE" ]        
+   # for diagnostic purpuses
+   t6=$(date '+%s')
+   echo "queryIdByName${test} $t6 ${io}${i} rc=$rc itr=$iteration path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+   # Delete the log if it is > 15 MB
+   fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
+   if [ "$fSize" -gt 15728640 ];then
+      rm "$QUERY_IDBYNAME_LOG_FILE"
+   fi
+   if [ "$rc" != "0" ] && [ "$rc" != "5" ]; then
+      if [ "$exitOnFail" = "1" ]; then
+         logError "queryIdByName${test} failed" "$rc" "$device" "$characteristic" "$path:$name"
+         exit $rc
+      fi
+   fi
+}
+
+function queryIdByNameWithIterations()
+{
+   local path="$1"
+   local name="$2"
+   local exitOnFail="0"
+   # Try 5 times, the last returning the error found.
+   for i in 0 1 2 3 4
+   do
+      if [ "$selfTest" = "TEST_ON" ]; then
+         echo "Try $i"
+      fi
+      if [ "$i" = "4" ]; then
+         exitOnFail="1"
+      fi
+      # Updates global variable idArray_g
+      queryIdByName "$path" "$name" "$exitOnFail" "$i"
+      if [ "$rc" = "0" ]; then
+         break
+      elif [ "$rc" = "5" ]; then
+         echo "queryIdByName${test}_failed $t6 ${io}${i} rc=$rc itr=$iteration WRONG-path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+         logError "queryIdByName${test} failed" "$rc" "$device" "$characteristic" "WRONG-$path:$name"
+      else #jq failure is most likely due to bad myAirData, fetch a fresh copy  
+         until [ -f "$MY_AIRDATA_FILE" ]
             do
                sleep 1.0
             done
          cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
          myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-      fi
-   fi
-
-   for i in 0 1 2 3 4
-   do
-      # Scan for the unique IDs of lights or things by their names using jq command.
-      # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
-      if [ "$path" = "light" ]; then
-         ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-         rc=$?
-      elif [ "$path" = "thing" ]; then
-         ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-         rc=$?
-      else
-         rc=2
-      fi
-      if [ "$ids" != "" ];then
-         eval "idArray_g=($ids)"
-      fi
-
-      # for diagnostic purpuses
-      t6=$(date '+%s')
-      echo "queryIdByName_jq${test} $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
-      # Delete the log if it is > 15 MB
-      fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
-      if [ "$fSize" -gt 15728640 ];then
-         rm "$QUERY_IDBYNAME_LOG_FILE"
-      fi
-
-      if [ "$rc" != "0" ]; then
-         if [ "$i" = "4" ]; then
-            # The result cannot be trusted with a bad return code
-            # Output to stderr only after 5 tries               
-            logError "queryIdByName_jq${test} failed" "$rc" "id=${ids}" "${path}" "$name"
-            echo "queryIdByName_jq${test}_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
-            exit $rc
-         else # jq failure is most likely due to bad myAirData_id.txt, get a fresh copy and try again
-            sleep 1.0
-            until [ -f "$MY_AIRDATA_FILE" ]
-               do
-                  sleep 1.0
-               done
-            cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
-            myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-         fi
-      else
-         break
       fi
    done
 }
@@ -557,8 +608,38 @@ if [ $argEND -ge $argSTART ]; then
             optionUnderstood=true
             ;;
          timer)
-            # Aded to include a timer capability
+            # For timer capability
             timerEnabled=true
+            optionUnderstood=true
+            ;;
+         flip)
+            # To flip open/close, up/down mode for garage or gate
+            flipEnabled=true
+            optionUnderstood=true
+            ;;
+         ac1)
+            # Specify the aircon system 1, if not defined, ac="ac1"                                     
+            ac="ac1"
+            optionUnderstood=true
+            ;;
+         ac2)
+            # Specify the aircon system 2, if not defined, ac="ac1"                                     
+            ac="ac2"
+            optionUnderstood=true
+            ;;
+         ac3)
+            # Specify the aircon system 3, if not defined, ac="ac1"                                     
+            ac="ac3"
+            optionUnderstood=true
+            ;;
+         ac4)
+            # Specify the aircon system 4, if not defined, ac="ac1"                                     
+            ac="ac4"
+            optionUnderstood=true
+            ;;
+         ac5)
+            # Specify the aircon system 5, if not defined, ac="ac1"                                     
+            ac="ac5"
             optionUnderstood=true
             ;;
          *)
@@ -614,40 +695,13 @@ fi
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
 
-   queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.state"
+   queryAirConWithIterations "http://$IP:2025/getSystemData"
 
    # Create a system-wide $MY_AIRDATA_CONSTANTS_FILE cache file if not present 
-   if [ ! -f "$MY_AIR_CONSTANTS_FILE" ]; then
-      # get the number of zones
-      parseMyAirDataWithJq ".aircons.ac1.info.noOfZones"
-      nZones=$jqResult
-      # Check if any zones have "rssi" value != 0  if so, set noSensors=false
-      for (( a=1;a<=nZones;a++ ))
-      do
-         zoneStr=$( printf "z%02d" "$a" )
-         parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.rssi"
-         if [ "$jqResult" != 0 ]; then
-            noSensors=false
-            break
-         fi
-      done
-      # parse the first constant zone from myAirData
-      parseMyAirDataWithJq ".aircons.ac1.info.constant1"
-      cZone=$( printf "z%02d" "$jqResult" )
-      echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
-   fi
+   if [ ! -f "$MY_AIR_CONSTANTS_FILE" ]; then createMyAirConstantsFile; fi
 
-   # Create a $MY_AIRDATA_ID_FILE cache file for lights and things accessories if not present. If present, refresh every 12 hours.
-      if [ $lightSpecified = true ] || [ $thingSpecified = true ]; then
-         if [ -f "$MY_AIRDATA_ID_FILE" ]; then
-            getFileStatDtFsize "$MY_AIRDATA_ID_FILE"
-            if [ "$dt" -gt 43200 ]; then
-               echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
-            fi
-         else
-            echo "$myAirData" > "$MY_AIRDATA_ID_FILE"
-         fi
-      fi
+   # Create or update $MY_AIRDATA_ID_FILE cache file for lights and things accessories
+   if [ $lightSpecified = true ] || [ $thingSpecified = true ]; then createUpdateMyAirDataIdFile; fi
 
    case "$characteristic" in
       # Gets the current temperature.
@@ -661,13 +715,13 @@ if [ "$io" = "Get" ]; then
 
          if [ "$noSensors" = false ] && [ $zoneSpecified = false ]; then
             # Use constant zone for Thermostat temperature reading
-            parseMyAirDataWithJq ".aircons.ac1.zones.$cZone.measuredTemp"
+            parseMyAirDataWithJq ".aircons.$ac.zones.$cZone.measuredTemp"
          elif [ $zoneSpecified = true ]; then
             # Use zone for Temperature Sensor temp reading
-            parseMyAirDataWithJq ".aircons.ac1.zones.$zone.measuredTemp"
+            parseMyAirDataWithJq ".aircons.$ac.zones.$zone.measuredTemp"
          elif [ "$noSensors" = true ]; then
             # Uses the set temperature as the measured temperature in lieu of having sensors.
-            parseMyAirDataWithJq ".aircons.ac1.info.setTemp"
+            parseMyAirDataWithJq ".aircons.$ac.info.setTemp"
          fi
          echo "$jqResult"
          exit 0
@@ -675,7 +729,7 @@ if [ "$io" = "Get" ]; then
       # Gets the target temperature.
       TargetTemperature )
          # Updates global variable jqResult
-         parseMyAirDataWithJq ".aircons.ac1.info.setTemp"
+         parseMyAirDataWithJq ".aircons.$ac.info.setTemp"
          echo "$jqResult"
          exit 0
       ;;
@@ -683,14 +737,14 @@ if [ "$io" = "Get" ]; then
       TargetHeatingCoolingState | CurrentHeatingCoolingState )
          # Set to Off if the zone is closed or the Control Unit is Off.
          # Updates global variable jqResult
-         # parseMyAirDataWithJq ".aircons.ac1.info.state"
+         parseMyAirDataWithJq ".aircons.$ac.info.state"
          if [  "$jqResult" = '"off"' ]; then
             echo 0
             exit 0
          else
             # Get the current mode of the Control Unit. Off=0, Heat=1, Cool=2.
             # Updates global variable jqResult
-            parseMyAirDataWithJq ".aircons.ac1.info.mode"
+            parseMyAirDataWithJq ".aircons.$ac.info.mode"
             mode="$jqResult"
             case "$mode" in
                '"heat"' )
@@ -724,13 +778,13 @@ if [ "$io" = "Get" ]; then
       # for garage door opener: get the value from MyPlace (100=open, 0=close) (in Homekit 0=open, 1=close)
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            queryIdByNameWithIterations "thing" "$thingName"
             parseMyAirDataWithJq ".myThings.things.\"${idArray_g[0]}\".value"
             if [ "$jqResult" = 100 ]; then
-               echo 0
+               if [ $flipEnabled = ture ]; then echo 1; else echo 0; fi
                exit 0
             else
-               echo 1
+               if [ $flipEnabled = ture ]; then echo 0; else echo 1; fi
                exit 0
             fi
          fi
@@ -739,14 +793,14 @@ if [ "$io" = "Get" ]; then
          if [ $fanSpecified = true ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
-            # parseMyAirDataWithJq ".aircons.ac1.info.state"
+            parseMyAirDataWithJq ".aircons.$ac.info.state"
             if [  "$jqResult" = '"off"' ]; then
                echo 0
                exit 0
             else
                # Get the current mode of the Control Unit. Fan can only be On or Off; if not Vent, set all other modes to Off.
                # Updates global variable jqResult
-               parseMyAirDataWithJq ".aircons.ac1.info.mode"
+               parseMyAirDataWithJq ".aircons.$ac.info.mode"
                mode="$jqResult"
                case "$mode" in
                   '"heat"' )
@@ -781,7 +835,7 @@ if [ "$io" = "Get" ]; then
             # Change to On just so we can leave it here for now
             # and it will not get called
             # Updates global variable jqResult
-            parseMyAirDataWithJq ".aircons.ac1.zones.$zone.state"
+            parseMyAirDataWithJq ".aircons.$ac.zones.$zone.state"
             if [ "$jqResult" = '"open"' ]; then
                echo 1
                exit 0
@@ -791,10 +845,10 @@ if [ "$io" = "Get" ]; then
             fi
          # get the timer current setting
          elif [ $timerEnabled = true ]; then
-            # parseMyAirDataWithJq ".aircons.ac1.info.state"
+            parseMyAirDataWithJq ".aircons.$ac.info.state"
             # If the aircon state is "off", check that whether it has a countDownToOn timer set
             if [ "$jqResult" = '"off"' ]; then
-               parseMyAirDataWithJq ".aircons.ac1.info.countDownToOn"
+               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
                # If "countDownToOn" is 0 then switch the timer off
                if [ "$jqResult" = '0' ]; then
                   echo 0
@@ -806,7 +860,7 @@ if [ "$io" = "Get" ]; then
                fi
             # If the aircon state is "on", check that whether it has a countDownToOff timer set
             else
-               parseMyAirDataWithJq ".aircons.ac1.info.countDownToOff"
+               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
                if [ "$jqResult" = "0" ]; then
                   # If "countDownToOff" is 0 then switch the timer off
                   echo 0
@@ -822,7 +876,7 @@ if [ "$io" = "Get" ]; then
                echo 1
                exit 0
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            queryIdByNameWithIterations "light" "$lightName"
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".state"
             if [ "$jqResult" = '"on"' ]; then
                echo 1
@@ -838,26 +892,26 @@ if [ "$io" = "Get" ]; then
          # get the zone damper % information
          if [ $zoneSpecified = true ]; then
             # Get the zone damper % open
-            parseMyAirDataWithJq ".aircons.ac1.zones.$zone.value"
+            parseMyAirDataWithJq ".aircons.$ac.zones.$zone.value"
             echo "$jqResult"
             exit 0
          # Get the timer setting
          elif [ $timerEnabled = true ]; then
-            # parseMyAirDataWithJq ".aircons.ac1.info.state"
+            parseMyAirDataWithJq ".aircons.$ac.info.state"
             # Get the timer countDowqnToOff value if the state of the aircon is "on"
             if [ "$jqResult" = '"on"' ]; then
-               parseMyAirDataWithJq ".aircons.ac1.info.countDownToOff"
+               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
                echo $((jqResult / 10))
                exit 0
             # Get the timer countDownToOn value if the state of the aircon is "off"
             else
-               parseMyAirDataWithJq ".aircons.ac1.info.countDownToOn"
+               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
                echo $((jqResult / 10))
                exit 0
             fi
          # get the lights dim level
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            queryIdByNameWithIterations "light" "$lightName"
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".value"
             echo "$jqResult"
             exit 0
@@ -866,7 +920,7 @@ if [ "$io" = "Get" ]; then
       # Fan service for controlling fan speed (low, medium and high)
       RotationSpeed )
          # Update the current fan speed
-         parseMyAirDataWithJq ".aircons.ac1.info.fan"
+         parseMyAirDataWithJq ".aircons.$ac.info.fan"
          if [ "$jqResult" = '"low"' ]; then
             #25% as low speed
             echo 25
@@ -888,7 +942,7 @@ if [ "$io" = "Get" ]; then
       #Temp Sensor Fault Status = no fault/fault = 0/1-2
       StatusLowBattery )
          # Updates global variable jqResult
-         parseMyAirDataWithJq ".aircons.ac1.zones.$zone.error"
+         parseMyAirDataWithJq ".aircons.$ac.zones.$zone.error"
          if [ "$jqResult" = '0' ]; then
             echo 0
             exit 0
@@ -906,17 +960,17 @@ if [ "$io" = "Set" ]; then
          case "$value" in
             0 )
                # Shut Off Control Unit.
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
                exit 0
             ;;
             1 )
                # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:heat}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:heat}}}" "1" "0"
                exit 0
             ;;
             2 )
                # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:cool}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:cool}}}" "1" "0"
                exit 0
             ;;
          esac
@@ -927,18 +981,19 @@ if [ "$io" = "Set" ]; then
          noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
          if [ "$noSensors" = true ]; then
             # Only sets temperature to master temperature in the app
-            setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
+            setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{setTemp:$value}}}" "1" "0"
             exit 0
          else
             # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
-            setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
+            setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
             exit 0
          fi
       ;;
       TargetDoorState )
          # set the value of the garage door (100=open, 0=close) to MyPlace, (0=open, 1=close for Homekit)
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            getMyAirDataFromIdFile
+            queryIdByNameWithIterations "thing" "$thingName"
             length=${#idArray_g[@]}
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
@@ -962,17 +1017,17 @@ if [ "$io" = "Set" ]; then
          if [ $fanSpecified = true ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:vent}}}" "1" "0"
                exit 0
             else
                # Shut Off Control Unit.
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
                exit 0
             fi
          # Uses the On characteristic for zone switches.
          elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{state:open}}}}" "1" "0"
                exit 0
             else
                # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
@@ -995,11 +1050,11 @@ if [ "$io" = "Set" ]; then
                   zoneOpen=$((zoneOpen - 1))
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
                else
-                  queryAirCon "http://$IP:2025/getSystemData" "1" "0"
+                  queryAirConWithIterations "http://$IP:2025/getSystemData"
                   for (( a=1;a<=nZones;a++ ))
                   do
                      zoneStr=$( printf "z%02d" "$a" )
-                     parseMyAirDataWithJq ".aircons.ac1.zones.$zoneStr.state"
+                     parseMyAirDataWithJq ".aircons.$ac.zones.$zoneStr.state"
                      if [ "$jqResult" = '"open"' ]; then
                         zoneOpen=$((zoneOpen + 1))
                      fi
@@ -1010,17 +1065,17 @@ if [ "$io" = "Set" ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
                   # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
-                  setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
+                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{state:close}}}}" "1" "0"
                   exit 0
                elif [ "$zone" = "$cZone" ]; then
                   # If only 1 zone open and is the constant zone. do not close but set to  100%
-                  setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:100}}}}" "1" "0"
+                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{value:100}}}}" "1" "0"
                   exit 0
                else
                   # If only 1 zone open and is not the constant zone, open the constant zone and close this zone
-                  setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0" "2"
+                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0" "2"
                   # Set the constant zone to 100%
-                  setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$cZone:{value:100}}}}" "1" "0"
+                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$cZone:{value:100}}}}" "1" "0"
                   exit 0
                fi
             fi
@@ -1028,8 +1083,8 @@ if [ "$io" = "Set" ]; then
          elif [ $timerEnabled = true ]; then
             if [ "$value" = "0" ]; then
                # Set both "countDownToOn" and "countDownToOff" to 0, otherwise do nothing
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:0}}}" "1" "0" "2"
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOn:0}}}" "1" "0" "2"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOff:0}}}" "1" "0"
                exit 0
             else
                # Do nothing
@@ -1040,7 +1095,8 @@ if [ "$io" = "Set" ]; then
             exit 0
          # setting the state of the light
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            getMyAirDataFromIdFile
+            queryIdByNameWithIterations "light" "$lightName"
             length=${#idArray_g[@]}
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
@@ -1064,23 +1120,25 @@ if [ "$io" = "Set" ]; then
          if [ $zoneSpecified = true ]; then
             # Round the $value to its nearst 5%
             damper=$(($(($((value + 2)) / 5)) * 5))
-            setAirCon "http://$IP:2025/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
+            setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}" "1" "0"
             exit 0
          elif [ $timerEnabled = true ]; then
             # Make 1% to 10 minutes and capped at a max of 720 minutes
             timerInMinutes=$((value * 10))
             timerInMinutes=$((timerInMinutes < 720? timerInMinutes : 720))
-            queryAndParseAirCon "http://$IP:2025/getSystemData" ".aircons.ac1.info.state"
+            queryAirConWithIterations "http://$IP:2025/getSystemData"
+            parseMyAirDataWithJq ".aircons.$ac.info.state"
             if [ "$jqResult" = '"on"' ]; then
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
                exit 0
             else
-               setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
+               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
                exit 0
             fi
          # Set light brightness
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            getMyAirDataFromIdFile
+            queryIdByNameWithIterations "light" "$lightName"
             length=${#idArray_g[@]}
             for ((a=0;a<length;a++))
                do
@@ -1103,7 +1161,7 @@ if [ "$io" = "Set" ]; then
             # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
             fspeed="autoAA"
          fi
-         setAirCon "http://$IP:2025/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
+         setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{fan:$fspeed}}}" "1" "0"
          exit 0
       ;;
    esac
