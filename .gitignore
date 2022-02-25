@@ -3,3 +3,6 @@
 
 # Ignore node_modules as it gets installed via npm
 node_modules
+
+# Temp files
+*.[0-9]
