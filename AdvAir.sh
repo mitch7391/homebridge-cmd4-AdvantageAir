@@ -64,7 +64,6 @@ thingSpecified=false
 #Temporary files
 QUERY_AIRCON_LOG_FILE="/tmp/queryCachedAirCon_calls.log"
 QUERY_IDBYNAME_LOG_FILE="/tmp/queryIdByName.log"
-CURL_INVOKED_FILE_FLAG="/tmp/curl-invoked"
 MY_AIRDATA_FILE="/tmp/myAirData.txt"
 MY_AIRDATA_ID_FILE="/tmp/myAirData_id.txt"
 MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants.txt"
@@ -134,60 +133,67 @@ function getFileStatDtFsize()
    fSize=$(find "$fileName" -ls | awk '{print $7}')
 }
 
+# NOTE: ONLY queryAirConWithIteration CALLS THIS !!!
 function queryCachedAirCon()
 {
    local url="$1"
    local exitOnFail="$2"
-   local iteration="$3"
+   local forceFetch="$3"
+
    local lockFile="${MY_AIRDATA_FILE}.lock"
    local dateFile="${MY_AIRDATA_FILE}.date"
 
    t0=$(date '+%s')
    echo "queryCachedAirCon_calls $t0 $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-   # Wait for the lock to clear
-   while [ -f "$lockFile" ]
-   do
-      tx=$(date '+%s')
-      dt=$(( tx - t0 ))
-      if [ "$dt" -gt 62 ]; then
-         break
-      fi
-      sleep 1.0
-   done
 
-   # The dateFile is only valid if there is an MY_AIRDATA_FILE
-   local fetch=true
-   dt=0
-#echo "ZARF: checking dateFile $dateFile"
-#echo "ZARF: checking MY_AIRDATA_FILE $MY_AIRDATA_FILE"
-   if [[ -f "$dateFile" && -f "$MY_AIRDATA_FILE" ]]; then
-#echo "ZARF: checking dateFile url $url"
-      tf=$(cat "$dateFile")
-      dt=$(( tf - t0 ))
-      if [ "$dt" -gt 60 ]; then
-         fetch=true;
-      else
-         fetch=false;
-      fi
+   # If the lock file is there, then return as Iteration will handle this
+   if [ -f "$lockFile" ]; then
+      rc=1
+      return
    fi
 
-   if [ "$fetch" = true ]; then
+   # The dateFile is only valid if there is an MY_AIRDATA_FILE
+   local useFileCache=false
+   local doFetch=false
+   local dt=0
+
+   # The dateFile and MY_AIRDATA_FILE must exit together to check
+   # for a valid date stamp
+   if [[ -f "$dateFile" && -f "$MY_AIRDATA_FILE" ]]; then
+      tf=$(cat "$dateFile")
+      dt=$(( t0 - tf ))
+      if [ "$dt" -gt 90 ]; then
+         useFileCache=false
+      else
+         useFileCache=true
+      fi
+echo "queryCachedAirCon_calls tf:$tf t0:$t0 dt:$dt useFileCache:$useFileCache" >> "$QUERY_AIRCON_LOG_FILE"
+   fi
+
+   if [ "$forceFetch" = true ] || [ "$useFileCache" = false ]; then
+      doFetch=true
+   fi
+
+   echo "queryCachedAirCon_calls doFetch:$doFetch useFileCache:$useFileCache forceFetch:$forceFetch" >> "$QUERY_AIRCON_LOG_FILE"
+   if [ "$doFetch" = true ]; then
       touch "$lockFile"
 
+      # Remove the old dataFile when fetching
       if [ -f "$dateFile" ]; then
          rm "$dateFile"
       fi
+      # Remove the old MY_AIRDATA_FILE when fetching
       if [ -f "$MY_AIRDATA_FILE" ]; then
          rm "$MY_AIRDATA_FILE"
       fi
-# echo "zarf: fetch is true so get our My_AIRDATA_FILE be $url"
-      echo "queryCachedAirCon_curl1 $t0 $fetch $dt $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+      # fetch is true so get our My_AIRDATA_FILE by $url
+
+      echo "queryCachedAirCon_curl1 $t0 $doFetch $dt $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
       myAirData=$( curl -s -g "$url")
       rc=$?
       if [ "$rc" = "0" ]; then
          #Need to parse for good size
          parseMyAirDataWithJq ".aircons.ac1.info"
-# echo " zarf parseMyAirDataWithJq returns rc: $rc"
          if [ "$rc" = "0" ]; then
            echo "$t0" > "$dateFile"
            # Only create the MY_AIRDATA_FILE if it is valid
@@ -198,179 +204,23 @@ function queryCachedAirCon()
          fi
       fi
       rm "$lockFile"
+   else # doFetch = false
+      myAirData=$( cat "$MY_AIRDATA_FILE" )
+      rc=0
    fi
 
 # echo " zarf queryCachedAirCon resd MY_AIRDATA_FILE rc: $rc"
 
 
    # Delete the log if it is > 15 MB
-   # du is POSIX portable.
-   fSize=$(du "$QUERY_AIRCON_LOG_FILE" | cut -f1)
-   #fSize=$(ls -l "$QUERY_AIRCON_LOG_FILE" | awk '{print $5}')
-   if [ "$fSize" -gt 15728640 ];then
-      rm "$QUERY_AIRCON_LOG_FILE"
-   fi
-
-   if [ "$rc" != "0" ]; then
-      if [ "$exitOnFail" = "1" ]; then
-# echo " zarf queryCachedAirCon exitOnFail: $exitOnFail"
-         # The result cannot be trusted with a bad return code
-         # Do not output to stderr as this defeats the purpose
-         # of squashing error messages
-         logError "getValue_curl failed" "$rc" "$device" "$characteristic" "$url"
-         exit $rc
-      fi
-   fi
-}
-
-function queryAirConOld()
-{
-   local url="$1"
-   local exitOnFail="$2"
-   local iteration="$3"
-
-   # This script uses a loop instead of the curl retry options because the
-   # Aircon will not return all the data when it is busy with a write operation.
-   # --max-time 2        (how long in seconds EACH retry can take )
-   # --connect-timeout 2 (Amount of sevonds in connevtion phase )
-   # --fail              (Exit with rc=22 instead of outputting http connection error document )
-   # -g                  (This option switches off the "URL globbing parser". When you set this option,
-   #                      you can specify URLs that contain the letters {}[] without having them being
-   #                      interpreted by curl itself.
-   # -s, --silent        (Silent or quiet mode. Don't show progress meter or error messages. Makes Curl
-   #                      mute. It will still output the data you ask for, potentially even to the
-   #                      terminal/stdout unless you redirect it.
-   # --show-error        (Show error (to stderr) even when -s is used. DO NOT USE
-   #                      Cmd4 will get to stderr, "curl failed, rc=1" which is annoying
-
-   # Modified heavily from V3.2.0 to manage the communication between Cmd4 and the AdvantageAir (AA) system:
-   #
-   # High level functionalities of this script:
-   #
-   # - Store the myAirData in a cache file ("$MY_AIRDATA_FILE") for 90 seconds before refreshing
-   # - The getValue requests from Cmd4 will read the data from the cache file within the 90s cycle
-   # - The cache cycle will reset whenever there is a "Set" command from Cmd4
-   #
-   # The purpose of this is to prevent an excessive amount of queries to the AdvantageAir System otherwise will jam the AA system and
-   # make it unresponsive.
-
-   local fileCache=false
-
-   if [ -f "$MY_AIRDATA_FILE" ]; then
-      getFileStatDtFsize "$MY_AIRDATA_FILE"
-
-      # check if the file is less than 90s old and also check that the file size is > 2000 bytes.  File size < 2000 bytes is an
-      # indication of incomplete myAirData json file.
-
-      if [ "$dt" -le 90 ] && [ "$fSize" -gt 2000 ]; then
-         fileCache=true
-         myAirData=$( cat "$MY_AIRDATA_FILE" )
-         rc=0
-
-      # If $MY_AIRDATA_FILE 180s old, and /tmp/myAirData-*.txt temporary file or "$CURL_INVOKED_FILE_FLAG" proxy file or both are still in
-      # /tmp directory, it means that an earlier getValue 'curl' command was actually completed but Cmd4 getValue timed out.
-      # To recover, do the following:
-
-      elif [ "$dt" -gt 180 ]; then
-         if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then
-            t23=$( cat "$CURL_INVOKED_FILE_FLAG" )
-            t2=$(echo "$t23" | awk '{print $1}')
-            t3=$(echo "$t23" | awk '{print $2}')
-            if [ -f "/tmp/myAirData-${t3}.txt" ]; then mv "/tmp/myAirData-${t3}.txt" "$MY_AIRDATA_FILE"; fi
-         fi
-
-         # remove the remaining temporary files and/or the proxy file if present
-
-         rm -f /tmp/myAirData-*.txt
-         rm -f "$CURL_INVOKED_FILE_FLAG"
-      fi
-
-   # If $MY_AIRDATA_FILE is not available, assign dt=-1.
-   else
-      dt=-1
-   fi
-
-   # log for diagnostic purposes
-   t2=$(date '+%s')
-   echo "queryCachedAirCon_calls $t2 $dt $iteration $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-
-   if [ $fileCache = false ]; then # Updates global variable myAirData
-      # A file "$CURL_INVOKED_FILE_FLAG" is used as as proxy to tell the sebsequuent getValue requests that there is an earlier 'curl' command
-      # been issued and is still running.  If the file "$CURL_INVOKED_FILE_FLAG" is present and is <= 60s old, then the Get request will wait
-      # for up to a max of 62 seconds or until the proxy file is deleted whichever is earlier. The deletion of the proxy file is an indication of
-      # the completion of the earlier 'curl' command and its output will be copied by the subsequent getValue requests in waiting.
-      # 
-      # In a very rare situation when a 'Set' command was received, aircon set and the cache file $MY_AIRDATA_FILE deleted and the first
-      # getValue 'curl' command after that took unusually long time and timed out, the consequence of Cmd4 timed out is /tmp/myAirData-*.txt
-      # won't get renamed to $MY_AIRDATA_FILE and the "$CURL_INVOKED_FILE_FLAG" proxy file won't get deleted neither.
-      #
-      # To recover from this situation check whether the "$CURL_INVOKED_FILE_FLAG" proxy file is older than 60s (a confirmation of timed out situation),
-      # if so and if /tmp/myAirData-*.txt temporary file is present, rename it to $MY_AIRDATA_FILE and delete the "$CURL_INVOKED_FILE_FLAG".
-      #
-      # if this situation happens, assign dt=-(age of "$CURL_INVOKED_FILE_FLAG") for the diagnostic log
-
-      if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then
-
-         getFileStatDtFsize "$CURL_INVOKED_FILE_FLAG"
-
-         if [ "$dt" -gt 60 ] && [ "$dt" -lt 20000 ]; then #$dt > 20000 means there was an error in dt determination 
-            t23=$( cat "$CURL_INVOKED_FILE_FLAG" )
-            t2=$(echo "$t23" | awk '{print $1}')
-            t3=$(echo "$t23" | awk '{print $2}')
-            if [ -f "/tmp/myAirData-${t3}.txt" ]; then mv "/tmp/myAirData-${t3}.txt" "$MY_AIRDATA_FILE"; fi
-            rm -f /tmp/myAirData-*.txt
-            rm "$CURL_INVOKED_FILE_FLAG"
-            dt=$((dt * -1))
-            echo "queryCachedAirCon_curl_timedOut ${t2} $dt $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-         else
-            while [ -f "$CURL_INVOKED_FILE_FLAG" ]
-               do
-                  t3=$(date '+%s')
-                  dt=$((t3 - t2))
-                  if [ "$dt" -gt 62 ]; then
-                     break
-                  fi
-                  sleep 1.0
-               done
-            myAirData=$(cat "$MY_AIRDATA_FILE")
-            rc=0
-            t4=$(date '+%s')
-            dt=$((t4 - t2))
-            echo "queryCachedAirCon_copy $t2 $t4 $dt $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-         fi
-      # create a proxy file "$CURL_INVOKED_FILE_FLAG" if there isn't one there already
-      # run the getValue 'curl' command and output to a temporary file - this is the prevent the file been accessed while being written
-      # once curl command is completed rename the temporary file to the cache file /tmp/myairData.txt
-      # then delete the proxy file "$CURL_INVOKED_FILE_FLAG" to indicate to the subsequent getValue requests that the 'curl' command has completed
-      else
-         t3=$(($(date '+%s') + RANDOM))
-         echo "$t2 $t3" > "$CURL_INVOKED_FILE_FLAG"
-
-         curl -o "/tmp/myAirData-$t3.txt" -s -g "$url"
-         rc=$?
-
-         t4=$(date '+%s')
-         dt=$((t4 - t2))
-
-         if [ "$rc" = "0" ]; then
-            myAirData=$(cat /tmp/myAirData-$t3.txt)
-            mv "/tmp/myAirData-${t3}.txt" "$MY_AIRDATA_FILE"
-            rm -f /tmp/myAirData-*.txt
-            rm "$CURL_INVOKED_FILE_FLAG"
-            echo "queryCachedAirCon_curl $t2 $t4 $dt $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-         else
-            if [ -f "/tmp/myAirData-${t3}.txt" ]; then rm "/tmp/myAirData-${t3}.txt"; fi
-            if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then rm "$CURL_INVOKED_FILE_FLAG"; fi
-            echo "queryCachedAirCon_curl_failed $t2 $t4 $dt rc=$rc itr=$iteration $fileCache $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-         fi
-      fi
-   fi
-
-   # Delete the log if it is > 15 MB
+   # du is POSIX portable, but gives size in kbytes
+   # fSize=$(du "$QUERY_AIRCON_LOG_FILE" | cut -f1)
+   # fSize=$(ls -l "$QUERY_AIRCON_LOG_FILE" | awk '{print $5}')
    fSize=$(find "$QUERY_AIRCON_LOG_FILE" -ls | awk '{print $7}')
    if [ "$fSize" -gt 15728640 ];then
       rm "$QUERY_AIRCON_LOG_FILE"
    fi
+
    if [ "$rc" != "0" ]; then
       if [ "$exitOnFail" = "1" ]; then
          # The result cannot be trusted with a bad return code
@@ -381,12 +231,11 @@ function queryAirConOld()
       fi
    fi
 }
-function setAirCon()
+
+function setAirConUsingIteration()
 {
    local url="$1"
-   local exitOnFail="$2"
-   local iteration="$3"
-   local keepDel="$4"     
+   local keepDel="$2"
    # if $keepDel = "" or <= "1", delete the $MY_AIRDATA_FILE after the 'curl' command.
    # $keepDel >=2 means there is/are more set command(s) coming after this one, $MY_AIRDATA_FILE will be kept for now
 
@@ -395,28 +244,38 @@ function setAirCon()
    # However, if there is a series of 'Set' commands, only delete the $MY_AIRDATA_FILE after the last 'Set' command
    # This is to cater for the situation where one light accessory can be asscicated with 2 physical lights or more
 
-   t2=$(date '+%s')
-   echo "setAirCon_curl $t2 $io$keepDel $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
-   curl --fail -s -g "$url"
-   rc=$?
-
-   if [ "$selfTest" = "TEST_ON" ]; then
-      # For Testing, you can compare whats sent
-      echo "Setting url: $url";
-   fi
-
-   if [ "$keepDel" = "" ] || [ "$keepDel" -le "1" ]; then
-      if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
-   fi
-   if [ "$rc" != "0" ]; then
-      if [ "$exitOnFail" = "1" ]; then
-         # The result cannot be trusted with a bad return code
-         # Do not output to stderr as this defeats the purpose
-         # of squashing error messages
-         logError "curl failed" "$rc" "$io" "$keepDel" "$url"
-         exit $rc
+   # Try 5 times, the last returning the error found.
+   for i in 0 1 2 3 4
+   do
+      if [ "$selfTest" = "TEST_ON" ]; then
+         echo "Try $i"
       fi
-   fi
+      local exitOnFail="0"
+      if [ "$i" = "4" ]; then
+         exitOnFail="1"
+      fi
+
+      t2=$(date '+%s')
+      curl --fail -s -g "$url"
+      rc=$?
+      echo "setAirCon_curl rc:$rc t2:$t2 io:$io keepDel:$keepDel device:$device characteristic:$characteristic url:$url" >> "$QUERY_AIRCON_LOG_FILE"
+
+
+      # keepDel is not needed if after finishing sets a new Get of systemData is done
+      # if [ "$keepDel" = "" ] || [ "$keepDel" -le "1" ]; then
+      #    if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
+      # fi
+
+      if [ "$rc" != "0" ]; then
+         if [ "$exitOnFail" = "1" ]; then
+            # The result cannot be trusted with a bad return code
+            # Do not output to stderr as this defeats the purpose
+            # of squashing error messages
+            logError "curl failed" "$rc" "$io" "$keepDel" "$url"
+            exit $rc
+         fi
+      fi
+   done
 }
 
 function parseMyAirDataWithJq()
@@ -443,10 +302,11 @@ function parseMyAirDataWithJq()
    fi
 }
 
-function queryAndParseAirCon()
+function queryAirConUsingIteration()
 {
    local url="$1"
-   local jqPath="$2"
+   local forceFetch="$2"
+
    # Try 5 times, the last returning the error found.
    for i in 0 1 2 3 4
    do
@@ -458,15 +318,9 @@ function queryAndParseAirCon()
          exitOnFail="1"
       fi
       # Updates global variable myAirData
-      queryCachedAirCon "$url" "$exitOnFail" "$i"
+      queryCachedAirCon "$url" "$exitOnFail" "$forceFetch"
       if [ "$rc" = "0" ]; then
-         # Updates global variable jqResult
-         parseMyAirDataWithJq "$jqPath" "$exitOnFail"
-         if [ "$rc" = "0" ]; then
-            break
-         else
-            sleep 1.2
-         fi
+         break
       else
          sleep 1.2
       fi
@@ -497,68 +351,40 @@ function queryIdByName()
    name3=$(echo "$name"|cut -d" " -f3)
    name4=$(echo "$name"|cut -d" " -f4)
 
-   # Obtain the unique ID by its name from a cache dataset $MY_AIRDATA_ID_FILE, if for some reasons the file is not present then
-   # create one from $MY_AIRDATA_FILE
+   # Obtain the unique ID by its name from a MY_AIRDATA_FILE, Which is updated every "Set" or after 2 minutes of every "Get"
 
-   if [ "$io" = "Set" ]; then
-      if [ -f "$MY_AIRDATA_ID_FILE" ]; then
-         myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-      else
-         until [ -f "$MY_AIRDATA_FILE" ]        
-            do
-               sleep 1.0
-            done
-         cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
-         myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-      fi
+   # Scan for the unique IDs of lights or things by their names using jq command.
+   # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
+   if [ "$path" = "light" ]; then
+      ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      rc=$?
+   elif [ "$path" = "thing" ]; then
+      ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
+      rc=$?
+   else
+      rc=2
    fi
 
-   for i in 0 1 2 3 4
-   do
-      # Scan for the unique IDs of lights or things by their names using jq command.
-      # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
-      if [ "$path" = "light" ]; then
-         ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-         rc=$?
-      elif [ "$path" = "thing" ]; then
-         ids=$( echo "${myAirData}" | jq -e ".myThings.things[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
-         rc=$?
-      else
-         rc=2
-      fi
-      if [ "$ids" != "" ];then
-         eval "idArray_g=($ids)"
-      fi
+   if [ "$ids" != "" ];then
+      eval "idArray_g=($ids)"
+   fi
 
-      # for diagnostic purpuses
-      t6=$(date '+%s')
-      echo "queryIdByName_jq $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
-      # Delete the log if it is > 15 MB
-      fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
-      if [ "$fSize" -gt 15728640 ];then
-         rm "$QUERY_IDBYNAME_LOG_FILE"
-      fi
+   # for diagnostic purpuses
+   t6=$(date '+%s')
+   echo "queryIdByName_jq $t6 ${io} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+   # Delete the log if it is > 15 MB
+   fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
+   if [ "$fSize" -gt 15728640 ];then
+      rm "$QUERY_IDBYNAME_LOG_FILE"
+   fi
 
-      if [ "$rc" != "0" ]; then
-         if [ "$i" = "4" ]; then
-            # The result cannot be trusted with a bad return code
-            # Output to stderr only after 5 tries               
-            logError "queryIdByName_jq failed" "$rc" "id=${ids}" "${path}" "$name"
-            echo "queryIdByName_jq_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
-            exit $rc
-         else # jq failure is most likely due to bad myAirData_id.txt, get a fresh copy and try again
-            sleep 1.0
-            until [ -f "$MY_AIRDATA_FILE" ]
-               do
-                  sleep 1.0
-               done
-            cat "$MY_AIRDATA_FILE" > "$MY_AIRDATA_ID_FILE"
-            myAirData=$(cat "$MY_AIRDATA_ID_FILE")
-         fi
-      else
-         break
-      fi
-   done
+   if [ "$rc" != "0" ]; then
+      # The result cannot be trusted with a bad return code
+      # Output to stderr only after 5 tries
+      logError "queryIdByName_jq failed" "$rc" "id=${ids}" "${path}" "$name"
+      echo "queryIdByName_jq_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+      exit $rc
+   fi
 }
 
 # main starts here
@@ -685,7 +511,8 @@ fi
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
 
-   queryAndParseAirCon "http://$IP:$PORT/getSystemData" ".aircons.ac1.info.state"
+   # Get the systemData, but not forceably
+   queryAirConUsingIteration "http://$IP:2025/getSystemData" false
 
    # Create a system-wide $MY_AIRDATA_CONSTANTS_FILE cache file if not present 
    if [ ! -f "$MY_AIR_CONSTANTS_FILE" ]; then
@@ -972,22 +799,38 @@ if [ "$io" = "Get" ]; then
 fi
 # For "Set" Directives
 if [ "$io" = "Set" ]; then
+
+   # Get the systemData, requiring the latest
+   queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
    case "$characteristic" in
       TargetHeatingCoolingState )
          case "$value" in
             0 )
                # Shut Off Control Unit.
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:off}}}"
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             ;;
             1 )
                # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}" "1" "0"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             ;;
             2 )
                # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:cool}}}" "1" "0"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:cool}}}"
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             ;;
          esac
@@ -998,13 +841,17 @@ if [ "$io" = "Set" ]; then
          noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
          if [ "$noSensors" = true ]; then
             # Only sets temperature to master temperature in the app
-            setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value}}}" "1" "0"
+            setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value}}}"
             exit 0
          else
             # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
-            setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
+            setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}"
             exit 0
          fi
+
+         # Get the systemData, requiring the latest for future "Get" or "Set"
+         queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
       ;;
       TargetDoorState )
          # set the value of the garage door (100=open, 0=close) to MyPlace, (0=open, 1=close for Homekit)
@@ -1015,15 +862,23 @@ if [ "$io" = "Set" ]; then
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:0}" "1" "0" "$keepDel"
+                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:0}" "$keepDel"
                   done
+
+                  # Get the systemData, requiring the latest for future "Get" or "Set"
+                  queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             else
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:100}" "1" "0" "$keepDel"
+                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:100}" "$keepDel"
                   done
+
+                  # Get the systemData, requiring the latest for future "Get" or "Set"
+                  queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             fi
          fi
@@ -1033,17 +888,25 @@ if [ "$io" = "Set" ]; then
          if [ $fanSpecified = true ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}" "1" "0"
-               exit 0
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
             else
                # Shut Off Control Unit.
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{state:off}}}" "1" "0"
-               exit 0
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:off}}}"
             fi
+
+            # Get the systemData, requiring the latest for future "Get" or "Set"
+            queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
+            exit 0
+
          # Uses the On characteristic for zone switches.
          elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{state:open}}}}" "1" "0"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{state:open}}}}"
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             else
                # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
@@ -1066,7 +929,6 @@ if [ "$io" = "Set" ]; then
                   zoneOpen=$((zoneOpen - 1))
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
                else
-                  queryCachedAirCon "http://$IP:$PORT/getSystemData" "1" "0"
                   for (( a=1;a<=nZones;a++ ))
                   do
                      zoneStr=$( printf "z%02d" "$a" )
@@ -1081,17 +943,29 @@ if [ "$io" = "Set" ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
                   # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
-                  setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{state:close}}}}" "1" "0"
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{state:close}}}}"
+
+                  # Get the systemData, requiring the latest for future "Get" or "Set"
+                  queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                   exit 0
                elif [ "$zone" = "$cZone" ]; then
                   # If only 1 zone open and is the constant zone. do not close but set to  100%
-                  setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{value:100}}}}" "1" "0"
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{value:100}}}}"
+
+                  # Get the systemData, requiring the latest for future "Get" or "Set"
+                  queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                   exit 0
                else
                   # If only 1 zone open and is not the constant zone, open the constant zone and close this zone
-                  setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0" "2"
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "2"
                   # Set the constant zone to 100%
-                  setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{value:100}}}}" "1" "0"
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{value:100}}}}"
+
+                  # Get the systemData, requiring the latest for future "Get" or "Set"
+                  queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                   exit 0
                fi
             fi
@@ -1099,8 +973,12 @@ if [ "$io" = "Set" ]; then
          elif [ $timerEnabled = true ]; then
             if [ "$value" = "0" ]; then
                # Set both "countDownToOn" and "countDownToOff" to 0, otherwise do nothing
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOn:0}}}" "1" "0" "2"
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOff:0}}}" "1" "0"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOn:0}}}" "2"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOff:0}}}"
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             else
                # Do nothing
@@ -1115,17 +993,25 @@ if [ "$io" = "Set" ]; then
             length=${#idArray_g[@]}
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
-                  do
-                     keepDel=$((length - a))
-                     setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:on}" "1" "0" "$keepDel"
-                  done
+               do
+                  keepDel=$((length - a))
+                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:on}" "$keepDel"
+               done
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             else
                for ((a=0;a<length;a++))
-                  do
-                     keepDel=$((length - a))
-                     setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:off}" "1" "0" "$keepDel"
-                  done
+               do
+                  keepDel=$((length - a))
+                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:off}" "$keepDel"
+               done
+
+               # Get the systemData, requiring the latest for future "Get" or "Set"
+               queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
                exit 0
             fi
          fi
@@ -1135,29 +1021,42 @@ if [ "$io" = "Set" ]; then
          if [ $zoneSpecified = true ]; then
             # Round the $value to its nearst 5%
             damper=$(($(($((value + 2)) / 5)) * 5))
-            setAirCon "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}" "1" "0"
+            setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{value:$damper}}}}"
+
+            # Get the systemData, requiring the latest for future "Get" or "Set"
+            queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
             exit 0
          elif [ $timerEnabled = true ]; then
             # Make 1% to 10 minutes and capped at a max of 720 minutes
             timerInMinutes=$((value * 10))
             timerInMinutes=$((timerInMinutes < 720? timerInMinutes : 720))
-            queryAndParseAirCon "http://$IP:$PORT/getSystemData" ".aircons.ac1.info.state"
+
+            parseMyAirDataWithJq ".aircons.ac1.info.state"
             if [ "$jqResult" = '"on"' ]; then
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
-               exit 0
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOff:$timerInMinutes}}}"
             else
-               setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
-               exit 0
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOn:$timerInMinutes}}}"
             fi
+
+            # Get the systemData, requiring the latest for future "Get" or "Set"
+            queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
+            exit 0
+
          # Set light brightness
          elif [ $lightSpecified = true ]; then
             queryIdByName "light" "$lightName"
             length=${#idArray_g[@]}
             for ((a=0;a<length;a++))
-               do
-                  keepDel=$((length - a))
-                  setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",value:$value}" "1" "0" "$keepDel"
-               done
+            do
+               keepDel=$((length - a))
+               setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",value:$value}" "$keepDel"
+            done
+
+            # Get the systemData, requiring the latest for future "Get" or "Set"
+            queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
             exit 0
          fi
       ;;
@@ -1174,7 +1073,11 @@ if [ "$io" = "Set" ]; then
             # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
             fspeed="autoAA"
          fi
-         setAirCon "http://$IP:$PORT/setAircon?json={ac1:{info:{fan:$fspeed}}}" "1" "0"
+         setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{fan:$fspeed}}}"
+
+         # Get the systemData, requiring the latest for future "Get" or "Set"
+         queryAirConUsingIteration "http://$IP:2025/getSystemData" true
+
          exit 0
       ;;
    esac
