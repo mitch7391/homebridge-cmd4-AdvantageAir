@@ -71,30 +71,35 @@ beforeEach()
    echo "in GetBrightness before startServer $(pwd)" >> /tmp/AirConServer.out
    before
    stopServer
+   assert_equal "$rc" 0
    startServer
+   assert_equal "$rc" 0
    echo "in GetBrightness after startServer" >> /tmp/AirConServer.out
 }
 
-# @test "AdvAir ( ezone inline ) Test PassOn5 Get Brightness z01" {
-#    # We symbolically link the directory of the test we want to use.
-#    ln -s ./testData/dataPassOn5 ./data
-#    # The original scripts do not have this function, so you can only
-#    # test against known data
-#    run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-#    assert_equal "$status" 0
-#    assert_equal "${lines[0]}" "Try 0"
-#    assert_equal "${lines[1]}" "Try 1"
-#    assert_equal "${lines[2]}" "Try 2"
-#    assert_equal "${lines[3]}" "Try 3"
-#    assert_equal "${lines[4]}" "Try 4"
-#    assert_equal "${lines[5]}" "100"
-# }
+@test "AdvAir ( ezone inline ) Test PassOn5 Get Brightness z01" {
+   # The original scripts do not have this function, so you can only
+   # test against known data
+   beforeEach
+   curl -s -g 'http://localhost:2025?load=testData/dataPassOn5/getSystemData.txt4' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?failureCount=5' >> /tmp/AirConServer.out
+   run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Try 1"
+   assert_equal "${lines[2]}" "Try 2"
+   assert_equal "${lines[3]}" "Try 3"
+   assert_equal "${lines[4]}" "Try 4"
+   assert_equal "${lines[5]}" "100"
+}
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z01" {
    ln -s ./testData/dataPassOn1 ./data
    beforeEach
    echo "Doing curl" >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025/load?file=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
    rc=$?
    echo "done curl load rc: $rc" >> /tmp/AirConServer.out
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
@@ -104,21 +109,24 @@ beforeEach()
    echo "done testCASE 1" >> /tmp/AirConServer.out
 }
 
-# @test "AdvAir ( ezone inline ) Test PassOn3 Get Brightness z01" {
-#    ln -s ./testData/dataPassOn3 ./data
-#    curl -s -g 'http://localhost:2025/load?file=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
-#    run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-#    assert_equal "$status" 0
-#    assert_equal "${lines[0]}" "Try 0"
-#    assert_equal "${lines[1]}" "Try 1"
-#    assert_equal "${lines[2]}" "Try 2"
-#    assert_equal "${lines[3]}" "100"
-# }
+@test "AdvAir ( ezone inline ) Test PassOn3 Get Brightness z01" {
+   curl -s -g 'http://localhost:2025?load=testData/dataPassOn3/getSystemData.txt2' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn3/getSystemData.txt0' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?failureCount=3' >> /tmp/AirConServer.out
+   beforeEach
+   run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Try 1"
+   assert_equal "${lines[2]}" "Try 2"
+   assert_equal "${lines[3]}" "100"
+   curl -s -g 'http://localhost:2025?debug=0' >> /tmp/AirConServer.out
+}
 
 
 @test "AdvAir ( ezone inline ) Test FailOn5 Get Brightness z01" {
    ln -s ./testData/dataFailOn5 ./data
-   curl -s -g 'http://localhost:2025/load?file=testData/dataFailOn5/getSystemData.txt4' >> /tmp/AirConServer.out
+   curl -s -g 'http://localhost:2025?load=testData/dataFailOn5/getSystemData.txt4' >> /tmp/AirConServer.out
    beforeEach
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 1
@@ -132,7 +140,7 @@ beforeEach()
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z03" {
    ln -s ./testData/dataPassOn1 ./data
-   curl -s -g 'http://localhost:2025/load?file=testData/dataPassOn1/getSystemData.txt0'
+   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
    beforeEach
    run ./compare/AdvAir.sh Get Blah Brightness z03 127.0.0.1 TEST_ON
    assert_equal "$status" 0

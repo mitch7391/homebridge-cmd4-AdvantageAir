@@ -4,6 +4,7 @@ export PORT=2025
 
 stopServer()
 {
+   rc=0;
    touch /tmp/AirConServer.out
    echo "in stopServer" >> /tmp/AirConServer.out
    # Check if the server is running

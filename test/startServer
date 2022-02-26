@@ -3,15 +3,12 @@
 startServer()
 {
    echo  "In startServer" >> /tmp/AirConServer.out
-   # echo  "calling stopServer" >> /tmp/AirConServer.out
-   # ./test/stopServer
 
    touch /tmp/AirConServer.out
 
    # Start a new AirConServer
    echo "Setup: Starting daemon" >> /tmp/AirConServer.out
    node ./AirConServer.js >> /tmp/AirConServer.out 2>&1 &
-   # node ./test/AirConServer.js >> /tmp/AirConServer.out 2>&1 &
    rc=$?
    if [ "$rc" != 0 ]; then
       echo "Setup: Starting Daemon failed rc: $rc" >> /tmp/AirConServer.out
