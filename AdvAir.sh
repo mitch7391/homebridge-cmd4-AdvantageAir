@@ -244,6 +244,11 @@ function setAirConUsingIteration()
    # However, if there is a series of 'Set' commands, only delete the $MY_AIRDATA_FILE after the last 'Set' command
    # This is to cater for the situation where one light accessory can be asscicated with 2 physical lights or more
 
+   if [ "$selfTest" = "TEST_ON" ]; then
+      # For Testing, you can compare whats sent
+      echo "Setting url: $url";
+   fi
+
    # Try 5 times, the last returning the error found.
    for i in 0 1 2 3 4
    do
@@ -266,14 +271,16 @@ function setAirConUsingIteration()
       #    if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
       # fi
 
-      if [ "$rc" != "0" ]; then
-         if [ "$exitOnFail" = "1" ]; then
-            # The result cannot be trusted with a bad return code
-            # Do not output to stderr as this defeats the purpose
-            # of squashing error messages
-            logError "curl failed" "$rc" "$io" "$keepDel" "$url"
-            exit $rc
-         fi
+      if [ "$rc" == "0" ]; then
+         return
+      fi
+
+      if [ "$exitOnFail" = "1" ]; then
+         # The result cannot be trusted with a bad return code
+         # Do not output to stderr as this defeats the purpose
+         # of squashing error messages
+         logError "curl failed" "$rc" "$io" "$keepDel" "$url"
+         exit $rc
       fi
    done
 }

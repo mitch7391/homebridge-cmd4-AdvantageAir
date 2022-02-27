@@ -138,6 +138,12 @@ const requestListener = function (req, res)
             log( `SERVER: end\n` );
             return res.end();
          }
+         case "json":
+         {
+            // We do not handle this now
+            ended = false;
+            break;
+         }
          default:
          {
             res.writeHead( 404, { 'Content-Type': 'text/html' } );
@@ -178,6 +184,13 @@ const requestListener = function (req, res)
             res.write( `repeat: ${ record.repeat } filename: ${record.filename }\n` );
          }
          log( `SERVER: end\n` );
+         return res.end();
+      }
+      case "/setAircon":
+      {
+         log( `Doing setAircon` );
+         log( `SERVER: end\n` );
+         // Do not care about the options. For now ?
          return res.end();
       }
       case "/getSystemData":
