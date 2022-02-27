@@ -70,10 +70,11 @@
       "testjs": "node_modules/.bin/mocha ",
       "allBats": "bats test/*.bats",
       "bats": "bats",
+      "batsDebug": "bats -x",
       "lint": "eslint",
       "test": "npm run allBats && npm run testjs && npm run check && npm run lint",
-      "eslint": "eslint  --ext .js *.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
-      "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'",
+      "eslint": "eslint  --ext .js *.js test/*.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
+      "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'test/*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'",
       "prepare": "husky install"
    }
 }

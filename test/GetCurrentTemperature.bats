@@ -32,13 +32,14 @@ beforeEach()
 }
 
 @test "AdvAir ( StartServer )" {
-   echo "in GetCurrentheatingCoolingState before startServer $(pwd)" >> /tmp/AirConServer.out
    before
    stopServer
+   rc=$?
    assert_equal "$rc" 0
+   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
    startServer
+   rc=$?
    assert_equal "$rc" 0
-   echo "in GetCurrentheatingCoolingState after startServer" >> /tmp/AirConServer.out
 }
 
 
@@ -57,10 +58,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn5/getSystemData.txt4' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=5' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -73,6 +75,7 @@ beforeEach()
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn1 ./data
    run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
    assert_equal "$status" 0
@@ -80,7 +83,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -88,6 +94,7 @@ beforeEach()
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn3 Get CurrentTemperature" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn3 ./data
    run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
    assert_equal "$status" 0
@@ -97,9 +104,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn3/getSystemData.txt2' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn3/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=3' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -109,6 +118,7 @@ beforeEach()
 }
 
 @test "AdvAir ( ezone inline ) Test FailOn5 Get CurrentTemperature" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataFailOn5 ./data
    run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
    assert_equal "$status" 1
@@ -120,8 +130,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataFailOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -141,7 +153,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -149,6 +164,7 @@ beforeEach()
 }
 
 @test "AdvAir ( zones inline ) Test PassOn3 Get CurrentTemperature z01" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn3 ./data
    run ./compare/zones.txt Get Blah CurrentTemperature z01 TEST_ON
    assert_equal "$status" 0
@@ -158,9 +174,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn3/getSystemData.txt2' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn3/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=3' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -170,6 +188,7 @@ beforeEach()
 }
 
 @test "AdvAir ( zones inline ) Test PassOn5 Get CurrentTemperature z01" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn5 ./data
    run ./compare/zones.txt Get Blah CurrentTemperature z01 TEST_ON
    assert_equal "$status" 0
@@ -182,10 +201,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn5/getSystemData.txt4' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=5' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -198,6 +218,7 @@ beforeEach()
 }
 
 @test "AdvAir ( zones inline ) Test FailOn5 Get CurrentTemperature z01" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataFailOn5 ./data
    run ./compare/zones.txt Get Blah CurrentTemperature z01 TEST_ON
    assert_equal "$status" 1
@@ -209,8 +230,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataFailOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -222,6 +245,7 @@ beforeEach()
 }
 
 @test "AdvAir ( zones inline ) Test PassOn1 Get CurrentTemperature z03" {
+   # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn1 ./data
    run ./compare/zones.txt Get Blah CurrentTemperature z03 TEST_ON
    assert_equal "$status" 0
@@ -229,7 +253,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z03
    assert_equal "$status" "$e_status"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -250,30 +277,39 @@ beforeEach()
    e_lines=("${lines[@]}")
    before
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataOneZone/getSystemData.txt0'
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature 127.0.0.1 TEST_ON
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataOneZone/getSystemData.txt0"
+   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "${e_lines[0]}"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "${e_lines[0]}"
    # The noSensors fixes this
-   assert_equal "${lines[1]}" "21"
+   assert_equal "${lines[2]}" "21"
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (with cached myAirConstants" {
    # We symbolically link the directory of the test we want to use.
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataOneZone/getSystemData.txt0'
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataOneZone/getSystemData.txt0"
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature 127.0.0.1 TEST_ON
+   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "21"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "21"
    e_status=$status
    e_lines=("${lines[@]}")
    # Running the same command again, will use the cached myAirConstants
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature 127.0.0.1 TEST_ON
+   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "${e_lines[0]}"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "${e_lines[1]}"
+   assert_equal "${lines[2]}" "21"
 }
 
 @test "AdvAir ( StopServer )" {

@@ -32,14 +32,16 @@ beforeEach()
 }
 
 @test "AdvAir ( StartServer )" {
-   echo "in GetStatusLowBatter before startServer $(pwd)" >> /tmp/AirConServer.out
    before
    stopServer
+   rc=$?
    assert_equal "$rc" 0
+   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
    startServer
+   rc=$?
    assert_equal "$rc" 0
-   echo "in GetStatusLowBatter after startServer" >> /tmp/AirConServer.out
 }
+
 
 @test "AdvAir ( zones inline ) Test PassOn5 Get StatusLowBattery z01" {
    # We symbolically link the directory of the test we want to use.
@@ -57,10 +59,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn5/getSystemData.txt4' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=5' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
    run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" "$e_status" ]
    assert_equal "${lines[0]}" "${e_lines[0]}"
@@ -82,7 +85,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" "$e_status" ]
    assert_equal "${lines[0]}" "${e_lines[0]}"
@@ -100,9 +106,11 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=3' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
    run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" "$e_status" ]
    assert_equal "${lines[0]}" "${e_lines[0]}"
@@ -124,7 +132,10 @@ beforeEach()
    e_status=$status
    e_lines=("${lines[@]}")
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataFailOn5/getSystemData.txt0' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" "$e_status" ]
    assert_equal "${lines[0]}" "${e_lines[0]}"

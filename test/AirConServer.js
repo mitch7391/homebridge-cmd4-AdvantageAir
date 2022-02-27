@@ -2,13 +2,11 @@ var fs = require('fs');
 const http = require('http');
 var url = require('url');
 
-var filename = "";
-var failFilename = "";
-var getSystemData="";
-var getSystemDataFail="";
-var getSystemDataFailureCount=0;
 var server_g = null;
+var listener_g = null;
 var debug_g = true;
+var stack_g=[];
+
 var sockets = {}, nextSocketId = 0;
 
 const log = function( str )
@@ -19,7 +17,8 @@ const log = function( str )
 
 const requestListener = function (req, res)
 {
-   req.on('close', function () {
+   req.on('close', function ()
+   {
       log( `req.on: close listener: ` );
       // Yry to remove connected listener
       //nothing server_g.removeListener( "requestListener", requestListener, this);
@@ -46,16 +45,6 @@ const requestListener = function (req, res)
 
    });
 
-   // Example URL parsing
-   //var adr = 'http://localhost:2025/default.htm?year=2017&month=february';
-   var q = url.parse(req.url, true);
-
-   //log(q.host); //returns 'localhost:8080'
-   //log(q.pathname); //returns '/default.htm'
-   //log(q.search); //returns '?year=2017&month=february'
-   //var qdata = q.query; //returns an object: { year: 2017, month: 'february' }
-   //log(qdata.month); //returns 'february'
-
    /* Request methods. Not needed, but interesting
    switch( req.method )
    {
@@ -70,6 +59,41 @@ const requestListener = function (req, res)
    }
    */
 
+
+   // Example URL parsing
+   //var adr = 'http://localhost:2025/default.htm?year=2017&month=february';
+   var q = url.parse(req.url, true);
+   let ended = true;
+
+   //log(q.host); //returns 'localhost:8080'
+   //log(q.pathname); //returns '/default.htm'
+   //log(q.search); //returns '?year=2017&month=february'
+   //var qdata = q.query; //returns an object: { year: 2017, month: 'february' }
+   //log(qdata.month); //returns 'february'
+
+   // Format of stack is:
+   //    "filename": The file to loadbgetSystemData with
+   //    "getSystemData": The myAirData json data read from filename,
+   //    "repeat":        The number of times remaining for this data to be used.
+   //
+   //
+   // The last record is used continiously.
+   //
+   // Examples
+   //    curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
+   //    curl -s -g 'http://localhost:2025?repeat=5?load=testData/dataPassOn1/getSystemData.txt0'
+   //    curl -s -g 'http://localhost:2025/getDystemData'
+   //    curl -s -g 'http://localhost:2025/shutdown'
+   //    curl -s -g 'http://localhost:2025/quit'
+   //    curl -s -g 'http://localhost:2025/reInit'
+   //    curl -s -g 'http://localhost:2025?debug=1'
+   //    curl -s -g 'http://localhost:2025?dumpStack'
+   //
+   //      Note: "repeat" must come first, otherwise 0 is used.
+   //
+   // Default to repeating the last record in the stack
+   let repeat = 0;
+   let filename;
    for ( let key in q.query )
    {
       let value = q.query[ key ];
@@ -79,7 +103,17 @@ const requestListener = function (req, res)
          case "debug":
          {
             debug_g = value;
-            log(`Setting debug_g to ${ debug_g}` );
+            log( `Setting debug_g to ${ debug_g}` );
+            log( `SERVER: end\n` );
+            return res.end();
+         }
+         case "repeat":
+         {
+            repeat = value;
+            log( `Setting repeat to ${ repeat }` );
+            log( `SERVER: end\n` );
+            // Do not return, possible furthet options
+            ended = false;
             break;
          }
          case "load":
@@ -90,51 +124,23 @@ const requestListener = function (req, res)
             if ( !fs.existsSync( filename ) )
             {
                log( `File not found: ${ filename }` );
-               res.writeHead(404, { 'Content-Type': 'text/html' } );
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
                log( `SERVER: end\n` );
                return res.end( `404 Not Found` );
             }
 
             log( `SERVER: reading: ${ filename }` );
-            getSystemData = "";
-            getSystemData = fs.readFileSync( filename, 'utf-8')
+            let getSystemData = fs.readFileSync( filename, 'utf-8')
             log( `SERVER: read length: ${ getSystemData.length }` );
             log( `SERVER: end\n` );
-            res.writeHead(200, { 'Content-Type': 'text/html' } );
-            return res.end();
-         }
-         case "loadFail":
-         {
-            failFilename = value;
-            // Check that the file exists locally
-            // log( `SERVER: checking for file: ${ filename }` );
-            if ( !fs.existsSync( failFilename ) )
-            {
-               log( `File not found: ${ failFilename }` );
-               res.writeHead(404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: end\n` );
-               return res.end( `404 Not Found` );
-            }
-
-            log( `SERVER: reading: ${ failFilename }` );
-            getSystemDataFail = "";
-            getSystemDataFail = fs.readFileSync( failFilename, 'utf-8')
-            log( `SERVER: read length: ${ getSystemDataFail.length }` );
-            log( `SERVER: end\n` );
-            res.writeHead(200, { 'Content-Type': 'text/html' } );
-            return res.end();
-         }
-         case "failureCount":
-         {
-            log( `SERVER: setting failurecount to: ${ value }` );
-            getSystemDataFailureCount = value;
+            res.writeHead( 200, { 'Content-Type': 'text/html' } );
+            stack_g.push( { "filename": filename,  "getSystemData": getSystemData, "repeat": repeat } );
             log( `SERVER: end\n` );
             return res.end();
-            break;
          }
          default:
          {
-            res.writeHead(404, { 'Content-Type': 'text/html' } );
+            res.writeHead( 404, { 'Content-Type': 'text/html' } );
             log( `SERVER: UNKNOWN query: ${ key }` );
             log( `SERVER: end\n` );
             return res.end( `SERVER: UNKNOWN query: ${ key }` );
@@ -149,30 +155,53 @@ const requestListener = function (req, res)
       {
          log( `Ignoring pathname /` );
          log( `SERVER: end\n` );
-         return res.end( );
-         break ;
+         ended = false;
+         break;
+      }
+      case "/reInit":
+      {
+         log( `Doing reInit` );
+         repeat = 0;
+         if ( filename ) filename = null;
+         stack_g = [];
+         log( `SERVER: end\n` );
+         return res.end();
+      }
+      case "/dumpStack":
+      {
+         log( `Doing dumpStack` );
+         res.writeHead(200, { 'Content-Type': 'text/html' } );
+         log( `stack.length=${ stack_g.length }` );
+         for ( let index=0; index < stack_g.length; index++ )
+         {
+            let record = stack_g[ index ];
+            res.write( `repeat: ${ record.repeat } filename: ${record.filename }\n` );
+         }
+         log( `SERVER: end\n` );
+         return res.end();
       }
       case "/getSystemData":
       {
-         let fileToSend = filename;
-         let systemDataToSend = getSystemData;
-         if ( getSystemDataFailureCount > 0 )
-              getSystemDataFailureCount--;
-
-         if ( getSystemDataFailureCount == 0 )
+         if ( stack_g.length == 0 )
          {
-            fileToSend = filename;
-            systemDataToSend = getSystemData;
-         } else {
-            fileToSend = failFilename;
-            systemDataToSend = getSystemDataFail;
-         }
-         if ( fileToSend == "" )
-         {
-            log( `No File Loaded ${ fileToSend }` );
+            log( `No File Loaded` );
             res.writeHead(404, { 'Content-Type': 'text/html' } );
             log( `SERVER: end\n` );
             return res.end( `404 No File Loaded` );
+         }
+         let record = stack_g.shift();
+         let fileToSend = record.filename;
+         let systemDataToSend = record.getSystemData;
+
+         if ( stack_g.length == 0 )
+         {
+            // Don't care if less than zero
+            record.repeat --;
+            stack_g.unshift( record );
+         } else
+         {
+            if ( --record.repeat > 0 )
+               stack_g.unshift( record );
          }
 
          log( `SERVER: getSystemData filename: ${ fileToSend }` );
@@ -188,12 +217,22 @@ const requestListener = function (req, res)
       case "/quit":
       case "/shutdown":
       {
+         // Interesting, while server_g and listener_g seem to be the same,
+         // they are not. Listening_g properly closes the server and any
+         // connections
          if (server_g.listening)
          {
             server_g.close();
 
-            log("SEND BYE-BYE MESSAGE AND 'FIN' TO SOCKETS");
+            log("SERVER_G SEND BYE-BYE MESSAGE AND 'FIN' TO SOCKETS");
          }
+         if (listener_g.listening)
+         {
+            listener_g.close();
+
+            log("LISTENET_G SEND BYE-BYE MESSAGE AND 'FIN' TO SOCKETS");
+         }
+
 
          log("GRACEFUL SHUTDOWN");
          res.writeHead(200, { 'Content-Type': 'text/html' } );
@@ -208,7 +247,10 @@ const requestListener = function (req, res)
          return res.end( `SERVER: UNKNOWN pathname: ${ q.pathname }` );
       }
    }
-   log ( server_g);
+
+   if ( ended == false )
+      res.end();
+   // log ( server_g);
 }
 
 Function.prototype.clone = function()
@@ -232,8 +274,9 @@ Function.prototype.clone = function()
 async function startServer( port, handler, callback )
 {
    //let uniqueId = (new Date()).getTime().toString(36);
-   let uniqueId = Date.now().toString(36);
+   //let uniqueId = Date.now().toString(36);
 
+   //let uniqueHandler = uniquId + handler.clone();
    let uniqueHandler = handler.clone();
 
    // Creating http Server
@@ -251,7 +294,7 @@ async function startServer( port, handler, callback )
       await new Promise((resolve, reject) =>
       {
          // Listening to http Server
-         server.listen( PORT, ( err ) =>
+         listener_g = server.listen( PORT, ( err ) =>
          {
             if ( ! err )
                resolve();
@@ -274,17 +317,18 @@ async function startServer( port, handler, callback )
               log( `socket.on: end socket: ${ socket} socketId: ${socketId}` );
               log(`socket ${ socketId } end`);
               socket.destroy();
-              delete sockets[socketId];
+              //delete sockets[socketId];
             });
 
 
             server.once('close', ( /* NO PARM */ ) =>
             {
                // Called nCurl times after server.on('close')
-              log( `SERVERonce: close  socketId: ${ socketId }` );
-              // delete sockets(socket);
-              // socket.destroy(socket);
+               log( `INSIDE SERVERonce: close  socketId: ${ socketId }` );
+               // delete sockets(socket);
+               // socket.destroy(socket);
             });
+
          });
             server.once('close', ( par ) =>
             {
@@ -296,7 +340,7 @@ async function startServer( port, handler, callback )
          server.on('close', ( /* No PARMS */ ) =>
          {
             // happens at very end when server is shutdown
-            log( `SERVER.on: CLOSE` );
+            log( `OUTSIDE SERVER.on: CLOSE` );
          });
 
          server.once('error', ( err ) =>

@@ -68,23 +68,25 @@ beforeEach()
 }
 
 @test "AdvAir ( StartServer )" {
-   echo "in GetBrightness before startServer $(pwd)" >> /tmp/AirConServer.out
    before
    stopServer
+   rc=$?
    assert_equal "$rc" 0
+   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
    startServer
+   rc=$?
    assert_equal "$rc" 0
-   echo "in GetBrightness after startServer" >> /tmp/AirConServer.out
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn5 Get Brightness z01" {
    # The original scripts do not have this function, so you can only
    # test against known data
    beforeEach
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn5/getSystemData.txt4' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?debug=1' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn5/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=5' >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
@@ -98,36 +100,38 @@ beforeEach()
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z01" {
    ln -s ./testData/dataPassOn1 ./data
    beforeEach
-   echo "Doing curl" >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0' >> /tmp/AirConServer.out
-   rc=$?
-   echo "done curl load rc: $rc" >> /tmp/AirConServer.out
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "100"
-   echo "done testCASE 1" >> /tmp/AirConServer.out
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn3 Get Brightness z01" {
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn3/getSystemData.txt2' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?loadFail=testData/dataPassOn3/getSystemData.txt0' >> /tmp/AirConServer.out
-   curl -s -g 'http://localhost:2025?failureCount=3' >> /tmp/AirConServer.out
    beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Try 1"
    assert_equal "${lines[2]}" "Try 2"
    assert_equal "${lines[3]}" "100"
-   curl -s -g 'http://localhost:2025?debug=0' >> /tmp/AirConServer.out
 }
 
 
 @test "AdvAir ( ezone inline ) Test FailOn5 Get Brightness z01" {
-   ln -s ./testData/dataFailOn5 ./data
-   curl -s -g 'http://localhost:2025?load=testData/dataFailOn5/getSystemData.txt4' >> /tmp/AirConServer.out
    beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 1
    assert_equal "${lines[0]}" "Try 0"
@@ -135,18 +139,18 @@ beforeEach()
    assert_equal "${lines[2]}" "Try 2"
    assert_equal "${lines[3]}" "Try 3"
    assert_equal "${lines[4]}" "Try 4"
-   echo "done testCASE 2" >> /tmp/AirConServer.out
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z03" {
-   ln -s ./testData/dataPassOn1 ./data
-   curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
    beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Get Blah Brightness z03 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "85"
-   echo "done testCASE 3" >> /tmp/AirConServer.out
 }
 
 @test "AdvAir ( StopServer )" {
