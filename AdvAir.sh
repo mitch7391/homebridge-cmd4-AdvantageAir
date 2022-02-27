@@ -57,8 +57,6 @@ ac="ac1"
 # Define some variables for zone open checking
 zoneOpen=0
 
-zoneOpen=0
-
 # For timer capability
 timerEnabled=false
 
@@ -195,9 +193,6 @@ function queryAirCon()
       # /tmp directory, it means that an earlier getValue 'curl' command was actually completed but Cmd4 getValue timed out.
       # To recover, do the following:
 
-      elif [ "$fSize" -le 2000 ]; then
-         t2=$(date '+%s')
-         echo "queryAirCon_calls${test} $t2 $dt fSize=$fSize invalid MyAirData $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
       elif [ "$dt" -gt 180 ]; then
          if [ -f "$CURL_INVOKED_FILE_FLAG" ]; then
             t23=$( cat "$CURL_INVOKED_FILE_FLAG" )
@@ -391,10 +386,11 @@ function queryAirConWithIterations()
       fi
       # Updates global variable myAirData
       queryAirCon "$url" "$exitOnFail" "$i"
-      if [ "$rc" = "0" ]; then
+      getFileStatDtFsize "$MY_AIRDATA_FILE"
+      if [ "$rc" = "0" ] && [ "$fSize" -gt 2000 ]; then
          break
       else
-         sleep 1.2
+         sleep 1.5
       fi
    done
 }
@@ -781,10 +777,10 @@ if [ "$io" = "Get" ]; then
             queryIdByNameWithIterations "thing" "$thingName"
             parseMyAirDataWithJq ".myThings.things.\"${idArray_g[0]}\".value"
             if [ "$jqResult" = 100 ]; then
-               if [ $flipEnabled = ture ]; then echo 1; else echo 0; fi
+               if [ $flipEnabled = true ]; then echo 1; else echo 0; fi
                exit 0
             else
-               if [ $flipEnabled = ture ]; then echo 0; else echo 1; fi
+               if [ $flipEnabled = true ]; then echo 0; else echo 1; fi
                exit 0
             fi
          fi
@@ -995,6 +991,7 @@ if [ "$io" = "Set" ]; then
             getMyAirDataFromIdFile
             queryIdByNameWithIterations "thing" "$thingName"
             length=${#idArray_g[@]}
+            if [ $flipEnabled = true ]; then value=$((value-1)); value=${value#-}; fi
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
                   do
