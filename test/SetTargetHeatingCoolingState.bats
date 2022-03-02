@@ -30,24 +30,20 @@ beforeEach()
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Set TargetHeatingCoolingState 1" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn1 ./data
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt Set Blah TargetHeatingCoolingState 1 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
-   e_status=$status
-   e_lines=("${lines[@]}")
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    run ./compare/AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
    # No longer the same
    assert_equal "${lines[1]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
    assert_equal "${lines[2]}" "Try 0"
-   assert_equal "$status" "$e_status"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[3]}" "Try 0"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 4
 }

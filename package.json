@@ -67,7 +67,7 @@
    "scripts": {
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
       "precheck": "if [ ! -d 'node_modules' ];then printf ' check is only done in a development environment\n';exit 1; fi",
-      "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh",
+      "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh test/*.bats test/StartServer test/StopServer",
       "testjs": "node_modules/.bin/mocha ",
       "allBats": "a(){ npm run doBats test/StartServer test/*.bats test/StopServer; };a",
       "doBats": "bats",

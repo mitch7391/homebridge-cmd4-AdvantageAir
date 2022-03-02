@@ -1,6 +1,7 @@
+#!/bin/bash
+# The above line put there to make shellcheck happy
+
 # This testcase is meant to be the last to shutdown the server
-
-
 setup()
 {
    load './test/setup'
@@ -16,10 +17,10 @@ stopServer()
    # lsof -Pi :3025 -sTCP:LISTEN
    # local rc=$?
    # if [ "$rc" = "0" ]; then
-   if lsof -Pi :$PORT -sTCP:LISTEN -t >/dev/null ; then
+   if lsof -Pi :"$PORT" -sTCP:LISTEN -t >/dev/null ; then
       echo "Setup: Stopping daemon" >> /tmp/AirConServer.out
       # Stop it if it is, Just in case its old
-      curl -s -g http://localhost:$PORT/quit >> /tmp/AirConServer.out 2>&1
+      curl -s -g "http://localhost:$PORT/quit" >> /tmp/AirConServer.out 2>&1
       rc=$?
       if [ "$rc" != 0 ]; then
          echo "Setup: Stopping failed rc: $rc" >> /tmp/AirConServer.out
@@ -28,7 +29,7 @@ stopServer()
    fi
 }
 
-@test "AdvAir ( zStopServer )" {
+@test "AdvAir ( StopServer )" {
    stopServer
    rc=$?
    assert_equal "$rc" 0

@@ -94,6 +94,8 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "100"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 2
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn3 Get Brightness z01" {
@@ -109,6 +111,8 @@ beforeEach()
    assert_equal "${lines[1]}" "Try 1"
    assert_equal "${lines[2]}" "Try 2"
    assert_equal "${lines[3]}" "100"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 4
 }
 
 
@@ -125,6 +129,8 @@ beforeEach()
    assert_equal "${lines[2]}" "Try 2"
    assert_equal "${lines[3]}" "Try 3"
    assert_equal "${lines[4]}" "Try 4"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 5
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z03" {
@@ -137,4 +143,6 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "85"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 2
 }

@@ -173,19 +173,19 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r1=$lines[0]
-   assert_equal "${#r1}" 5735
+   r1=${lines[0]}
+   assert_equal "${#r1}" 5732
    # getSystemData 2
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r2=$lines[0]
+   r2=${lines[0]}
    assert_equal "$r1" "$r2"
    # getSystemData 3
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r3=$lines[0]
+   r3=${lines[0]}
    assert_equal "$r1" "$r3"
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
@@ -218,8 +218,8 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r1=$lines[0]
-   assert_equal "${#r1}" 5735
+   r1=${lines[0]}
+   assert_equal "${#r1}" 5732
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -229,8 +229,8 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r2=$lines[0]
-   assert_equal "${#r2}" 3870
+   r2=${lines[0]}
+   assert_equal "${#r2}" 3867
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -240,8 +240,8 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r3=$lines[0]
-   assert_equal "${#r3}" 3870
+   r3=${lines[0]}
+   assert_equal "${#r3}" 3867
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -251,7 +251,7 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   r4=$lines[0]
+   r4=${lines[0]}
    assert_equal "$r3" "$r4"
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
