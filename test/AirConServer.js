@@ -2,9 +2,37 @@ var fs = require('fs');
 const http = require('http');
 var url = require('url');
 
+// Command line parser
+const { Command } = require( "commander" );
+const program = new Command;
+
+// Setting up PORT
+var port_g = process.env.PORT || 2025;
+
+var debug_g = true;
+
+// A nice little getOpt node.js package
+program
+  .description( 'Start the AirCon server, if not already running' )
+
+  .option( '-p, --port', `Port to use. .\nDefault: ${ port_g } .` )
+  .option( '-d, --debug', `Set debug output to $file. .\nDefault: ${  debug_g } .` );
+
+
+// Parse the arguments passed into this program.
+program.parse( process.argv );
+
+
+// Get the options passed in based on the commander getOpts definitions.
+let options = program.opts( );
+
+if ( options.debug )
+   debug_g = options.debug;
+if ( options.port )
+   port_g = options.port;
+
 var server_g = null;
 var listener_g = null;
-var debug_g = true;
 var stack_g=[];
 
 var sockets = {}, nextSocketId = 0;
@@ -307,7 +335,7 @@ async function startServer( port, handler, callback )
       await new Promise((resolve, reject) =>
       {
          // Listening to http Server
-         listener_g = server.listen( PORT, ( err ) =>
+         listener_g = server.listen( port_g, ( err ) =>
          {
             if ( ! err )
                resolve();
@@ -343,13 +371,13 @@ async function startServer( port, handler, callback )
             });
 
          });
-            server.once('close', ( par ) =>
-            {
-               // Called nCurl times after server.on('clise')
-              log( `SERVERonce Outside): close  par: ${ par }` );
-              // delete sockets(socket);
-              // socket.destroy(socket);
-            });
+         server.once('close', ( par ) =>
+         {
+            // Called nCurl times after server.on('clise')
+           log( `SERVERonce Outside): close  par: ${ par }` );
+           // delete sockets(socket);
+           // socket.destroy(socket);
+         });
          server.on('close', ( /* No PARMS */ ) =>
          {
             // happens at very end when server is shutdown
@@ -386,11 +414,11 @@ async function startServer( port, handler, callback )
 // curl -s -g 'http://localhost:2025/?load=testData/dataPassOn1/getSystemData.txt0'
 // curl -s -g 'http://localhost:2025/?loadFail=testData/dataFailOn5/getSystemData.txt4?loadFailureCound=4'
 // ../AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
+//
 
-// Setting up PORT
-const PORT = process.env.PORT || 2025;
 
-startServer( PORT, requestListener, ( e, server ) =>
+
+startServer( port_g, requestListener, ( e, server ) =>
 {
    if ( e )
    {
@@ -398,7 +426,7 @@ startServer( PORT, requestListener, ( e, server ) =>
       log(`startServer failed: ${ e }` );
    } else {
       //log("startServer passed. server: %s", server  );
-      log(`Started server. Listening on PORT: ${ PORT }...` );
+      log(`Started server. Listening on PORT: ${ port_g }...` );
       server_g = server;
    }
 });

@@ -4,9 +4,6 @@ setup()
    _common_setup
 }
 
-load 'test/startServer'
-load 'test/stopServer'
-
 teardown()
 {
    _common_teardown
@@ -31,16 +28,16 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( StartServer )" {
-   before
-   stopServer
-   rc=$?
-   assert_equal "$rc" 0
-   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
-   startServer
-   rc=$?
-   assert_equal "$rc" 0
-}
+# @test "AdvAir ( StartServer )" {
+#    before
+#    stopServer
+#    rc=$?
+#    assert_equal "$rc" 0
+#    # Do not use 'run' here as it would always spit output to stdout. Maybe later?
+#    startServer
+#    rc=$?
+#    assert_equal "$rc" 0
+# }
 
 
 @test "AdvAir ( ezone inline ) Test PassOn5 Set On 1" {
@@ -219,8 +216,3 @@ beforeEach()
    assert_equal "${lines[4]}" "Try 4"
 
 }
-
-@test "AdvAir ( StopServer )" {
-   stopServer
-}
-

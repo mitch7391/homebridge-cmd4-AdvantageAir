@@ -29,9 +29,6 @@ setup()
    _common_setup
 }
 
-load 'test/startServer'
-load 'test/stopServer'
-
 teardown()
 {
    _common_teardown
@@ -54,17 +51,6 @@ beforeEach()
    if [ -f "/tmp/myAirData.txt.lock" ]; then
       rm "/tmp/myAirData.txt.lock"
    fi
-}
-
-@test "AdvAir ( StartServer )" {
-   before
-   stopServer
-   rc=$?
-   assert_equal "$rc" 0
-   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
-   startServer
-   rc=$?
-   assert_equal "$rc" 0
 }
 
 @test "StartServer Test /reInit" {
@@ -272,11 +258,4 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
    assert_equal "${lines[0]}" "repeat: -1 filename: testData/dataFailOn5/getSystemData.txt4"
-}
-
-
-@test "AdvAir ( StopServer )" {
-   stopServer
-   rc=$?
-   assert_equal "$rc" 0
 }

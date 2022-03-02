@@ -5,9 +5,6 @@ setup()
    _common_setup
 }
 
-load 'test/startServer'
-load 'test/stopServer'
-
 teardown()
 {
    _common_teardown
@@ -32,18 +29,6 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( StartServer )" {
-   before
-   stopServer
-   rc=$?
-   assert_equal "$rc" 0
-   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
-   startServer
-   rc=$?
-   assert_equal "$rc" 0
-}
-
-
 @test "AdvAir ( ezone inline ) Test PassOn1 Set TargetHeatingCoolingState 1" {
    # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn1 ./data
@@ -66,8 +51,3 @@ beforeEach()
    assert_equal "${lines[2]}" "Try 0"
    assert_equal "$status" "$e_status"
 }
-
-@test "AdvAir ( StopServer )" {
-   stopServer
-}
-

@@ -4,9 +4,6 @@ setup()
    _common_setup
 }
 
-load 'test/startServer'
-load 'test/stopServer'
-
 teardown()
 {
    _common_teardown
@@ -30,18 +27,6 @@ beforeEach()
       rm "/tmp/myAirData.txt.lock"
    fi
 }
-
-@test "AdvAir ( StartServer )" {
-   before
-   stopServer
-   rc=$?
-   assert_equal "$rc" 0
-   # Do not use 'run' here as it would always spit output to stdout. Maybe later?
-   startServer
-   rc=$?
-   assert_equal "$rc" 0
-}
-
 
 @test "AdvAir ( zones inline ) Test PassOn5 Get StatusLowBattery z01" {
    # We symbolically link the directory of the test we want to use.
@@ -144,8 +129,4 @@ beforeEach()
    assert_equal "${lines[3]}" "${e_lines[3]}"
    assert_equal "${lines[4]}" "${e_lines[4]}"
    assert_equal "${lines[5]}" "${e_lines[5]}"
-}
-
-@test "AdvAir ( StopServer )" {
-   stopServer
 }

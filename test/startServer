@@ -1,4 +1,11 @@
-#!/usr/bin/env bash
+# This testcase is meant to be the last to shutdown the server
+
+
+setup()
+{
+   load './test/setup'
+   _common_setup
+}
 
 startServer()
 {
@@ -17,5 +24,10 @@ startServer()
    echo "Setup: Daemon shold be started rc: $rc" >> /tmp/AirConServer.out
 
 }
-declare -x -f startServer
 
+
+@test "AdvAir ( zStartServer )" {
+   startServer
+   rc=$?
+   assert_equal "$rc" 0
+}

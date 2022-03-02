@@ -1,6 +1,11 @@
-#!/usr/bin/env bash
+# This testcase is meant to be the last to shutdown the server
 
-export PORT=2025
+
+setup()
+{
+   load './test/setup'
+   _common_setup
+}
 
 stopServer()
 {
@@ -22,4 +27,9 @@ stopServer()
       echo "Setup: Curl has Stoped daemon rc: $rc" >> /tmp/AirConServer.out
    fi
 }
-declare -x -f stopServer
+
+@test "AdvAir ( zStopServer )" {
+   stopServer
+   rc=$?
+   assert_equal "$rc" 0
+}
