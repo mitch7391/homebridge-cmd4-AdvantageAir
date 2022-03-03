@@ -20,6 +20,7 @@ typeset -i a argSTART argEND
 #
 argEND=$#
 IP=""
+PORT="2025"
 device=""
 io=""
 characteristic=""
@@ -583,6 +584,7 @@ if [ $argEND -ge $argSTART ]; then
             # For npm run test
             selfTest=${v}
             test="_TEST"
+            PORT="3025"
             # re-define Temporary files
             QUERY_AIRCON_LOG_FILE="${QUERY_AIRCON_LOG_FILE}${test}"
             QUERY_IDBYNAME_LOG_FILE="${QUERY_IDBYNAME_LOG_FILE}${test}"
@@ -691,7 +693,7 @@ fi
 # For "Get" Directives
 if [ "$io" = "Get" ]; then
 
-   queryAirConWithIterations "http://$IP:2025/getSystemData"
+   queryAirConWithIterations "http://$IP:$PORT/getSystemData"
 
    # Create a system-wide $MY_AIRDATA_CONSTANTS_FILE cache file if not present 
    if [ ! -f "$MY_AIR_CONSTANTS_FILE" ]; then createMyAirConstantsFile; fi
@@ -956,17 +958,17 @@ if [ "$io" = "Set" ]; then
          case "$value" in
             0 )
                # Shut Off Control Unit.
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
                exit 0
             ;;
             1 )
                # Turn On Control Unit, Set Mode to Heat, Open Current Zone.
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:heat}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{state:on,mode:heat}}}" "1" "0"
                exit 0
             ;;
             2 )
                # Turn On Control Unit, Set Mode to Cool, Open Current Zone.
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:cool}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{state:on,mode:cool}}}" "1" "0"
                exit 0
             ;;
          esac
@@ -977,11 +979,11 @@ if [ "$io" = "Set" ]; then
          noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
          if [ "$noSensors" = true ]; then
             # Only sets temperature to master temperature in the app
-            setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{setTemp:$value}}}" "1" "0"
+            setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{setTemp:$value}}}" "1" "0"
             exit 0
          else
             # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
-            setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
+            setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}" "1" "0"
             exit 0
          fi
       ;;
@@ -996,14 +998,14 @@ if [ "$io" = "Set" ]; then
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:2025/setThing?json={id:\"${idArray_g[a]}\",value:0}" "1" "0" "$keepDel"
+                     setAirCon "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:0}" "1" "0" "$keepDel"
                   done
                exit 0
             else
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:2025/setThing?json={id:\"${idArray_g[a]}\",value:100}" "1" "0" "$keepDel"
+                     setAirCon "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:100}" "1" "0" "$keepDel"
                   done
                exit 0
             fi
@@ -1014,17 +1016,17 @@ if [ "$io" = "Set" ]; then
          if [ $fanSpecified = true ]; then
             if [ "$value" = "1" ]; then
                # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:on,mode:vent}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{state:on,mode:vent}}}" "1" "0"
                exit 0
             else
                # Shut Off Control Unit.
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{state:off}}}" "1" "0"
                exit 0
             fi
          # Uses the On characteristic for zone switches.
          elif [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{state:open}}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{state:open}}}}" "1" "0"
                exit 0
             else
                # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
@@ -1047,7 +1049,7 @@ if [ "$io" = "Set" ]; then
                   zoneOpen=$((zoneOpen - 1))
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
                else
-                  queryAirConWithIterations "http://$IP:2025/getSystemData"
+                  queryAirConWithIterations "http://$IP:$PORT/getSystemData"
                   for (( a=1;a<=nZones;a++ ))
                   do
                      zoneStr=$( printf "z%02d" "$a" )
@@ -1062,17 +1064,17 @@ if [ "$io" = "Set" ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
                   # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
-                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{state:close}}}}" "1" "0"
+                  setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{state:close}}}}" "1" "0"
                   exit 0
                elif [ "$zone" = "$cZone" ]; then
                   # If only 1 zone open and is the constant zone. do not close but set to  100%
-                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{value:100}}}}" "1" "0"
+                  setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{value:100}}}}" "1" "0"
                   exit 0
                else
                   # If only 1 zone open and is not the constant zone, open the constant zone and close this zone
-                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0" "2"
+                  setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "1" "0" "2"
                   # Set the constant zone to 100%
-                  setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$cZone:{value:100}}}}" "1" "0"
+                  setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$cZone:{value:100}}}}" "1" "0"
                   exit 0
                fi
             fi
@@ -1080,8 +1082,8 @@ if [ "$io" = "Set" ]; then
          elif [ $timerEnabled = true ]; then
             if [ "$value" = "0" ]; then
                # Set both "countDownToOn" and "countDownToOff" to 0, otherwise do nothing
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOn:0}}}" "1" "0" "2"
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOff:0}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOn:0}}}" "1" "0" "2"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOff:0}}}" "1" "0"
                exit 0
             else
                # Do nothing
@@ -1099,14 +1101,14 @@ if [ "$io" = "Set" ]; then
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:2025/setLight?json={id:\"${idArray_g[a]}\",state:on}" "1" "0" "$keepDel"
+                     setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:on}" "1" "0" "$keepDel"
                   done
                exit 0
             else
                for ((a=0;a<length;a++))
                   do
                      keepDel=$((length - a))
-                     setAirCon "http://$IP:2025/setLight?json={id:\"${idArray_g[a]}\",state:off}" "1" "0" "$keepDel"
+                     setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:off}" "1" "0" "$keepDel"
                   done
                exit 0
             fi
@@ -1117,19 +1119,19 @@ if [ "$io" = "Set" ]; then
          if [ $zoneSpecified = true ]; then
             # Round the $value to its nearst 5%
             damper=$(($(($((value + 2)) / 5)) * 5))
-            setAirCon "http://$IP:2025/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}" "1" "0"
+            setAirCon "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}" "1" "0"
             exit 0
          elif [ $timerEnabled = true ]; then
             # Make 1% to 10 minutes and capped at a max of 720 minutes
             timerInMinutes=$((value * 10))
             timerInMinutes=$((timerInMinutes < 720? timerInMinutes : 720))
-            queryAirConWithIterations "http://$IP:2025/getSystemData"
+            queryAirConWithIterations "http://$IP:$PORT/getSystemData"
             parseMyAirDataWithJq ".aircons.$ac.info.state"
             if [ "$jqResult" = '"on"' ]; then
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOff:$timerInMinutes}}}" "1" "0"
                exit 0
             else
-               setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
+               setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOn:$timerInMinutes}}}" "1" "0"
                exit 0
             fi
          # Set light brightness
@@ -1140,7 +1142,7 @@ if [ "$io" = "Set" ]; then
             for ((a=0;a<length;a++))
                do
                   keepDel=$((length - a))
-                  setAirCon "http://$IP:2025/setLight?json={id:\"${idArray_g[a]}\",value:$value}" "1" "0" "$keepDel"
+                  setAirCon "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",value:$value}" "1" "0" "$keepDel"
                done
             exit 0
          fi
@@ -1158,7 +1160,7 @@ if [ "$io" = "Set" ]; then
             # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
             fspeed="autoAA"
          fi
-         setAirCon "http://$IP:2025/setAircon?json={$ac:{info:{fan:$fspeed}}}" "1" "0"
+         setAirCon "http://$IP:$PORT/setAircon?json={$ac:{info:{fan:$fspeed}}}" "1" "0"
          exit 0
       ;;
    esac
