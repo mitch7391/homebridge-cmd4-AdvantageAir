@@ -198,9 +198,7 @@ beforeEach()
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (creating new myAirConstants" {
-   # ln -s ./testData/dataOneZone ./data
-   # run ../ezone.txt Get Blah CurrentTemperature TEST_ON
-   # The old scripts return 0 because it does notnreal9ze noSensors
+   # The old scripts return 0 because it does not realize noSensors
    before
    beforeEach
    # Issue the reInit
