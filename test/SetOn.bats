@@ -49,8 +49,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
@@ -76,8 +76,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
@@ -98,7 +98,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    # The new air will fail after the first 5
    assert_equal "$status" "1"
@@ -118,7 +118,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
    assert_equal "$status" "0"
@@ -137,8 +137,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
@@ -159,8 +159,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
@@ -183,7 +183,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataFailOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
    assert_equal "$status" "1"
    # AdvAir.sh does a get first

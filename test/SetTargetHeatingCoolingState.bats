@@ -37,7 +37,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first

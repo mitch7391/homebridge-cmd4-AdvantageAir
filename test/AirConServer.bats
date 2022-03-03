@@ -67,7 +67,7 @@ beforeEach()
 @test "StartServer Test ?load" {
    beforeEach
    echo "Doing curl"
-   run curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    echo "done StartServer testCASE"
@@ -113,14 +113,14 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack with 1 entry no repeats
-   run curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: 0 filename: testData/dataPassOn1/getSystemData.txt0"
+   assert_equal "${lines[0]}" "repeat: 0 filename: testData/basicPassingSystemData.txt"
 }
 
 @test "StartServer Test /dumpstack, 1 entry, repeat=5" {
@@ -130,14 +130,14 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 5
-   run curl -s -g "http://localhost:$PORT?repeat=5&load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?repeat=5&load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: 5 filename: testData/dataPassOn1/getSystemData.txt0"
+   assert_equal "${lines[0]}" "repeat: 5 filename: testData/basicPassingSystemData.txt"
 }
 
 @test "StartServer Test /dumpstack, 2 entry, repeat=3 & 5" {
@@ -147,19 +147,19 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 3
-   run curl -s -g "http://localhost:$PORT?repeat=3&load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?repeat=3&load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 3
-   run curl -s -g "http://localhost:$PORT?repeat=5&load=testData/dataPassOn5/getSystemData.txt4"
+   run curl -s -g "http://localhost:$PORT?repeat=5&load=testData/failedAirConRetrieveSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 2
-   assert_equal "${lines[0]}" "repeat: 3 filename: testData/dataPassOn1/getSystemData.txt0"
-   assert_equal "${lines[1]}" "repeat: 5 filename: testData/dataPassOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: 3 filename: testData/basicPassingSystemData.txt"
+   assert_equal "${lines[1]}" "repeat: 5 filename: testData/failedAirConRetrieveSystemData.txt"
 }
 
 @test "StartServer Test /getSystemData, 1 entry, more requests than repeat, dumping stack" {
@@ -169,7 +169,7 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 3
-   run curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?repeat=2&load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # getSystemData 1
@@ -194,7 +194,7 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: -1 filename: testData/dataPassOn1/getSystemData.txt0"
+   assert_equal "${lines[0]}" "repeat: -1 filename: testData/basicPassingSystemData.txt"
 }
 
 @test "StartServer Test /getSystemData, 2 entry repeat=1 & 2, more requests than repeat, dumping stack" {
@@ -204,19 +204,19 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 1
-   run curl -s -g "http://localhost:$PORT?repeat=1&load=testData/dataPassOn1/getSystemData.txt0"
+   run curl -s -g "http://localhost:$PORT?repeat=1&load=testData/basicPassingSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # load stack repeat of 2 Different data
-   run curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataFailOn5/getSystemData.txt4"
+   run curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 0
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 2
-   assert_equal "${lines[0]}" "repeat: 1 filename: testData/dataPassOn1/getSystemData.txt0"
-   assert_equal "${lines[1]}" "repeat: 2 filename: testData/dataFailOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: 1 filename: testData/basicPassingSystemData.txt"
+   assert_equal "${lines[1]}" "repeat: 2 filename: testData/failedAirConRetrieveSystemData.txt"
    # getSystemData 1
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
@@ -227,7 +227,7 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: 2 filename: testData/dataFailOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: 2 filename: testData/failedAirConRetrieveSystemData.txt"
    # getSystemData 2 (Should be new data )
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
@@ -238,7 +238,7 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: 1 filename: testData/dataFailOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: 1 filename: testData/failedAirConRetrieveSystemData.txt"
    # getSystemData 3
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
@@ -249,7 +249,7 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: 0 filename: testData/dataFailOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: 0 filename: testData/failedAirConRetrieveSystemData.txt"
    # getSystemData 4
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
@@ -260,5 +260,5 @@ beforeEach()
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
-   assert_equal "${lines[0]}" "repeat: -1 filename: testData/dataFailOn5/getSystemData.txt4"
+   assert_equal "${lines[0]}" "repeat: -1 filename: testData/failedAirConRetrieveSystemData.txt"
 }

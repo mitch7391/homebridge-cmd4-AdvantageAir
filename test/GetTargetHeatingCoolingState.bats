@@ -36,8 +36,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Get Blah TargetHeatingCoolingState 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
@@ -53,7 +53,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Get Blah TargetHeatingCoolingState TEST_ON 127.0.0.1
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -68,8 +68,8 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
-   curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Get Blah TargetHeatingCoolingState TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -86,7 +86,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
+   curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    run ../AdvAir.sh Get Blah TargetHeatingCoolingState TEST_ON 127.0.0.1 z01
    assert_equal "$status" 1
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
