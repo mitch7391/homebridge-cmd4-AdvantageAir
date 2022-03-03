@@ -20,7 +20,7 @@ teardown()
    # e_status=$status
    # e_lines=("${lines[@]}")
    # TemperatureDisplayUnits has been removed from AdvAir.sh
-   # run ./compare/AdvAir.sh Get Blah TemperatureDisplayUnits TEST_ON
+   # run ../AdvAir.sh Get Blah TemperatureDisplayUnits TEST_ON
    # assert_equal "$status" "$e_status" ]
    # assert_equal "${lines[0]}" "${e_lines[0]}"
 }

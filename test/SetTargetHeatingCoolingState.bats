@@ -27,6 +27,9 @@ beforeEach()
    if [ -f "/tmp/myAirData.txt.lock" ]; then
       rm "/tmp/myAirData.txt.lock"
    fi
+   if [ -f "/tmp/myAirConstants.txt" ]; then
+      rm "/tmp/myAirConstants.txt"
+   fi
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Set TargetHeatingCoolingState 1" {
@@ -35,7 +38,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
-   run ./compare/AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"

@@ -51,6 +51,9 @@ beforeEach()
    if [ -f "/tmp/myAirData.txt.lock" ]; then
       rm "/tmp/myAirData.txt.lock"
    fi
+   if [ -f "/tmp/myAirConstants.txt" ]; then
+      rm "/tmp/myAirConstants.txt"
+   fi
 }
 
 @test "StartServer Test /reInit" {

@@ -26,11 +26,14 @@ beforeEach()
    if [ -f "/tmp/myAirData.txt.lock" ]; then
       rm "/tmp/myAirData.txt.lock"
    fi
+   if [ -f "/tmp/myAirConstants.txt" ]; then
+      rm "/tmp/myAirConstants.txt"
+   fi
 }
 
 @test "AdvAir ( ezone inline ) Test Invalid Option 'BLAH'" {
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/AdvAir.sh Get Fan On TEST_ON BLAH
+   run ../AdvAir.sh Get Fan On TEST_ON BLAH
    assert_equal "$status" "1"
    assert_equal "${lines[0]}" "Unknown Option: BLAH"
 
@@ -42,7 +45,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/AdvAir.sh Get Fan On TEST_ON 127.0.0.1
+   run ../AdvAir.sh Get Fan On TEST_ON 127.0.0.1
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"

@@ -26,6 +26,9 @@ beforeEach()
    if [ -f "/tmp/myAirData.txt.lock" ]; then
       rm "/tmp/myAirData.txt.lock"
    fi
+   if [ -f "/tmp/myAirConstants.txt" ]; then
+      rm "/tmp/myAirConstants.txt"
+   fi
 }
 
 @test "AdvAir ( zones inline ) Test PassOn5 Get StatusLowBattery z01" {
@@ -35,7 +38,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?repeat=4&load=testData/dataPassOn5/getSystemData.txt0"
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn5/getSystemData.txt4"
-   run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Try 1"
@@ -54,7 +57,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0"
-   run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "0"
@@ -69,7 +72,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?repeat=2&load=testData/dataPassOn3/getSystemData.txt0"
    curl -s -g "http://localhost:$PORT?load=testData/dataPassOn3/getSystemData.txt2"
-   run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Try 1"
@@ -85,7 +88,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/dataFailOn5/getSystemData.txt0"
-   run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah StatusLowBattery z01 127.0.0.1 TEST_ON
    assert_equal "$status" 1
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Try 1"
