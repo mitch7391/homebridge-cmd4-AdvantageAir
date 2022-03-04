@@ -1,8 +1,7 @@
 # Understanding these test cases
 #
-# What we are trying to do is compare the execution of AdvAir.sh with either
-# the previous ezone/zones scripts or some expected output. In that way
-# you can rerun these tests after any change to AdvAir.sh and gaurantee the
+# What we are trying to do is compare the execution of AirConServer.js
+# So that way you can rerun these tests after any change gaurantees the
 # result in production without having to try every possible scenario.
 
 # Unit tests have a setup function before and a teardown function after each
@@ -16,10 +15,15 @@
 #
 # Results to stdout:
 #     Try 0
+#     Parsing for jqPath: .aircons.ac1.info
 #     Try 1
+#     Parsing for jqPath: .aircons.ac1.info
 #     Try 2
+#     Parsing for jqPath: .aircons.ac1.info
 #     Try 3
+#     Parsing for jqPath: .aircons.ac1.info
 #     Try 4
+#     Parsing for jqPath: .aircons.ac1.info
 #     100
 #
 #

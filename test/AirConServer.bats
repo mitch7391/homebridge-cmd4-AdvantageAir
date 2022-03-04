@@ -1,6 +1,6 @@
 # Understanding these test cases
 #
-# What we are trying to do is compare the execution of AirConServer.js with either
+# What we are trying to do is compare the execution of AirConServer.js
 # So that way you can rerun these tests after any change gaurantees the
 # result in production without having to try every possible scenario.
 
@@ -20,8 +20,6 @@
 #    $status      - is the result of the AirConServer.sh command
 #    ${lines[0]}  - is an array of text from the AirConServer.js command
 #    assert_equal "${lines[0]}" "Try 0"  - compares the output in line 0.
-
-
 
 setup()
 {

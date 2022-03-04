@@ -1,4 +1,3 @@
-
 setup()
 {
    load './test/setup'
