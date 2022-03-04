@@ -31,18 +31,6 @@ beforeEach()
    fi
 }
 
-# @test "AdvAir ( StartServer )" {
-#    before
-#    stopServer
-#    rc=$?
-#    assert_equal "$rc" 0
-#    # Do not use 'run' here as it would always spit output to stdout. Maybe later?
-#    startServer
-#    rc=$?
-#    assert_equal "$rc" 0
-# }
-
-
 @test "AdvAir ( ezone inline ) Test PassOn5 Set On 1" {
    # Old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
@@ -56,16 +44,22 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
-   assert_equal "${lines[5]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
-   assert_equal "${lines[6]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Try 3"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Try 4"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
+   assert_equal "${lines[11]}" "Try 0"
    # AdvAir.sh does a get last
-   assert_equal "${lines[7]}" "Try 0"
+   assert_equal "${lines[12]}" "Try 0"
+   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 14
 
 }
 
@@ -82,15 +76,19 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
-   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[6]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
+   assert_equal "${lines[7]}" "Try 0"
    # AdvAir.sh does a get last
-   assert_equal "${lines[5]}" "Try 0"
+   assert_equal "${lines[8]}" "Try 0"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 6
+   assert_equal "${#lines[@]}" 10
 }
 
 @test "AdvAir ( ezone inline ) Test FailOn5 Set On 1" {
@@ -103,12 +101,17 @@ beforeEach()
    # The new air will fail after the first 5
    assert_equal "$status" "1"
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Try 3"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Try 4"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 5
+   assert_equal "${#lines[@]}" 10
 }
 
 
@@ -124,12 +127,14 @@ beforeEach()
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   assert_equal "${lines[2]}" "Try 0"
-   # AdvAir.sh does a get last
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
    assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 4
+   assert_equal "${#lines[@]}" 6
 }
 
 @test "AdvAir ( zones inline ) Test PassOn3 Set On 1 z01" {
@@ -143,15 +148,19 @@ beforeEach()
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[6]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
+   assert_equal "${lines[7]}" "Try 0"
    # AdvAir.sh does a get last
-   assert_equal "${lines[5]}" "Try 0"
+   assert_equal "${lines[8]}" "Try 0"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 6
+   assert_equal "${#lines[@]}" 10
 }
 
 @test "AdvAir ( zones inline ) Test PassOn5 Set On 1 z01" {
@@ -165,17 +174,23 @@ beforeEach()
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Try 3"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Try 4"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[5]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   assert_equal "${lines[6]}" "Try 0"
+   assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
+   assert_equal "${lines[11]}" "Try 0"
    # AdvAir.sh does a get last
-   assert_equal "${lines[7]}" "Try 0"
+   assert_equal "${lines[12]}" "Try 0"
+   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 14
 }
 
 @test "AdvAir ( zones inline ) Test FailOn5 Set On 1 z01" {
@@ -189,11 +204,16 @@ beforeEach()
    # AdvAir.sh does a get first
    # The new air will fail after the first 5
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Try 3"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Try 4"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 5
+   assert_equal "${#lines[@]}" 10
 
 }

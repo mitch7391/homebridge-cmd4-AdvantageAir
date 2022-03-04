@@ -42,11 +42,13 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[1]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
-   assert_equal "${lines[2]}" "Try 0"
-   # AdvAir.sh does a get last
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
    assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 4
+   assert_equal "${#lines[@]}" 6
 }

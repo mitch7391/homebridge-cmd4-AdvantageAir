@@ -313,6 +313,11 @@ function parseMyAirDataWithJq()
          exit $rc
       fi
    fi
+   if [ "$selfTest" = "TEST_ON" ]; then
+      # For Testing, you can compare whats sent
+      echo "Parsing for jqPath: $jqPath";
+   fi
+
 }
 
 function  queryAirConWithIterations()

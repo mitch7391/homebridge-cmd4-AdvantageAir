@@ -42,9 +42,14 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "25.4"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[7]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 8
 }
 
 @test "AdvAir - Test Write MyAirConstants with NoSensor Data" {
@@ -60,10 +65,20 @@ beforeEach()
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z03.rssi"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z04.rssi"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z05.rssi"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.zones.z06.rssi"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
    # The noSensors fixes this
-   assert_equal "${lines[2]}" "21"
+   assert_equal "${lines[12]}" "21"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 13
    myAirConstants=$( cat "/tmp/myAirConstants.txt" )
    noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
    cZone=$( echo "$myAirConstants" | awk '{print $2}' )
@@ -86,17 +101,28 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "21"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z03.rssi"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z04.rssi"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z05.rssi"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.zones.z06.rssi"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
+   assert_equal "${lines[12]}" "21"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 13
    # Running the same command again, will use the cached myAirConstants
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "21"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
+   assert_equal "${lines[3]}" "21"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 4
    myAirConstants=$( cat "/tmp/myAirConstants.txt" )
    noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
    cZone=$( echo "$myAirConstants" | awk '{print $2}' )
@@ -120,10 +146,15 @@ beforeEach()
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
    # The noSensors fixes this
-   assert_equal "${lines[2]}" "25.4"
+   assert_equal "${lines[7]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 8
    myAirConstants=$( cat "/tmp/myAirConstants.txt" )
    noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
    cZone=$( echo "$myAirConstants" | awk '{print $2}' )
@@ -146,17 +177,23 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "25.4"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[7]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 8
    # Running the same command again, will use the cached myAirConstants
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "25.4"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[3]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 4
    myAirConstants=$( cat "/tmp/myAirConstants.txt" )
    noSensors=$( echo "$myAirConstants" | awk '{print $1}' )
    cZone=$( echo "$myAirConstants" | awk '{print $2}' )

@@ -70,7 +70,7 @@
       "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh test/*.bats test/StartServer test/StopServer",
       "testjs": "node_modules/.bin/mocha ",
       "allBats": "a(){ npm run doBats test/StartServer test/*.bats test/StopServer; };a",
-      "doBats": "bats",
+      "doBats": "export PORT=2025; bats",
       "bats": "a(){ npm run doBats test/StartServer $* test/StopServer; };a",
       "batsDebug": "bats -x",
       "lint": "eslint",

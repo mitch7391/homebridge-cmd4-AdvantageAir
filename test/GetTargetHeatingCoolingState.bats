@@ -41,11 +41,22 @@ beforeEach()
    run ../AdvAir.sh Get Blah TargetHeatingCoolingState 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
-   assert_equal "${lines[5]}" "2"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Try 1"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 2"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Try 3"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Try 4"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[12]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[14]}" "2"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 15
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get TargetHeatingCoolingState" {
@@ -58,9 +69,14 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "2"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[7]}" "2"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 3
+   assert_equal "${#lines[@]}" 8
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn3 Get TargetHeatingCoolingState" {
@@ -74,11 +90,18 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Try 2"
-   assert_equal "${lines[4]}" "2"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Try 1"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[5]}" "Try 2"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[11]}" "2"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 5
+   assert_equal "${#lines[@]}" 12
 }
 
 @test "AdvAir ( ezone inline ) Test FailOn5 Get TargetHeatingCoolingState" {
@@ -91,11 +114,16 @@ beforeEach()
    assert_equal "$status" 1
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Try 2"
-   assert_equal "${lines[4]}" "Try 3"
-   assert_equal "${lines[5]}" "Try 4"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Try 1"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[5]}" "Try 2"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[7]}" "Try 3"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[9]}" "Try 4"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 6
+   assert_equal "${#lines[@]}" 11
 
 }
