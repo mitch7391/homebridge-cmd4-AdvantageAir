@@ -100,20 +100,11 @@ function logError()
    if [ "$logErrors" != true ]; then
       return
    fi
-   local comment="$1"
-   local rc="$2"
-   local result="$3"
-   local data1="$4"
-   local data2="$5"
+   local str="$1"
    local dt
    dt=$(date +%s)
    local fileName="/tmp/AirconError-$dt.txt"
-   { echo "$io $device $characteristic"
-     echo "${comment}"
-     echo "return code: $rc"
-     echo "result: $result"
-     echo "data1: $data1"
-     echo "data2: $data2"
+   { echo "$str"
    } > "$fileName"
 }
 function getFileStatDtFsize()
@@ -232,7 +223,7 @@ echo "queryCachedAirCon_calls tf:$tf t0:$t0 dt:$dt useFileCache:$useFileCache" >
          # The result cannot be trusted with a bad return code
          # Do not output to stderr as this defeats the purpose
          # of squashing error messages
-         logError "getValue_curl failed" "$rc" "$device" "$characteristic" "$url"
+         logError "getValue_curl failed rc: $rc device: $device characteristic: $characteristic url: $url"
          exit $rc
       fi
    fi
@@ -285,7 +276,7 @@ function setAirConUsingIteration()
          # The result cannot be trusted with a bad return code
          # Do not output to stderr as this defeats the purpose
          # of squashing error messages
-         logError "curl failed" "$rc" "$io" "$keepDel" "$url"
+         logError "curl failed rc: $rc io: $io keepDel: $keepDel url: $url"
          exit $rc
       fi
    done
@@ -308,7 +299,7 @@ function parseMyAirDataWithJq()
          # The result cannot be trusted with a bad return code
          # Do not output to stderr as this defeats the purpose
          # of squashing error messages
-         logError "jq failed" "$rc" "$jqResult" "$io $device $characteristic" "$jqPath"
+         logError "jq failed rc: $rc jqResult: $jqResult io: $io device: $device characteristic: $characteristic jqPath: $jqPath"
          echo "parseMyAirDataWithJQ failed rc=$rc jqResult=$jqResult $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
          exit $rc
       fi
@@ -422,7 +413,7 @@ function queryIdByName()
    if [ "$rc" != "0" ]; then
       # The result cannot be trusted with a bad return code
       # Output to stderr only after 5 tries
-      logError "queryIdByName_jq failed" "$rc" "id=${ids}" "${path}" "$name"
+      logError "queryIdByName_jq failed rc: $rc ids: ${ids} path: ${path} name: $name"
       echo "queryIdByName_jq_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
       exit $rc
    fi
@@ -1101,6 +1092,9 @@ if [ "$io" = "Set" ]; then
             queryAirConWithIterations "http://$IP:2025/getSystemData" true
 
             exit 0
+         else
+            logError "setValue failed rc: 99 device: $device characteristic: $characteristic value: $value zoneSpecified: $zoneSpecified lightSpecified: $lightSpecified timerEnabled: $timerEnabled keepDel: $keepDel"
+            exit 99
          fi
       ;;
       # Fan service for controlling fan speed (0-33%:low, 34-67%:medium, 68-99%:high, 100%:autoAA/auto)

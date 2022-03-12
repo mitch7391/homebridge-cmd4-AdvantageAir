@@ -404,6 +404,12 @@ const requestListener = function (req, res)
                            traverseAssign( setStatementObj, record.myAirData);
                            break;
                         }
+                        case "value":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+                           break;
+                        }
                         default:
                         {
                            console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
