@@ -53,11 +53,12 @@ beforeEach()
    assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[12]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[14]}" "Parsing for jqPath: .aircons.ac1.info.mode"
 
-   assert_equal "${lines[14]}" "0"
+   assert_equal "${lines[15]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 15
+   assert_equal "${#lines[@]}" 16
 }
 
 # ezone
@@ -75,10 +76,11 @@ beforeEach()
    assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[7]}" "0"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[8]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 9
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn3 Get On" {
@@ -100,10 +102,11 @@ beforeEach()
    assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[11]}" "0"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[12]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 12
+   assert_equal "${#lines[@]}" 13
 
 }
 

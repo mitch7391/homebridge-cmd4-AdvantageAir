@@ -55,9 +55,10 @@ beforeEach()
    assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[7]}" "0"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[8]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 9
 
 }

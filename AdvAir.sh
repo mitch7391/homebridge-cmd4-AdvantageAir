@@ -678,7 +678,7 @@ if [ "$io" = "Get" ]; then
          if [ $fanSpecified = true ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
             # Updates global variable jqResult
-            # parseMyAirDataWithJq ".aircons.$ac.info.state"
+            parseMyAirDataWithJq ".aircons.$ac.info.state"
             if [  "$jqResult" = '"off"' ]; then
                echo 0
                exit 0

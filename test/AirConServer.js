@@ -43,6 +43,38 @@ const log = function( str )
       console.log( str );
 }
 
+function traverseAssign( obj1, obj2 )
+{
+   //console.log("checking obj1 %s", obj1 );
+   for ( let key in obj1 )
+   {
+      //console.log("checking obj1[%s] type %s", key, typeof obj1[key] );
+      if ( typeof obj1[key] == "object" )
+      {
+         //console.log("obj1[%s] == Object", key );
+         // An Array is an object
+         if ( Array.isArray( obj1[ key ]  ) == false )
+         {
+            //console.log("obj1[%s] != Array", key );
+            if ( ! obj2[ key ] )
+            {
+               //console.log("Adding Object obj1[%s] to obj2", key);
+               obj2[ key ] = obj1[ key ]
+            } else {
+              //console.log("traversing obj1[%s]", key);
+               traverseAssign( obj1[key], obj2[key] )
+            }
+         } else
+         {
+            // Do not gandle arrays at this time
+         }
+      } else {
+         //console.log("Adding key obj1[%s]=%s to obj2", key, obj1[key]);
+         obj2[key] = obj1[key];
+      }
+   }
+}
+
 const requestListener = function (req, res)
 {
    req.on('close', function ()
@@ -103,6 +135,7 @@ const requestListener = function (req, res)
    //    "filename": The file to loadbgetSystemData with
    //    "getSystemData": The myAirData json data read from filename,
    //    "repeat":        The number of times remaining for this data to be used.
+   //    "myAirData":     The systemData in json format.
    //
    //
    // The last record is used continiously.
@@ -122,65 +155,8 @@ const requestListener = function (req, res)
    // Default to repeating the last record in the stack
    let repeat = 0;
    let filename;
-   for ( let key in q.query )
-   {
-      let value = q.query[ key ];
-      log( `parsing key:${ key } value: ${ value }` );
-      switch( key )
-      {
-         case "debug":
-         {
-            debug_g = value;
-            log( `Setting debug_g to ${ debug_g}` );
-            log( `SERVER: end\n` );
-            return res.end();
-         }
-         case "repeat":
-         {
-            repeat = value;
-            log( `Setting repeat to ${ repeat }` );
-            log( `SERVER: end\n` );
-            // Do not return, possible furthet options
-            ended = false;
-            break;
-         }
-         case "load":
-         {
-            filename = value;
-            // Check that the file exists locally
-            // log( `SERVER: checking for file: ${ filename }` );
-            if ( !fs.existsSync( filename ) )
-            {
-               log( `File not found: ${ filename }` );
-               res.writeHead( 404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: end\n` );
-               return res.end( `404 Not Found` );
-            }
+   let setInProgress=false;
 
-            log( `SERVER: reading: ${ filename }` );
-            let getSystemData = fs.readFileSync( filename, 'utf-8')
-            log( `SERVER: read length: ${ getSystemData.length }` );
-            log( `SERVER: end\n` );
-            res.writeHead( 200, { 'Content-Type': 'text/html' } );
-            stack_g.push( { "filename": filename,  "getSystemData": getSystemData, "repeat": repeat } );
-            log( `SERVER: end\n` );
-            return res.end();
-         }
-         case "json":
-         {
-            // We do not handle this now
-            ended = false;
-            break;
-         }
-         default:
-         {
-            res.writeHead( 404, { 'Content-Type': 'text/html' } );
-            log( `SERVER: UNKNOWN query: ${ key }` );
-            log( `SERVER: end\n` );
-            return res.end( `SERVER: UNKNOWN query: ${ key }` );
-         }
-      }
-   }
 
    log( `parsing pathname:${ q.pathname }` );
    switch( q.pathname )
@@ -217,9 +193,9 @@ const requestListener = function (req, res)
       case "/setAircon":
       {
          log( `Doing setAircon` );
-         log( `SERVER: end\n` );
-         // Do not care about the options. For now ?
-         return res.end();
+         setInProgress=true;
+         ended = false;
+         break;
       }
       case "/getSystemData":
       {
@@ -286,6 +262,205 @@ const requestListener = function (req, res)
          log( `SERVER: UNKNOWN pathname: ${ q.pathname }` );
          log( `SERVER: end\n` );
          return res.end( `SERVER: UNKNOWN pathname: ${ q.pathname }` );
+      }
+   }
+
+   log ("SERVER PARSING KEYS");
+   for ( let key in q.query )
+   {
+      let value = q.query[ key ];
+      log( `parsing key:${ key } value: ${ value }` );
+      switch( key )
+      {
+         case "debug": // ?debug=1
+         {
+            debug_g = value;
+            log( `Setting debug_g to ${ debug_g}` );
+            log( `SERVER: end\n` );
+            return res.end();
+         }
+         case "repeat": // ?repeat=x
+         {
+            repeat = value;
+            log( `Setting repeat to ${ repeat }` );
+            log( `SERVER: end\n` );
+            // Do not return, possible furthet options
+            ended = false;
+            break;
+         }
+         case "save": // ?save
+         {
+            if ( stack_g.length == 0 )
+            {
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: No data loaded to save` );
+               log( `SERVER: end\n` );
+               return res.end();
+            }
+            let record = stack_g[0];
+            fs.writeFileSync( "/tmp/AirConServerData.json", record.getSystemData);
+
+            log( `SERVER: end\n` );
+            return res.end();
+         }
+         case "load": // ?load=testData/getSystemData.txt
+         {
+            log( `In load` );
+            filename = value;
+            // Check that the file exists locally
+            // log( `SERVER: checking for file: ${ filename }` );
+            if ( !fs.existsSync( filename ) )
+            {
+               log( `File not found: ${ filename }` );
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: end\n` );
+               return res.end( `404 Not Found` );
+            }
+
+            log( `SERVER: reading: ${ filename }` );
+            let getSystemData = fs.readFileSync( filename, 'utf-8')
+            log( `SERVER: read length: ${ getSystemData.length }` );
+            log( `SERVER: end\n` );
+            let myAirData=JSON.parse( getSystemData );
+            res.writeHead( 200, { 'Content-Type': 'text/html' } );
+            stack_g.push( { "filename": filename,
+                            "getSystemData": getSystemData,
+                            "repeat": repeat,
+                            "myAirData": myAirData } );
+
+            log( `SERVER: end\n` );
+            return res.end();
+         }
+         case "json": // ?json
+         {
+            log( `In json` );
+            // The given jqPath is relaxed and must be properly quoted.
+            if ( setInProgress == false )
+            {
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: Parsing JSON without setAircon: ${ key }` );
+               log( `SERVER: end\n` );
+               return res.end();
+            }
+
+            // Get The ac number specified in the "Set" statement
+            // ".aircons.$ac.info.setTemp"
+            let ac="ac1";
+            var re = new RegExp( /^{ac([0-9]+):.*/ );
+            var matches = re.exec( value );
+            ac = "ac" + matches[1];
+            log(`Specified value:${value} ac: ${ac}`);
+
+            // Sets do not have .aircons at the beginning. Add it.
+            value="{aircons:" + value + "}";
+            log( `In json before, value: '${value}'` );
+            // Parsing {ac1:{zones:{z01:{state:open}}}}" into
+            //         {"ac1":{"zones":{"z01":{"state":"open"}}}}"
+            //The first replace changes the last key/value pair
+            //The second replace changes the keys
+            let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                        .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+            log( `In json before,PARSE s6 '${quotedValues}'` );
+
+            // Parse the given jqPath, to a json object
+            let setStatementObj = JSON.parse( quotedValues );
+            log( `In json after,PARSE\n` );
+
+            if ( setStatementObj.result == false )
+            {
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: Cannot Parse ${ value }` );
+               log( `SERVER: end\n` );
+               return res.end();
+            }
+
+            if ( stack_g.length == 0 )
+            {
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: No data loaded to set for ${ value }` );
+               log( `SERVER: end\n` );
+               return res.end();
+            }
+            let record = stack_g[0];
+
+            log( `SERVER: Changing record\n` );
+
+            // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
+            // GIVEN THE "Set" Statement
+            // Get the Keys of what is being "Set"
+            console.log("setStatementObj[ac]=%s", setStatementObj.aircons[ac]);
+            if ( setStatementObj.aircons[ac].zones )
+            {
+               for ( let zone in setStatementObj.aircons[ac].zones )
+               {
+                  for ( let key in setStatementObj.aircons[ac].zones[zone] )
+                  {
+
+                     switch( key )
+                     {
+                        case "state":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+                           break;
+                        }
+                        default:
+                        {
+                           console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
+                          process.exit( 1 );
+                        }
+                     }
+                  }
+               }
+            }
+            if ( setStatementObj.aircons[ac].info )
+            {
+               for ( let key in setStatementObj.aircons[ac].info )
+               {
+                  switch( key )
+                  {
+                     case "state":
+                     {
+                        // Add/change myAirData just those elements in the set statement
+                        traverseAssign( setStatementObj, record.myAirData);
+                        break;
+                     }
+                     case "setTemp":
+                     {
+                        // Add/change myAirData just those elements in the set statement
+                        traverseAssign( setStatementObj, record.myAirData);
+
+                        break;
+                     }
+                     case "mode":
+                     {
+                        // Add/change myAirData just those elements in the set statement
+                        traverseAssign( setStatementObj, record.myAirData);
+
+                        break;
+                     }
+                     default:
+                     {
+                        console.log( `unhandled setAircon info key: ${key}` );
+                       process.exit( 1 );
+                     }
+                  }
+               }
+            }
+
+
+            log( `SERVER: creating new getSystemData\n` );
+            record.getSystemData = JSON.stringify( record.myAirData );
+            log( `SERVER: end\n` );
+            return res.end();
+         }
+         default:
+         {
+            res.writeHead( 404, { 'Content-Type': 'text/html' } );
+            log( `SERVER: UNKNOWN query: ${ key }` );
+            log( `SERVER: end\n` );
+            return res.end( `SERVER: UNKNOWN query: ${ key }` );
+         }
       }
    }
 
@@ -371,10 +546,10 @@ async function startServer( port, handler, callback )
             });
 
          });
-         server.once('close', ( par ) =>
+         server.once('close', ( /* No PARMS */ ) =>
          {
-            // Called nCurl times after server.on('clise')
-           log( `SERVERonce Outside): close  par: ${ par }` );
+            // Called nCurl times after server.on('close')
+           log( `SERVERonce Outside): close` );
            // delete sockets(socket);
            // socket.destroy(socket);
          });

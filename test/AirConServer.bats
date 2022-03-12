@@ -38,6 +38,13 @@ before()
    fi
 }
 
+eraseAirConServerDataFile()
+{
+   if [ -f "/tmp/AirConServerData.json" ]; then
+      rm "/tmp/AirConServerData.json"
+   fi
+}
+
 beforeEach()
 {
    if [ -f "/tmp/myAirData.txt" ]; then
@@ -259,4 +266,112 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${#lines[@]}" 1
    assert_equal "${lines[0]}" "repeat: -1 filename: testData/failedAirConRetrieveSystemData.txt"
+}
+
+@test "StartServer Test Load/Save data" {
+   beforeEach
+   eraseAirConServerDataFile
+   # clear the stack
+   run curl -s -g "http://localhost:$PORT/reInit"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # load stack repeat of 1
+   run curl -s -g "http://localhost:$PORT?repeat=1&load=testData/basicPassingSystemData.txt"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # setAircon state = open
+   run curl -s -g "http://localhost:$PORT?save"
+   assert_equal "$status" 0
+   # assert_equal "${#lines[@]}" 1
+   # getSystemData - The size should still be the same
+   # Save creates the /tmp/AirConSererData.json file
+   run diff testData/basicPassingSystemData.txt /tmp/AirConServerData.json
+   assert_equal "$status" 0
+   #assert_equal "${#lines[@]}" 1
+}
+
+@test "StartServer Test Load/Set/Read new data" {
+   beforeEach
+   # clear the stack
+   run curl -s -g "http://localhost:$PORT/reInit"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # load stack repeat of 1
+   run curl -s -g "http://localhost:$PORT?repeat=1&load=testData/basicPassingSystemData.txt"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # AdvAir.sh TargetTemperature 9
+   # ".aircons.$ac.info.setTemp"
+   run curl -s -g "http://localhost:$PORT/setAircon?json={ac1:{info:{setTemp:9}}}"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # getSystemData
+   # Check the Temp change
+   run curl -s -g "http://localhost:$PORT/getSystemData" -o /tmp/out
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   jqResult=$( jq -e ".aircons.ac1.info.setTemp" < /tmp/out )
+   echo "jqResult=$jqResult"
+   assert_equal "$jqResult" "\"9\""
+   # setAircon Temp = 22
+   run curl -s -g "http://localhost:$PORT/setAircon?json={ac1:{info:{setTemp:22}}}"
+   assert_equal "$status" 0
+   # Check the Temp change
+   run $( curl -s -g "http://localhost:$PORT/getSystemData" -o /tmp/out )
+   assert_equal "$status" 0
+   jqResult=$( jq -e ".aircons.ac1.info.setTemp" < /tmp/out )
+   assert_equal "$jqResult" "\"22\""
+}
+
+@test "StartServer Test Load/Set/Read new data using AdvAir.sh" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   run ../AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:heat}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 6
+   run ../AdvAir.sh Get Blah TargetHeatingCoolingState 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[5]}" "1"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 6
+
+   # ReDo using state: off
+   run ../AdvAir.sh Set Blah TargetHeatingCoolingState 0 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:off}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 6
+   run ../AdvAir.sh Get Blah TargetHeatingCoolingState 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[2]}" "1"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 3
+
 }
