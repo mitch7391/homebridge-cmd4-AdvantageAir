@@ -445,10 +445,16 @@ const requestListener = function (req, res)
 
                         break;
                      }
+                     case "countDownToOff":
+                     {
+                        // Add/change myAirData just those elements in the set statement
+                        traverseAssign( setStatementObj, record.myAirData);
+                        break;
+                     }
                      default:
                      {
                         console.log( `unhandled setAircon info key: ${key}` );
-                       process.exit( 1 );
+                        process.exit( 1 );
                      }
                   }
                }
