@@ -31,67 +31,29 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn5 Set On 1" {
-   # Old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
-   assert_equal "$status" 0
-   # AdvAir.sh does a get first
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[6]}" "Try 3"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[8]}" "Try 4"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
-   assert_equal "${lines[11]}" "Try 0"
-   # AdvAir.sh does a get last
-   assert_equal "${lines[12]}" "Try 0"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 14
-
-}
-
-# ezone (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( ezone inline ) Test PassOn3 Set On 1" {
+@test "AdvAir ( PassOn1 ) Test Set On 1" {
    # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
    curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[6]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
-   assert_equal "${lines[7]}" "Try 0"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
+   assert_equal "${lines[3]}" "Try 0"
    # AdvAir.sh does a get last
-   assert_equal "${lines[8]}" "Try 0"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 10
+   assert_equal "${#lines[@]}" 6
 }
 
-@test "AdvAir ( ezone inline ) Test FailOn5 Set On 1" {
+@test "AdvAir ( FailOn5 ) Test Set On 1" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -116,7 +78,7 @@ beforeEach()
 
 
 # zones (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( zones inline ) Test PassOn1 Set On 1 z01" {
+@test "AdvAir ( PassOn1 ) Test Set On 1 z01" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -137,63 +99,8 @@ beforeEach()
    assert_equal "${#lines[@]}" 6
 }
 
-@test "AdvAir ( zones inline ) Test PassOn3 Set On 1 z01" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
-   assert_equal "$status" "0"
-   # AdvAir.sh does a get first
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No longer the same
-   assert_equal "${lines[6]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   assert_equal "${lines[7]}" "Try 0"
-   # AdvAir.sh does a get last
-   assert_equal "${lines[8]}" "Try 0"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 10
-}
 
-@test "AdvAir ( zones inline ) Test PassOn5 Set On 1 z01" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
-   assert_equal "$status" "0"
-   # AdvAir.sh does a get first
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[6]}" "Try 3"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[8]}" "Try 4"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No longer the same
-   assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   assert_equal "${lines[11]}" "Try 0"
-   # AdvAir.sh does a get last
-   assert_equal "${lines[12]}" "Try 0"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 14
-}
-
-@test "AdvAir ( zones inline ) Test FailOn5 Set On 1 z01" {
+@test "AdvAir ( FailOn5 ) Test Set On 1 z01" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

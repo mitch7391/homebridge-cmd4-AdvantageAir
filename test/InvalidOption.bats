@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test Invalid Option 'BLAH'" {
+@test "AdvAir Test Invalid Option 'BLAH'" {
    beforeEach
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Fan On TEST_ON BLAH
@@ -40,7 +40,7 @@ beforeEach()
 
 }
 
-@test "AdvAir ( ezone inline ) Test IP PassOn1" {
+@test "AdvAir ( PassOn1 ) Test IP" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

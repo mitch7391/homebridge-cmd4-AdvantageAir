@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get RotationSpeed" {
+@test "AdvAir ( PassOn1 ) Test Get RotationSpeed" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Set TargetHeatingCoolingState 1" {
+@test "AdvAir ( PassOn1 ) Test Set TargetHeatingCoolingState 1" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

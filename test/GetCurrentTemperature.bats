@@ -31,37 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn5 Get CurrentTemperature" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
-   assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Try 3"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[9]}" "Try 4"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[12]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[14]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[15]}" "25.4"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 16
-}
-
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature" {
+@test "AdvAir ( PassOn1 ) Test Get CurrentTemperature" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -82,33 +52,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn3 Get CurrentTemperature" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
-   assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[11]}" "25.4"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 12
-}
-
-@test "AdvAir ( ezone inline ) Test FailOn5 Get CurrentTemperature" {
+@test "AdvAir ( FailOn5 ) Test Get CurrentTemperature" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -133,7 +77,7 @@ beforeEach()
 }
 
 
-@test "AdvAir ( zones inline ) Test PassOn1 Get CurrentTemperature z01" {
+@test "AdvAir ( PassOn1 ) Test Get CurrentTemperature z01" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -154,62 +98,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( zones inline ) Test PassOn3 Get CurrentTemperature z01" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
-   assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[11]}" "25.4"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 12
-}
-
-@test "AdvAir ( zones inline ) Test PassOn5 Get CurrentTemperature z01" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
-   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
-   assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Try 3"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[9]}" "Try 4"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[12]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[14]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[15]}" "25.4"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 16
-}
-
-@test "AdvAir ( zones inline ) Test FailOn5 Get CurrentTemperature z01" {
+@test "AdvAir ( FailOn5 ) Test Get CurrentTemperature z01" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -233,7 +122,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 11
 }
 
-@test "AdvAir ( zones inline ) Test PassOn1 Get CurrentTemperature z03" {
+@test "AdvAir ( PassOn1 ) Test Get CurrentTemperature z03" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -254,7 +143,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (creating new myAirConstants" {
+@test "AdvAir ( PassOn1 ) Test Get CurrentTemperature with NoSensor Data (creating new myAirConstants" {
    # The old scripts return 0 because it does not realize noSensors
    before
    beforeEach
@@ -283,7 +172,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 13
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (with cached myAirConstants" {
+@test "AdvAir ( PassOn1 ) Test Get CurrentTemperature with NoSensor Data (with cached myAirConstants" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
