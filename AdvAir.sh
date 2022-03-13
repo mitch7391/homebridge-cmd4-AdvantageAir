@@ -103,9 +103,11 @@ function logError()
    local str="$1"
    local dt
    dt=$(date +%s)
-   local fileName="/tmp/AirconError-$dt.txt"
-   { echo "$str"
-   } > "$fileName"
+   # filling /tmp with files could crash a Pi.
+   local fileName="/tmp/AirconError.txt"
+   touch "$fileName"
+   { echo "$dt $str"
+   } >> "$fileName"
 }
 function getFileStatDtFsize()
 {
