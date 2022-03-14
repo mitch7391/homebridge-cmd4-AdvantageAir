@@ -36,6 +36,20 @@
 #    assert_equal "${lines[0]}" "Try 0"  - compares the output in line 0.
 
 
+# Example Cmd4 config for Brightness
+# {
+#    "type": "Lightbulb",
+#    "displayName": "Light2",
+#    "on": "FALSE",
+#    "brightness": 50,
+#    "name": "Light2",
+#    "polling": [ { "characteristic": "on" },
+#                 { "characteristic": "brightness" }
+#               ],
+#    "state_cmd_suffix": "'light:Light2' ${IP}"
+# },
+
+
 
 setup()
 {
@@ -72,7 +86,6 @@ beforeEach()
 
 
 @test "AdvAir ( PassOn1 ) Test Get Brightness z01" {
-   ln -s ./testData/dataPassOn1 ./data
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

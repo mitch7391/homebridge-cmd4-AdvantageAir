@@ -12,13 +12,13 @@
             "constant1":1,
             "constant2":0,
             "constant3":0,
-            "countDownToOff":73,
+            "countDownToOff":0,
             "countDownToOn":0,
-            "fan":"auto",
+            "fan":"low",
             "filterCleanStatus":0,
             "freshAirStatus":"none",
-            "mode":"cool",
-            "myAutoModeCurrentSetMode":"cool",
+            "mode":"heat",
+            "myAutoModeCurrentSetMode":"heat",
             "myAutoModeIsRunning":false,
             "myZone":0,
             "name":"AC??",
@@ -27,23 +27,23 @@
             "quietNightModeEnabled":false,
             "quietNightModeIsRunning":false,
             "rfSysID":16,
-            "setTemp":23.0,
-            "state":"on",
-            "uid":"d8803950532c",
+            "setTemp":24.0,
+            "state":"off",
+            "uid":"abcd12345678",
             "unitType":19
          },
          "zones":{
             "z01":{
                "error":0,
                "maxDamper":100,
-               "measuredTemp":25.4,
+               "measuredTemp":17.2,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
                "name":"FAMILY",
                "number":1,
-               "rssi":57,
-               "setTemp":23.0,
+               "rssi":46,
+               "setTemp":24.0,
                "state":"open",
                "value":100,
                "type":1,
@@ -52,14 +52,14 @@
             "z02":{
                "error":0,
                "maxDamper":100,
-               "measuredTemp":28.1,
+               "measuredTemp":13.9,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
-               "name":"THEATRE",
+               "name":"ROOM4",
                "number":2,
-               "rssi":42,
-               "setTemp":23.0,
+               "rssi":46,
+               "setTemp":24.0,
                "state":"close",
                "value":100,
                "type":1,
@@ -68,30 +68,30 @@
             "z03":{
                "error":0,
                "maxDamper":100,
-               "measuredTemp":23.8,
+               "measuredTemp":15.5,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
-               "name":"MASTER",
+               "name":"ROOM0",
                "number":3,
-               "rssi":56,
-               "setTemp":23.0,
+               "rssi":58,
+               "setTemp":24.0,
                "state":"open",
-               "value":85,
+               "value":100,
                "type":1,
                "tempSensorClash":false
             },
             "z04":{
                "error":0,
                "maxDamper":100,
-               "measuredTemp":29.8,
+               "measuredTemp":15.5,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
-               "name":"CRAFT ROOM",
+               "name":"ROOM1",
                "number":4,
-               "rssi":62,
-               "setTemp":23.0,
+               "rssi":61,
+               "setTemp":24.0,
                "state":"close",
                "value":100,
                "type":1,
@@ -100,33 +100,33 @@
             "z05":{
                "error":0,
                "maxDamper":100,
-               "measuredTemp":27.8,
+               "measuredTemp":16.5,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
-               "name":"SPARE ROOM",
+               "name":"ROOM2",
                "number":5,
-               "rssi":50,
-               "setTemp":23.0,
+               "rssi":51,
+               "setTemp":24.0,
                "state":"close",
                "value":100,
                "type":1,
                "tempSensorClash":false
             },
             "z06":{
-               "error":0,
+               "error":2,
                "maxDamper":100,
-               "measuredTemp":27.5,
+               "measuredTemp":19.2,
                "minDamper":0,
                "motion":0,
                "motionConfig":0,
-               "name":"GUEST ROOM",
+               "name":"ROOM3",
                "number":6,
-               "rssi":57,
-               "setTemp":23.0,
+               "rssi":52,
+               "setTemp":24.0,
                "state":"close",
                "value":100,
-               "type":1,
+               "type":0,
                "tempSensorClash":false
             }
          }
@@ -170,7 +170,7 @@
                      "name":"AC??",
                      "setTemp":20.0,
                      "state":"on",
-                     "uid":"d8803950532c"
+                     "uid":"abcd12345678"
                   },
                   "zones":{
                      "z01":{
@@ -230,7 +230,7 @@
             "monitors":{
             },
             "name":"MyUndo",
-            "summary":"Days this scene will run:\nnone\n\nAircon: on, mode: cool, fan speed: high, 20Â°C\nopen zones:\nFAMILY, MASTER, CRAFT ROOM",
+            "summary":"Days this scene will run:\nnone\n\nAircon: on, mode: cool, fan speed: high, 20Â°C\nopen zones:\nFAMILY, ROOM0, ROOM1",
             "things":{
             }
          },
@@ -243,7 +243,7 @@
                   "info":{
                      "name":"AC??",
                      "state":"off",
-                     "uid":"d8803950532c"
+                     "uid":"abcd12345678"
                   },
                   "zones":{
                   }
@@ -271,7 +271,7 @@
                   "info":{
                      "name":"AC??",
                      "state":"off",
-                     "uid":"d8803950532c"
+                     "uid":"abcd12345678"
                   },
                   "zones":{
                   }
@@ -301,13 +301,42 @@
       ]
    },
    "myThings":{
-      "groups":{
+       "groups":{
+         "m0":{
+            "buttonType":"upDown",
+            "id":"m0",
+            "name":"Gate&garage",
+            "state":"mixed",
+            "thingsOrder":[
+               "6801801",
+               "6801802"
+            ]
+         }
       },
       "groupsOrder":[
+         "m0"
       ],
       "system":{
+         "lastUsedThingId":"6801802",
+         "numberClicks":7934
       },
       "things":{
+         "6801801":{
+            "buttonType":"upDown",
+            "channelDipState":3,
+            "dimPercent":0,
+            "id":"6801801",
+            "name":"Garage",
+            "value":0
+         },
+         "6801802":{
+            "buttonType":"upDown",
+            "channelDipState":3,
+            "dimPercent":0,
+            "id":"6801802",
+            "name":"Gate",
+            "value":0
+         }
       }
    },
    "system":{
@@ -317,22 +346,22 @@
       "country":"Australia",
       "dealerPhoneNumber":"",
       "deviceIds":[
-         "t2EThV0SOnfvVZWGVPLMJIiS7G82",
-         "CJJKsjk4reUfvdL4Ayv4qvWUtsl1",
-         "KSQbH0ucOPWIl4uUFz6bNU3N2Sp2",
-         "y6zWf8QcuRhZCpIo0lhBTSpEkZg1",
-         "eF8mBZTKIYRa5JGXbv6cHNKOo733",
-         "agMX1QHKKIdQw1Ae1LeMZHCUDbZ2",
-         "VLbgRf93rVP665I8uoNXlQuJ2g02"
+         "fakeid1",
+         "fakeid2",
+         "fakeid3",
+         "fakeid4",
+         "fakeid5",
+         "fakeid6",
+         "fakeid7"
       ],
       "deviceIdsV2":{
-         "t2EThV0SOnfvVZWGVPLMJIiS7G82":"",
-         "eF8mBZTKIYRa5JGXbv6cHNKOo733":"",
-         "CJJKsjk4reUfvdL4Ayv4qvWUtsl1":"cm5wlM304dc:APA91bFG6Vqxjpv-sY6dh7Eu4CaZbwNLvf4ILJRmtgxBJm-g49S9DEuTedSynwbgMcxH1mCp-ND--Q1KJoN7LwPzADJ0T74Ol6SgNU617_Aq0OfSJyydMEqYkRogxaSE3e-crgCdAC2h",
-         "VLbgRf93rVP665I8uoNXlQuJ2g02":"",
-         "KSQbH0ucOPWIl4uUFz6bNU3N2Sp2":"d6XyfPvXiU6Nipn4WM7Fj_:APA91bFhgFu--4KPgjLZq1pQpspm0TbAAjbvddNDCC90zsyO6L9imT-69XQyl4WEWXj87QtBL2-K7xD9VsvqoiEF5ThIfRfWi0V_2oJuLkg_WJ1xXG7KTxeX93NXWlSCQ9E1PRsrlLQm",
-         "agMX1QHKKIdQw1Ae1LeMZHCUDbZ2":"dZ35xyxxfkUBtQo7ON1iWk:APA91bE9q4CmtO6Me4v8nwiN9ncu71NhE0ffs-puhBofT0uQZr-naFDFtN8EEpaPRE1keOCYiDsZUEAfaPegDpo_79hIRvJ0oOIFT7D5XVbuG2NCsNMcqDWzrVKnneDQ2eEGOwakMECB",
-         "y6zWf8QcuRhZCpIo0lhBTSpEkZg1":"e0vwo81VfnU:APA91bFU-UtKufD9Rse3cwN1Hrxa3xMmSZdu7THTq3IKVvUX8dhaxPZk4mgt_dXKsU5Hm5f_zgBPO2_dUZvPqJg_ffNwcpZWjn52R4gayZXxGHeM690gZ-yly13XopxaAyw6Uo2YFMGL"
+         "fakeid1":"",
+         "fakeid5":"",
+         "fakeid2":"fakedata2",
+         "fakeid7":"",
+         "fakeid3":"fakedata3",
+         "fakeid6":"fakedata6",
+         "fakeid4":"fakedata4"
       },
       "drawLightsTab":false,
       "drawThingsTab":false,
@@ -344,21 +373,21 @@
       "hasThings":false,
       "hasThingsBOG":false,
       "hasThingsLight":false,
-      "latitude":-32.1670352,
-      "logoPIN":"1234",
-      "longitude":116.005922,
-      "mid":"d8803950532c",
+      "latitude":-33.856159,
+      "logoPIN":"6666",
+      "longitude":151.215256,
+      "mid":"d1234567890c",
       "myAppRev":"15.880",
       "name":"e-Zone",
       "needsUpdate":false,
       "noOfAircons":1,
       "noOfSnapshots":0,
-      "postCode":"6112",
-      "rid":"q8Z1mFpBhtetzShDR7dUBFcYcz62",
+      "postCode":"22235",
+      "rid":"SomeUnknownFieldWithDataOfQQ",
       "showMeasuredTemp":true,
       "sysType":"e-zone",
       "tspErrorCode":"noError",
-      "tspIp":"192.168.0.173",
+      "tspIp":"192.168.0.1",
       "tspModel":"e-zone2",
       "versions":{
       }

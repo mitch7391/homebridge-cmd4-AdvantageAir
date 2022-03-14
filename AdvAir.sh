@@ -419,6 +419,11 @@ function queryIdByName()
       echo "queryIdByName_jq_failed $t6 ${io}${i} rc=$rc path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
       exit $rc
    fi
+
+   # This is good to test for
+   if [ "$selfTest" = "TEST_ON" ]; then
+      echo "path: $path name: $name ids=${ids[0]}"
+   fi
 }
 
 # main starts here

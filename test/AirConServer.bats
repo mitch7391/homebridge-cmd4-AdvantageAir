@@ -180,20 +180,20 @@ beforeEach()
    # getSystemData 1
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r1=${lines[0]}
-   assert_equal "${#r1}" 5732
+   assert_equal "${#lines[@]}" 368
+   r1=${#lines[@]}
+   assert_equal "${#r1}" 3
    # getSystemData 2
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r2=${lines[0]}
+   assert_equal "${#lines[@]}" 368
+   r2=${#lines[@]}
    assert_equal "$r1" "$r2"
    # getSystemData 3
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r3=${lines[0]}
+   assert_equal "${#lines[@]}" 368
+   r3=${#lines[@]}
    assert_equal "$r1" "$r3"
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
@@ -225,9 +225,9 @@ beforeEach()
    # getSystemData 1
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r1=${lines[0]}
-   assert_equal "${#r1}" 5732
+   assert_equal "${#lines[@]}" 368
+   r1=${#lines[@]}
+   assert_equal "${r1}" 368
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -236,9 +236,9 @@ beforeEach()
    # getSystemData 2 (Should be new data )
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r2=${lines[0]}
-   assert_equal "${#r2}" 3867
+   assert_equal "${#lines[@]}" 237
+   r2=${#lines[@]}
+   assert_equal "${r2}" 237
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -247,9 +247,9 @@ beforeEach()
    # getSystemData 3
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r3=${lines[0]}
-   assert_equal "${#r3}" 3867
+   assert_equal "${#lines[@]}" 237
+   r3=${#lines[@]}
+   assert_equal "${r3}" 237
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
    assert_equal "$status" 0
@@ -258,8 +258,8 @@ beforeEach()
    # getSystemData 4
    run curl -s -g "http://localhost:$PORT/getSystemData"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 1
-   r4=${lines[0]}
+   assert_equal "${#lines[@]}" 237
+   r4=${#lines[@]}
    assert_equal "$r3" "$r4"
    # dump the stack
    run curl -s -g "http://localhost:$PORT/dumpStack"
