@@ -31,7 +31,8 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( PassOn1 ) Test Set On 1" {
+# fanSpecified = true because no zone (z01) specified
+@test "AdvAir ( PassOn1 ) Test Set On 1 - Default: fanSpecified = true, zoneSpecified = false" {
    # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
@@ -53,7 +54,8 @@ beforeEach()
    assert_equal "${#lines[@]}" 6
 }
 
-@test "AdvAir ( FailOn5 ) Test Set On 1" {
+# fanSpecified = true because no zone (z01) specified
+@test "AdvAir ( FailOn5 ) Test Set On 1 - Default: fanSpecified = true, zoneSpecified = false" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -77,8 +79,8 @@ beforeEach()
 }
 
 
-# zones (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( PassOn1 ) Test Set On 1 z01" {
+# fanSpecified = false because zone (z01) specified
+@test "AdvAir ( PassOn1 ) Test Set On 1 z01 - fanSpecified = false, zoneSpecified = true" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -99,8 +101,35 @@ beforeEach()
    assert_equal "${#lines[@]}" 6
 }
 
+# fanSpecified = false because zone (z01) specified
+@test "AdvAir ( PassOn1 ) Test Set On 1 z01 - fanSpecified = false, timerSpecified = true" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   # TimerEnabled requires On to be set to 0
+   run ../AdvAir.sh Set Fan On 0 timer 127.0.0.1 TEST_ON
+   # AdvAir.sh does a get first
+   assert_equal "$status" "0"
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   # AdvAir.sh Set both "countDownToOn" and "countDownToOff" to 0
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOn:0}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   assert_equal "${lines[4]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}"
+   assert_equal "${lines[5]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[6]}" "Try 0"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
+}
 
-@test "AdvAir ( FailOn5 ) Test Set On 1 z01" {
+
+# fanSpecified = false because zone (z01) specified
+@test "AdvAir ( FailOn5 ) Test Set On 1 z01 - fanSpecified = false, zoneSpecified = true" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
