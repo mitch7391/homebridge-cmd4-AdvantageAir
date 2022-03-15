@@ -41,13 +41,13 @@ beforeEach()
 #             ],
 #  "state_cmd_suffix": "'thing:Garage' ${IP}"
 
-@test "AdvAir ( PassOn1 ) Test Get CurrentDoorState" {
+@test "AdvAir ( PassOn1 ) Test Get TargetDoorState" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
-   run ../AdvAir.sh Get Blah CurrentDoorState 'thing:Garage' 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
@@ -61,13 +61,13 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( PassOn1 ) Test Get CurrentDoorState - flip enabled" {
+@test "AdvAir ( PassOn1 ) Test Get TargetDoorState - flip enabled" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
-   run ../AdvAir.sh Get Blah CurrentDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
