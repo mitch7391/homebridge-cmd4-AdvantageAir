@@ -1,16 +1,17 @@
 #!/bin/bash
 
-######################################################################################################################################################################
-######################################################################################################################################################################
-#                                                                                                                                                                    #
-# A massive thank you to John Talbot of homebridge-cmd4 for all his work on improving this shell script and the improvements to homebridge-cmd4 to cater further to  #
-# the Advantage Air controller and all of it's Homebridge users!                                                                                                     #
-#                                                                                                                                                                    #
-# A massive thanks also to @uswong for his ideas and contributions to adding 'rotationSpeed' to the Fan accessory and a "linkedType" 'Fan Speed' to the Thermostat   #
-# accessory for speed control (low/medium/high/auto). I am very pleased with the work and I think a lot of users will be too!                                        #
-#                                                                                                                                                                    #
-######################################################################################################################################################################
-######################################################################################################################################################################
+################################################################################
+#
+# A massive thank you to John Talbot of homebridge-cmd4 for all his work on
+# improving this shell script and the improvements to homebridge-cmd4 to cater
+# further to the Advantage Air controller and all of it's Homebridge users!
+#
+# A massive thanks also to @uswong for his ideas and contributions to adding
+# 'rotationSpeed' to the Fan accessory and a "linkedType" 'Fan Speed' to the
+# Thermostat # accessory for speed control (low/medium/high/auto). I am very
+# pleased with the work and I think a lot of users will be too!
+#
+###############################################################################
 
 # Lets be explicit
 typeset -i a argSTART argEND
@@ -38,7 +39,7 @@ declare -a idArray_g
 # For optional args and arg parsing
 #
 
-# Default zone
+# Default values
 zone=""
 zoneSpecified=false
 fanSpecified=false
@@ -64,7 +65,7 @@ timerEnabled=false
 # For flip capability for things' open/close, up/down mode
 flipEnabled=false
 
-#for lights and things (like garage, etc) controls
+# For lights and things (like garage, etc) controls
 lightSpecified=false
 thingSpecified=false
 
@@ -91,7 +92,6 @@ function showHelp()
    Additional test options to the above are:
      TEST_OFF           The default
      TEST_ON            For npm run test
-     TEST_CMD4          In ones config.json and dev test data must be available.
    HELP_EOF
    exit "$rc"
 }
@@ -112,13 +112,15 @@ function logError()
 function getFileStatDtFsize()
 {
    local fileName="$1"
-   # This script is to determine the creatine time of a file using 'stat' command and calculate the age of the file in seconds
+   # This script is to determine the creatine time of a file using 'stat'
+   # command and calculate the age of the file in seconds
    # and also get the file size in bytes
    # 'stat' command has different parameters in MacOS
-   # The return variables of this script: t0 = last changed time of the file since Epoch
-   #                                      t1 = current time in since Epoch
-   #                                      dt = the age of the file in seconds since last changed
-   #                                      fSize = the size of the file in bytes
+   # The return variables of this script:
+   #    t0 = last changed time of the file since Epoch
+   #    t1 = current time in since Epoch
+   #    dt = the age of the file in seconds since last changed
+   #    fSize = the size of the file in bytes
    case "$OSTYPE" in
       darwin*)
          t0=$( stat -r "$fileName" | awk '{print $11}' )  # for Mac users
@@ -207,9 +209,6 @@ echo "queryCachedAirCon_calls tf:$tf t0:$t0 dt:$dt useFileCache:$useFileCache" >
       myAirData=$( cat "$MY_AIRDATA_FILE" )
       rc=0
    fi
-
-# echo " zarf queryCachedAirCon resd MY_AIRDATA_FILE rc: $rc"
-
 
    # Delete the log if it is > 15 MB
    # du is POSIX portable, but gives size in kbytes
@@ -355,7 +354,7 @@ function createMyAirConstantsFile()
          break
       fi
    done
-   # parse the first constant zone from myAirData
+   # Parse the first constant zone from myAirData
    parseMyAirDataWithJq ".aircons.$ac.info.constant1"
    cZone=$( printf "z%02d" "$jqResult" )
    echo "$noSensors $cZone $nZones" > "$MY_AIR_CONSTANTS_FILE"
@@ -366,16 +365,25 @@ function queryIdByName()
    local path="$1"
    local name="$2"
 
-   # This script is to extract the ID(s) of a light by its name or a thing (garage, blinds, etc) by its name
-   # A name may be associated with 2 or more physcial lights/things hence 2 or more IDs`
-   # A name can contain up to 4 words separated by space(s) but AA system has a limit of 12 characters including the space
-   # The recommendation for a light/thing's name is to try not to use space as word separator to avoid any ambiguity:
-   #     e.g. Two lights with names "Bath 2 DL", "Bath 2 Ex DL" will have ambiguity issue. When scanning for "Bath 2 DL",
-   #     the IDs for both lights will be extracted because both lights contain the words "Bath", "2" and "DL".
-   #     To resolve this kind of ambiguity, use underscore instead of space as word separator. When underscore is used instead
-   #     space, multi-words name will become a single word name. In this example, the two light names will become "Bath_2_DL",
-   #     "Bath_2_Ex_DL" and they will have no ambiguity issue.
-   # If the name contains 4 words separated by a space, then it needs to be separated for ID scanning purposes.
+   # This script is to extract the ID(s) of a light by its name or a thing
+   # (garage, blinds, etc) by its name
+   # A name may be associated with 2 or more physcial lights/things hence 2 or
+   # more IDs.
+   # A name can contain up to 4 words separated by space(s) but AA system has
+   # a limit of 12 characters including the space.
+   # The recommendation for a light/thing's name is to try not to use space as
+   # word separator to avoid any ambiguity:
+   # e.g. Two lights with names "Bath 2 DL", "Bath 2 Ex DL" will have
+   #     ambiguity issue. When scanning for "Bath 2 DL", the IDs for both
+   #     lights will be extracted because both lights contain the words "Bath",
+   #     "2" and "DL".
+   #     To resolve this kind of ambiguity, use underscore instead of space as
+   #     word separator. When underscore is used instead space, multi-words
+   #     name will become a single word name. In this example, the two light
+   #     names will become "Bath_2_DL", "Bath_2_Ex_DL" and they will have no
+   #     ambiguity issue.
+   # If the name contains 4 words separated by a space, then it needs to be
+   # separated for ID scanning purposes.
 
    local name1 name2 name3 name4
    local ids=""
@@ -385,10 +393,12 @@ function queryIdByName()
    name3=$(echo "$name"|cut -d" " -f3)
    name4=$(echo "$name"|cut -d" " -f4)
 
-   # Obtain the unique ID by its name from a MY_AIRDATA_FILE, Which is updated every "Set" or after 2 minutes of every "Get"
+   # Obtain the unique ID by its name from a MY_AIRDATA_FILE, Which is updated
+   # every "Set" or after 2 minutes of every "Get"
 
    # Scan for the unique IDs of lights or things by their names using jq command.
-   # Each name might be associated with more than 1 light/thing hence can have more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
+   # Each name might be associated with more than 1 light/thing hence can have
+   # more than 1 ID. As such the ID(s) is/are output to an array "$idArray_g"
    if [ "$path" = "light" ]; then
       ids=$( echo "${myAirData}" | jq -e ".myLights.lights[]|select(.name|test(\"$name1\"))|select(.name|test(\"$name2\"))|select(.name|test(\"$name3\"))|select(.name|test(\"$name4\"))|.id" )
       rc=$?
@@ -482,11 +492,6 @@ if [ $argEND -ge $argSTART ]; then
             PORT="2025"
             optionUnderstood=true
             ;;
-         TEST_CMD4)
-            # With Cmd4, but using test data. Causes no echo on try
-            selfTest=${v}
-            optionUnderstood=true
-            ;;
          fanSpeed)
             # If the accessory is used to control the fan speed
             fanSpeed=true
@@ -573,7 +578,8 @@ if [ $argEND -ge $argSTART ]; then
       esac
    done
 fi
-# Fan accessory is the only accessory without identification constant, hence give it an identification "fanSpecified"
+# Fan accessory is the only accessory without identification constant, hence
+# give it an identification "fanSpecified"
 if [ $zoneSpecified = false ] && [ $fanSpeed = false ] && [ $timerEnabled = false ] && [ $lightSpecified = false ] && [ $thingSpecified = false ]; then
    fanSpecified=true
 fi
@@ -589,7 +595,8 @@ if [ "$io" = "Get" ]; then
    case "$characteristic" in
       # Gets the current temperature.
       CurrentTemperature )
-         # check whether Temperature Sensors are used in this system and also check the constant zone for this system
+         # check whether Temperature Sensors are used in this system and also
+         # check the constant zone for this system
 
          # Read the system-wide constants from $MY_AIR_CONSTANTS_FILE cache file
          myAirConstants=$( cat "$MY_AIR_CONSTANTS_FILE" )
@@ -603,7 +610,8 @@ if [ "$io" = "Get" ]; then
             # Use zone for Temperature Sensor temp reading
             parseMyAirDataWithJq ".aircons.$ac.zones.$zone.measuredTemp"
          elif [ "$noSensors" = true ]; then
-            # Uses the set temperature as the measured temperature in lieu of having sensors.
+            # Uses the set temperature as the measured temperature in lieu of
+            # having sensors.
             parseMyAirDataWithJq ".aircons.$ac.info.setTemp"
          fi
          echo "$jqResult"
@@ -658,7 +666,8 @@ if [ "$io" = "Get" ]; then
             esac
          fi
       ;;
-      # for garage door opener: get the value from MyPlace (100=open, 0=close) (in Homekit 0=open, 1=close)
+      # for garage door opener: get the value from MyPlace
+      # (100=open, 0=close) (in Homekit 0=open, 1=close)
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
             queryIdByName "thing" "$thingName"
@@ -682,7 +691,8 @@ if [ "$io" = "Get" ]; then
                echo 0
                exit 0
             else
-               # Get the current mode of the Control Unit. Fan can only be On or Off; if not Vent, set all other modes to Off.
+               # Get the current mode of the Control Unit. Fan can only be On
+               # or Off; if not Vent, set all other modes to Off.
                # Updates global variable jqResult
                parseMyAirDataWithJq ".aircons.$ac.info.mode"
                mode="$jqResult"
@@ -715,7 +725,7 @@ if [ "$io" = "Get" ]; then
                esac
             fi
          elif [ $zoneSpecified = true ]; then
-            #damper open/closed = Switch on/off = 1/0
+            # Damper open/closed = Switch on/off = 1/0
             # Change to On just so we can leave it here for now
             # and it will not get called
             # Updates global variable jqResult
@@ -730,7 +740,8 @@ if [ "$io" = "Get" ]; then
          # get the timer current setting
          elif [ $timerEnabled = true ]; then
             # parseMyAirDataWithJq ".aircons.$ac.info.state"
-            # If the aircon state is "off", check that whether it has a countDownToOn timer set
+            # If the aircon state is "off", check that whether it has a
+            # countDownToOn timer set.
             if [ "$jqResult" = '"off"' ]; then
                parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
                # If "countDownToOn" is 0 then switch the timer off
@@ -742,7 +753,8 @@ if [ "$io" = "Get" ]; then
                   echo 1
                   exit 0
                fi
-            # If the aircon state is "on", check that whether it has a countDownToOff timer set
+            # If the aircon state is "on", check that whether it has a
+            # countDownToOff timer set.
             else
                parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
                if [ "$jqResult" = "0" ]; then
@@ -834,8 +846,8 @@ if [ "$io" = "Get" ]; then
             echo 1
             exit 0
          fi
-       ;;  # End of StatusLowBattery
-       # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
+       ;;
+      # Temperature Sensor Fault Status. Faulted if returned value is greater than 0.
       StatusFault )
          # Updates global variable jqResult
          parseMyAirDataWithJq ".aircons.$ac.zones.$zone.error"
@@ -895,7 +907,9 @@ if [ "$io" = "Set" ]; then
             setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value}}}"
             exit 0
          else
-            # Sets all zones to the current master thermostat's temperature value. All 10 allowable zones have been added just in case and do not need removing.
+            # Sets all zones to the current master thermostat's temperature
+            # value. All 10 allowable zones have been added just in case and
+            # do not need removing.
             setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{setTemp:$value},zones:{z01:{setTemp:$value},z02:{setTemp:$value},z03:{setTemp:$value},z04:{setTemp:$value},z05:{setTemp:$value},z06:{setTemp:$value},z07:{setTemp:$value},z08:{setTemp:$value},z09:{setTemp:$value},z10:{setTemp:$value}}}}"
             exit 0
          fi
@@ -905,7 +919,8 @@ if [ "$io" = "Set" ]; then
 
       ;;
       TargetDoorState )
-         # set the value of the garage door (100=open, 0=close) to MyPlace, (0=open, 1=close for Homekit)
+         # Set the value of the garage door (100=open, 0=close) to MyPlace,
+         # (0=open, 1=close for Homekit)
          if [ $thingSpecified = true ]; then
             queryIdByName "thing" "$thingName"
             length=${#idArray_g[@]}
@@ -940,7 +955,8 @@ if [ "$io" = "Set" ]; then
          # Uses the On characteristic for Fan/Vent mode.
          if [ $fanSpecified = true ]; then
             if [ "$value" = "1" ]; then
-               # Sets Control Unit to On, sets to Fan mode aqnd fan speed will default to last used.
+               # Sets Control Unit to On, sets to Fan mode aqnd fan speed will
+               # default to last used.
                setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
             else
                # Shut Off Control Unit.
@@ -962,12 +978,13 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             else
-               # Ensures that at least one zone is open at all time to protect the aircon system before closing any zone:
+               # Ensures that at least one zone is open at all time to protect
+               # the aircon system before closing any zone:
                # > if the only zone open is the constant zone, leave it open and set it to 100%.
                # > if the constant zone is already closed, and the only open zone is set to close,
                #  the constant zone will open and set to 100% while closing that zone.
 
-               # retrieve the constant zone number of zones from from the cache file
+               # Retrieve the constant zone number of zones from from the cache file
                myAirConstants=$( cat "$MY_AIR_CONSTANTS_FILE" )
                cZone=$( echo "$myAirConstants" | awk '{print $2}' )
                nZones=$( echo "$myAirConstants" | awk '{print $3}' )
@@ -994,7 +1011,8 @@ if [ "$io" = "Set" ]; then
 
                if [ "$zoneOpen" -gt 1 ]; then
                   # If there are more than 1 zone open, it is safe to close this zone.
-                  # keep the number of zoneOpen in a temporary file to be used up to 10 seconds
+                  # Keep the number of zoneOpen in a temporary file to be used up
+                  # to 10 seconds
                   echo "$zoneOpen" > "$ZONEOPEN_FILE"
                   setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{state:close}}}}"
 
@@ -1003,7 +1021,8 @@ if [ "$io" = "Set" ]; then
 
                   exit 0
                elif [ "$zone" = "$cZone" ]; then
-                  # If only 1 zone open and is the constant zone. do not close but set to  100%
+                  # If only 1 zone open and is the constant zone. do not
+                  # close but set to  100%
                   setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$zone:{value:100}}}}"
 
                   # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -1011,7 +1030,8 @@ if [ "$io" = "Set" ]; then
 
                   exit 0
                else
-                  # If only 1 zone open and is not the constant zone, open the constant zone and close this zone
+                  # If only 1 zone open and is not the constant zone, open the
+                  # constant zone and close this zone
                   setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{state:open},$zone:{state:close}}}}" "2"
                   # Set the constant zone to 100%
                   setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{zones:{$cZone:{value:100}}}}"
@@ -1025,7 +1045,8 @@ if [ "$io" = "Set" ]; then
          # setting the timer
          elif [ $timerEnabled = true ]; then
             if [ "$value" = "0" ]; then
-               # Set both "countDownToOn" and "countDownToOff" to 0, otherwise do nothing
+               # Set both "countDownToOn" and "countDownToOff" to 0, otherwise
+               # do nothing
                setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOn:0}}}" "2"
                setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{countDownToOff:0}}}"
 
@@ -1037,7 +1058,8 @@ if [ "$io" = "Set" ]; then
                # Do nothing
                exit 0
             fi
-         # fanSpeed is always on, so there is on/off function but issue "exit 0" to let cmd4 know that action is satisfied
+         # fanSpeed is always on, so there is on/off function but issue "exit 0"
+         # to let cmd4 know that action is satisfied
          elif [ $fanSpeed = true ]; then
             exit 0
          # setting the state of the light
@@ -1126,7 +1148,8 @@ if [ "$io" = "Set" ]; then
          elif [ "$value" -ge 68 ] && [ "$value" -le 99 ]; then
             fspeed="high"
          else
-            # 'ezfan' users have 'autoAA' and regular users have 'auto'. But 'autoAA' works for all, so hardcoded to 'autoAA'
+            # 'ezfan' users have 'autoAA' and regular users have 'auto'. But
+            # 'autoAA' works for all, so hardcoded to 'autoAA'
             fspeed="autoAA"
          fi
          setAirConUsingIteration "http://$IP:$PORT/setAircon?json={ac1:{info:{fan:$fspeed}}}"
