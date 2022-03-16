@@ -233,9 +233,7 @@ echo "queryCachedAirCon_calls tf:$tf t0:$t0 dt:$dt useFileCache:$useFileCache" >
 function setAirConUsingIteration()
 {
    local url="$1"
-   local keepDel="$2"
-   # if $keepDel = "" or <= "1", delete the $MY_AIRDATA_FILE after the 'curl' command.
-   # $keepDel >=2 means there is/are more set command(s) coming after this one, $MY_AIRDATA_FILE will be kept for now
+   # keepDel is not needed if after finishing *ALL* sets a new Get of systemData is done
 
    # This script is purely used to 'Set' the AA system
    # The $MY_AIRDATA_FILE cache file will be deleted after the 'Set' command is completed
@@ -261,13 +259,9 @@ function setAirConUsingIteration()
       t2=$(date '+%s')
       curl --fail -s -g "$url"
       rc=$?
-      echo "setAirCon_curl rc:$rc t2:$t2 io:$io keepDel:$keepDel device:$device characteristic:$characteristic url:$url" >> "$QUERY_AIRCON_LOG_FILE"
+      echo "setAirCon_curl rc:$rc t2:$t2 io:$io device:$device characteristic:$characteristic url:$url" >> "$QUERY_AIRCON_LOG_FILE"
 
 
-      # keepDel is not needed if after finishing sets a new Get of systemData is done
-      # if [ "$keepDel" = "" ] || [ "$keepDel" -le "1" ]; then
-      #    if [ -f "$MY_AIRDATA_FILE" ]; then rm "$MY_AIRDATA_FILE"; fi
-      # fi
 
       if [ "$rc" == "0" ]; then
          return
@@ -277,7 +271,7 @@ function setAirConUsingIteration()
          # The result cannot be trusted with a bad return code
          # Do not output to stderr as this defeats the purpose
          # of squashing error messages
-         logError "curl failed rc: $rc io: $io keepDel: $keepDel url: $url"
+         logError "curl failed rc: $rc io: $io url: $url"
          exit $rc
       fi
    done
@@ -929,8 +923,7 @@ if [ "$io" = "Set" ]; then
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
                   do
-                     keepDel=$((length - a))
-                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:0}" "$keepDel"
+                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:0}"
                   done
 
                   # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -940,8 +933,7 @@ if [ "$io" = "Set" ]; then
             else
                for ((a=0;a<length;a++))
                   do
-                     keepDel=$((length - a))
-                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:100}" "$keepDel"
+                     setAirConUsingIteration "http://$IP:$PORT/setThing?json={id:\"${idArray_g[a]}\",value:100}"
                   done
 
                   # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -1069,8 +1061,7 @@ if [ "$io" = "Set" ]; then
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
                do
-                  keepDel=$((length - a))
-                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:on}" "$keepDel"
+                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:on}"
                done
 
                # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -1080,8 +1071,7 @@ if [ "$io" = "Set" ]; then
             else
                for ((a=0;a<length;a++))
                do
-                  keepDel=$((length - a))
-                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:off}" "$keepDel"
+                  setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",state:off}"
                done
 
                # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -1125,8 +1115,7 @@ if [ "$io" = "Set" ]; then
             length=${#idArray_g[@]}
             for ((a=0;a<length;a++))
             do
-               keepDel=$((length - a))
-               setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",value:$value}" "$keepDel"
+               setAirConUsingIteration "http://$IP:$PORT/setLight?json={id:\"${idArray_g[a]}\",value:$value}"
             done
 
             # Get the systemData, requiring the latest for future "Get" or "Set"
@@ -1134,7 +1123,7 @@ if [ "$io" = "Set" ]; then
 
             exit 0
          else
-            logError "setValue failed rc: 99 device: $device characteristic: $characteristic value: $value zoneSpecified: $zoneSpecified lightSpecified: $lightSpecified timerEnabled: $timerEnabled keepDel: $keepDel"
+            logError "setValue failed rc: 99 device: $device characteristic: $characteristic value: $value zoneSpecified: $zoneSpecified lightSpecified: $lightSpecified timerEnabled: $timerEnabled"
             exit 99
          fi
       ;;
