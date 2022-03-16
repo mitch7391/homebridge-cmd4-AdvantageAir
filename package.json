@@ -65,6 +65,7 @@
       "homebridge-plugin"
    ],
    "scripts": {
+      "pre-commit": "npm run allBats && npm run testjs && npm run check && npm run lint",
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
       "precheck": "if [ ! -d 'node_modules' ];then printf ' check is only done in a development environment\n';exit 1; fi",
       "check": "shellcheck AdvAir.sh test/*.bats test/StartServer test/StopServer",
