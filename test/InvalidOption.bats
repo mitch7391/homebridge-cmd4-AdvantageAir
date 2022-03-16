@@ -40,7 +40,7 @@ beforeEach()
 
 }
 
-@test "AdvAir ( PassOn1 ) Test IP" {
+@test "AdvAir Test IP" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

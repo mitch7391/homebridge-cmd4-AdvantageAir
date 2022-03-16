@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( PassOn 1 ) SetBrightness With Zone Specified damper 15" {
+@test "AdvAir SetBrightness With Zone Specified damper 15" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -51,7 +51,7 @@ beforeEach()
    # No more lines than expected
    assert_equal "${#lines[@]}" 6
 }
-@test "AdvAir ( PassOn 1 ) SetBrightness With timer enabled State Off" {
+@test "AdvAir SetBrightness With timer enabled State Off" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

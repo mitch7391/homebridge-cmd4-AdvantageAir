@@ -32,7 +32,7 @@ beforeEach()
 }
 
 
-@test "AdvAir ( PassOn1 ) Test Get TargetHeatingCoolingState" {
+@test "AdvAir Test Get TargetHeatingCoolingState" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -50,29 +50,4 @@ beforeEach()
    assert_equal "${lines[7]}" "2"
    # No more lines than expected
    assert_equal "${#lines[@]}" 8
-}
-
-
-@test "AdvAir ( FaillOn5 ) Test Get TargetHeatingCoolingState" {
-   beforeEach
-   # Issue the reInit
-   curl -s -g "http://localhost:$PORT/reInit"
-   # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
-   run ../AdvAir.sh Get Blah TargetHeatingCoolingState TEST_ON 127.0.0.1 z01
-   assert_equal "$status" 1
-   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
-   assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Try 3"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[9]}" "Try 4"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
-   # No more lines than expected
-   assert_equal "${#lines[@]}" 11
-
 }

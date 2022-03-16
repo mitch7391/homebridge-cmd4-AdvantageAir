@@ -41,7 +41,7 @@ beforeEach()
 #             ],
 #  "state_cmd_suffix": "'thing:Garage' ${IP}"
 
-@test "AdvAir ( PassOn1 ) Test Get CurrentDoorState" {
+@test "AdvAir Test Get CurrentDoorState" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -61,7 +61,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( PassOn1 ) Test Get CurrentDoorState - flip enabled" {
+@test "AdvAir Test Get CurrentDoorState - flip enabled" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
