@@ -156,6 +156,7 @@ const requestListener = function (req, res)
    let repeat = 0;
    let filename;
    let setInProgress=false;
+   let setThingInProgress=false;
 
 
    log( `parsing pathname:${ q.pathname }` );
@@ -194,6 +195,13 @@ const requestListener = function (req, res)
       {
          log( `Doing setAircon` );
          setInProgress=true;
+         ended = false;
+         break;
+      }
+      case "/setThing":
+      {
+         log( `Doing setThing` );
+         setThingInProgress=true;
          ended = false;
          break;
       }
@@ -334,46 +342,8 @@ const requestListener = function (req, res)
          case "json": // ?json
          {
             log( `In json` );
-            // The given jqPath is relaxed and must be properly quoted.
-            if ( setInProgress == false )
-            {
-               res.writeHead( 404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: Parsing JSON without setAircon: ${ key }` );
-               log( `SERVER: end\n` );
-               return res.end();
-            }
 
-            // Get The ac number specified in the "Set" statement
-            // ".aircons.$ac.info.setTemp"
-            let ac="ac1";
-            var re = new RegExp( /^{ac([0-9]+):.*/ );
-            var matches = re.exec( value );
-            ac = "ac" + matches[1];
-            log(`Specified value:${value} ac: ${ac}`);
-
-            // Sets do not have .aircons at the beginning. Add it.
-            value="{aircons:" + value + "}";
-            log( `In json before, value: '${value}'` );
-            // Parsing {ac1:{zones:{z01:{state:open}}}}" into
-            //         {"ac1":{"zones":{"z01":{"state":"open"}}}}"
-            //The first replace changes the last key/value pair
-            //The second replace changes the keys
-            let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
-                        .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
-            log( `In json before,PARSE s6 '${quotedValues}'` );
-
-            // Parse the given jqPath, to a json object
-            let setStatementObj = JSON.parse( quotedValues );
-            log( `In json after,PARSE\n` );
-
-            if ( setStatementObj.result == false )
-            {
-               res.writeHead( 404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: Cannot Parse ${ value }` );
-               log( `SERVER: end\n` );
-               return res.end();
-            }
-
+            // There must be systemData loaded
             if ( stack_g.length == 0 )
             {
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
@@ -383,19 +353,77 @@ const requestListener = function (req, res)
             }
             let record = stack_g[0];
 
-            log( `SERVER: Changing record\n` );
-
-            // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
-            // GIVEN THE "Set" Statement
-            // Get the Keys of what is being "Set"
-            console.log("setStatementObj[ac]=%s", setStatementObj.aircons[ac]);
-            if ( setStatementObj.aircons[ac].zones )
+            if ( setInProgress == true )
             {
-               for ( let zone in setStatementObj.aircons[ac].zones )
-               {
-                  for ( let key in setStatementObj.aircons[ac].zones[zone] )
-                  {
+               // Get The ac number specified in the "Set" statement
+               // ".aircons.$ac.info.setTemp"
+               let ac="ac1";
+               var re = new RegExp( /^{ac([0-9]+):.*/ ); // } vim balance
+               var matches = re.exec( value );
+               ac = "ac" + matches[1];
+               log(`Specified value:${value} ac: ${ac}`);
 
+               // Sets do not have .aircons at the beginning. Add it.
+               value="{aircons:" + value + "}";
+               log( `In json before, value: '${value}'` );
+               // Parsing {ac1:{zones:{z01:{state:open}}}}" into
+               //         {"ac1":{"zones":{"z01":{"state":"open"}}}}"
+               //The first replace changes the last key/value pair
+               //The second replace changes the keys
+               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+               log( `In json before,PARSE '${quotedValues}'` );
+
+               // Parse the given jqPath, to a json object
+               let setStatementObj = JSON.parse( quotedValues );
+
+               if ( setStatementObj.result == false )
+               {
+                  res.writeHead( 404, { 'Content-Type': 'text/html' } );
+                  log( `SERVER: Cannot Parse ${ value }` );
+                  log( `SERVER: end\n` );
+                  return res.end();
+               }
+
+               log( `SERVER: Changing record\n` );
+
+               // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
+               // GIVEN THE "Set" Statement
+               // Get the Keys of what is being "Set"
+               console.log("setStatementObj[ac]=%s", setStatementObj.aircons[ac]);
+               if ( setStatementObj.aircons[ac].zones )
+               {
+                  for ( let zone in setStatementObj.aircons[ac].zones )
+                  {
+                     for ( let key in setStatementObj.aircons[ac].zones[zone] )
+                     {
+                        switch( key )
+                        {
+                           case "state":
+                           {
+                              // Add/change myAirData just those elements in the set statement
+                              traverseAssign( setStatementObj, record.myAirData);
+                              break;
+                           }
+                           case "value":
+                           {
+                              // Add/change myAirData just those elements in the set statement
+                              traverseAssign( setStatementObj, record.myAirData);
+                              break;
+                           }
+                           default:
+                           {
+                              console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
+                             process.exit( 1 );
+                           }
+                        }
+                     }
+                  }
+               }
+               if ( setStatementObj.aircons[ac].info )
+               {
+                  for ( let key in setStatementObj.aircons[ac].info )
+                  {
                      switch( key )
                      {
                         case "state":
@@ -404,7 +432,27 @@ const requestListener = function (req, res)
                            traverseAssign( setStatementObj, record.myAirData);
                            break;
                         }
-                        case "value":
+                        case "setTemp":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+
+                           break;
+                        }
+                        case "mode":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+
+                           break;
+                        }
+                        case "countDownToOff":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+                           break;
+                        }
+                        case "countDownToOn":
                         {
                            // Add/change myAirData just those elements in the set statement
                            traverseAssign( setStatementObj, record.myAirData);
@@ -412,58 +460,67 @@ const requestListener = function (req, res)
                         }
                         default:
                         {
-                           console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
-                          process.exit( 1 );
+                           console.log( `unhandled setAircon info key: ${key}` );
+                           process.exit( 1 );
                         }
                      }
                   }
                }
-            }
-            if ( setStatementObj.aircons[ac].info )
+            } else if (setThingInProgress == true )
             {
-               for ( let key in setStatementObj.aircons[ac].info )
+               log( `In json before, value: '${value}'` );
+
+               // Sets do not have .myThings at the beginning. Add it.
+               //value="{myThings:{things:" + value + "}}";
+
+               // Parsing {id:{"6801801", value:0}" }
+               //The first replace changes the last key/value pair
+               //The second replace changes the keys
+               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+               log( `In json before,PARSE '${quotedValues}'` );
+
+               // Parse the given jqPath, to a json object
+               let setStatementObj = JSON.parse( quotedValues );
+
+               if ( setStatementObj.result == false )
                {
-                  switch( key )
+                  res.writeHead( 404, { 'Content-Type': 'text/html' } );
+                  log( `SERVER: Cannot Parse ${ value }` );
+                  log( `SERVER: end\n` );
+                  return res.end();
+               }
+
+               log( `SERVER: Changing record\n` );
+               // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
+               // GIVEN THE "Set" Statement
+               // Get the Keys of what is being "Set"
+               let id = setStatementObj.id;
+               log("setStatementObj.id=%s", id);
+               let newValue = setStatementObj.value;
+               // console.log("setStatementObj.value=%s", newValue);
+               if ( record.myAirData.myThings )
+               {
+                  if ( record.myAirData.myThings.things )
                   {
-                     case "state":
+                     if ( record.myAirData.myThings.things[ id] )
                      {
-                        // Add/change myAirData just those elements in the set statement
-                        traverseAssign( setStatementObj, record.myAirData);
-                        break;
-                     }
-                     case "setTemp":
+                        log("BEFORE record.myAirData.myThings.things[ %s ] ='%s'", id, record.myAirData.myThings.things[ id ]);
+                        record.myAirData.myThings.things[ id ].value = newValue;
+                        log("AFTER record.myAirData.myThings.things[ %s ] ='%s'", id, record.myAirData.myThings.things[ id ]);
+                     } else
                      {
-                        // Add/change myAirData just those elements in the set statement
-                        traverseAssign( setStatementObj, record.myAirData);
-
-                        break;
-                     }
-                     case "mode":
-                     {
-                        // Add/change myAirData just those elements in the set statement
-                        traverseAssign( setStatementObj, record.myAirData);
-
-                        break;
-                     }
-                     case "countDownToOff":
-                     {
-                        // Add/change myAirData just those elements in the set statement
-                        traverseAssign( setStatementObj, record.myAirData);
-                        break;
-                     }
-                     case "countDownToOn":
-                     {
-                        // Add/change myAirData just those elements in the set statement
-                        traverseAssign( setStatementObj, record.myAirData);
-                        break;
-                     }
-                     default:
-                     {
-                        console.log( `unhandled setAircon info key: ${key}` );
+                        console.log( `unhandled setThing key: ${id}` );
                         process.exit( 1 );
                      }
                   }
                }
+            } else
+            {
+               res.writeHead( 404, { 'Content-Type': 'text/html' } );
+               log( `SERVER: Parsing JSON without setAircon or setThing: ${ key }` );
+               log( `SERVER: end\n` );
+               return res.end();
             }
 
 
