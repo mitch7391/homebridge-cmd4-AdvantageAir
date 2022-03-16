@@ -52,7 +52,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir - Test Write MyAirConstants with NoSensor Data" {
+@test "AdvAir Test Write MyAirConstants with NoSensor Data" {
    # The old scripts return 0 because it does not real1ze noSensors
    before
    beforeEach
@@ -90,7 +90,7 @@ beforeEach()
    assert_equal "$myAirConstants" "true z01 6"
 }
 
-@test "AdvAir - Test Read Cached MyAirConstants with NoSensor Data" {
+@test "AdvAir Test Read Cached MyAirConstants with NoSensor Data" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -134,7 +134,7 @@ beforeEach()
    assert_equal "$myAirConstants" "true z01 6"
 }
 
-@test "AdvAir - Test Write MyAirConstants with Sensor Data" {
+@test "AdvAir Test Write MyAirConstants with Sensor Data" {
    before
    beforeEach
    # Issue the reInit
@@ -166,7 +166,7 @@ beforeEach()
    assert_equal "$myAirConstants" "false z01 6"
 }
 
-@test "AdvAir - Test Read Cached MyAirConstants with Sensor Data" {
+@test "AdvAir Test Read Cached MyAirConstants with Sensor Data" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( PassOn5 - Retry ) Test Get CurrentTemperature" {
+@test "AdvAir Test Get CurrentTemperature ( PassOn5 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -61,7 +61,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 16
 }
 
-@test "AdvAir ( PassOn1 - No Retry ) Test Get CurrentTemperature" {
+@test "AdvAir Test Get CurrentTemperature ( PassOn1 - No Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -82,7 +82,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( PassOn3 - Retry ) Test Get CurrentTemperature" {
+@test "AdvAir Test Get CurrentTemperature ( PassOn3 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -108,7 +108,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 12
 }
 
-@test "AdvAir ( FailOn5 - Retry ) Test Get CurrentTemperature" {
+@test "AdvAir Test Get CurrentTemperature ( FailOn5 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -133,7 +133,7 @@ beforeEach()
 }
 
 
-@test "AdvAir ( PassOn5 - Retry ) Test Set On 1" {
+@test "AdvAir Test Set On 1 ( PassOn5 - Retry )" {
    # Old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
@@ -166,7 +166,7 @@ beforeEach()
 }
 
 # ezone (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( PassOn3 - Retry ) Test Set On 1" {
+@test "AdvAir Test Set On 1 ( PassOn3 - Retry )" {
    # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
@@ -193,7 +193,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 10
 }
 
-@test "AdvAir ( FaillOn5 - Retry ) Test Set On 1" {
+@test "AdvAir Test Set On 1 ( FaillOn5 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -218,7 +218,7 @@ beforeEach()
 
 
 # zones (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( PassOn1 - No Retry ) Test Set On 1 z01" {
+@test "AdvAir Test Set On 1 z01 ( PassOn1 - No Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"

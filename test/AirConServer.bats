@@ -1,26 +1,3 @@
-# Understanding these test cases
-#
-# What we are trying to do is compare the execution of AirConServer.js
-# So that way you can rerun these tests after any change gaurantees the
-# result in production without having to try every possible scenario.
-
-# Unit tests have a setup function before and a teardown function after each
-# test. These can be ignored if you are just trying to figure out what
-# went wrong. Remember that what we are testing is BASH shell commands you can
-# execute them also from the command line.
-
-# For example:
-#    cd test
-#    node ./AirConServer.js
-#
-# Results to stdout:
-#
-#
-# Then afterwards:
-#    $status      - is the result of the AirConServer.sh command
-#    ${lines[0]}  - is an array of text from the AirConServer.js command
-#    assert_equal "${lines[0]}" "Try 0"  - compares the output in line 0.
-
 setup()
 {
    load './test/setup'

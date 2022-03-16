@@ -10,7 +10,7 @@ teardown()
 }
 
 
-@test "AdvAir Get TemperatureDisplayUnits" {
+@test "AdvAir Test Get TemperatureDisplayUnits" {
    # Bats "run" gobbles up all the stdout. Remove for debugging
    # run ./compare/ezone.txt Get Blah TemperatureDisplayUnits TEST_ON
    # assert_equal "$status" 0
