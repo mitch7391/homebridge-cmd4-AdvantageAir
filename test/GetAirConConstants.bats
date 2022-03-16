@@ -31,7 +31,7 @@ beforeEach()
    fi
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature" {
+@test "AdvAir Test Get CurrentTemperature MyAirConstants" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
