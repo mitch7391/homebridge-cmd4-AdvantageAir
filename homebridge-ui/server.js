@@ -610,23 +610,25 @@ class UiServer extends HomebridgePluginUiServer
             }
 
             //
-            // Check #17
+            // Check #17A
             // The state_cmd_suffix must have a zone or timer for an Air accessory
-            // except a Fan or a Thermostat
+            // except a Fan or a Thermostat or a GarageDoorOpener
             //
             if ( ! accessory.type.match( /^Fan/ ) &&
-                 ! accessory.type.match( /^Thermostat/ ) )
+                 ! accessory.type.match( /^Thermostat/ ) &&
+                 ! accessory.type.match( /^GarageDoorOpener/ ) )
             {
                if ( accessory.type.match( /Lightbulb/ ) )
                {
                    if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
-                    state_cmd_suffix.match( /timer/ )
+                    state_cmd_suffix.match( /timer/ ) ||
+                    state_cmd_suffix.match( /'light:/ )
                       )
                    )
                    {
                       this.advError(
                       { "rc": false,
-                        "message": `state_cmd_suffix has no zone or is missing constant 'timer' for: "${ accessory.displayName }"`
+                        "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires a zone (e.g. z01) if used for zone control, requires 'timer' (without quotes) if being used as the 'Aircon Timer' or requires 'light:${ accessory.displayName }' if being used as a MyPlace Light.`
                       });
                       return;
                    }
@@ -642,6 +644,22 @@ class UiServer extends HomebridgePluginUiServer
                       return;
                   }
                }
+            }
+
+            //
+            // Check #17B
+            // The state_cmd_suffix must have a 'thing:NAME' for GarageDoorOpener
+            //
+            if ( accessory.type.match( /GarageDoorOpener/ ) )
+            {
+               if ( ! state_cmd_suffix.match( /'thing:/ ) )
+               {
+                   this.advError(
+                   { "rc": false,
+                     "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires 'thing:${ accessory.displayName }'.`
+                   });
+                   return;
+               }               
             }
 
             //
