@@ -890,6 +890,10 @@ if [ "$io" = "Set" ]; then
 
                exit 0
             ;;
+            3 )
+               # Advantage Air has no Auto mode, if the user sets the mode to Auto, do nothing.
+               exit 0
+            ;;
          esac
       ;;
       TargetTemperature )
