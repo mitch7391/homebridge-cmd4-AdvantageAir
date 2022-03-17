@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.3.0-beta.6 (2022-02-28)
+## 3.3.0-beta.7 (2022-03-17)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
@@ -10,8 +10,8 @@ Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot20
 
 * MyPlace [Extras](https://www.advantageair.com.au/small-smarts-add-ons/) support!!!
   * Lights - both simple on/off and dimmable. Config examples can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#lightbulbs-1).
-  * Garage Door Opener. Config example can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#garage-door-opener).
-* Support for Advantage Air systems with more than one air conditioners!
+  * Garage Door Opener for Garage Doors and Gates. Config example can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#garage-door-and-gate).
+* Support for Advantage Air systems with more than one air conditioners! You can add up to 5 aircons if they are all accessible from the one control tablet. Config examples can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#multiple-aircons)
 * MyPlace users with the extras should set `"timeout"` in their config to `60000`.
 
 ### Other Changes
