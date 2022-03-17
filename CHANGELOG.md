@@ -23,6 +23,7 @@ Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot20
 ### Bug Fixes
 
 * Fix the close multiple zones bug that causes constant zone to open to 100%.
+* Setting Thermostat to 'auto' from HomeKit will now default the Thermostat to the mode it was already on.
 * Shellcheck cleared out over 60 syntax errors in the script that could have posed issues.
 * Dev unit test fixes.
 
