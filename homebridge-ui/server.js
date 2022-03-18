@@ -66,7 +66,7 @@ class UiServer extends HomebridgePluginUiServer
          let entry = queueTypes[ queueTypesIndex ];
          if ( entry.queue == queue )
          {
-            if ( entry.queueType == "WoRm" )
+            if ( entry.queueType == "WoRm2" )
             {
                return(
                { rc: true,
@@ -75,7 +75,7 @@ class UiServer extends HomebridgePluginUiServer
             }
             return(
             { rc: false,
-              message: `queue ${ queue } queueType is not WoRm`
+              message: `queue ${ queue } queueType is not WoRm2. Please change to Worm2.`
             });
          }
       }
@@ -633,6 +633,20 @@ class UiServer extends HomebridgePluginUiServer
                       return;
                    }
                }
+               else if ( accessory.type.match( /Switch/ ) )
+               {
+                   if ( ! ( accessory.displayName.match( /Aircon Fan/ ) ||
+                    state_cmd_suffix.match( /z[0-9][0-9]/ ) 
+                      )       
+                   )
+                   {
+                      this.advError(
+                      { "rc": false,
+                        "message": `state_cmd_suffix has no zone for: "${ accessory.displayName }"`
+                      });
+                      return;                   
+                   }                 
+               }               
                else
                {
                   if ( ! state_cmd_suffix.match( /z[0-9][0-9]/ ) )
