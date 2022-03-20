@@ -32,30 +32,37 @@ No affiliation with Advantage Air.
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
      - [x] Lights 
      - [x] Garage Door
+     - [x] Gate
      - [ ] Motion Sensors
-     - [ ] Relay Kit (Blinds, Gates, etc.)
+     - [ ] Blinds
 
 <I><B> Note: </B> Config for these extras can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#myplace-extras). </I>
 
 
 ## How It Looks:
-### Thermostat Mode (with Fan Speed) and Fan Mode:
+### Air Conditioning - Thermostat Mode (with Fan Speed) and Fan Mode:
 <p align="left">
 <img src="Screenshots/Aircon.png" width="295" height="640">
 <img src="Screenshots/Fan.png" width="295" height="640">
 </p>
 
-### Zone Control and Temperature Sensors:
+### Air Conditioning - Zone Control and Temperature Sensors:
 <p align="left">
 <img src="Screenshots/Room.png" width="295" height="640">
 <img src="Screenshots/Sensors.png" width="295" height="640">
 </p>
 
-### Zone Control without Temperature Sensors: 
+### Air Conditioning - Zone Control without Temperature Sensors: 
 <p align="left">
 <img src="Screenshots/NoSensors.png" width="295" height="640">
 <img src="Screenshots/ZoneControl.png" width="295" height="640">
 </p>
+
+### MyPlace Extras - Lights:
+
+
+### MyPlace Extras - Garage Door / Gate:
+
 
 
 ## Installation:
