@@ -58,12 +58,18 @@ No affiliation with Advantage Air.
 <img src="Screenshots/ZoneControl.png" width="295" height="640">
 </p>
 
-### MyPlace Extras - Lights:
+### MyPlace Extras - Lights: 
+<p align="left">
+<img src="Screenshots/MyPlaceLights.png" width="295" height="640">
+<img src="Screenshots/MyPlaceLightsControl.png" width="295" height="640">
+</p>
 
-
-### MyPlace Extras - Garage Door / Gate:
-
-
+### MyPlace Extras - Garage Door / Gate: 
+<p align="left">
+<img src="Screenshots/GarageDoorOpen.png" width="295" height="640">
+<img src="Screenshots/GarageDoorControl.png" width="295" height="640">
+</p>
+<I><B> Note: </B> Garage Door / Gate will appear in Apple CarPlay. </I>
 
 ## Installation:
 ### Raspbian/HOOBS/macOS/NAS:
