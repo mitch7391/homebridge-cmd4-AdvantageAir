@@ -2,9 +2,9 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.3.0-beta.8 (2022-03-18)
+## 3.3.0 (2022-03-25)
 
-Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features! Another special thanks to John Wong and Kai Millar for all the beta testing that made this feature possible!
 
 ### Notable Changes
 
