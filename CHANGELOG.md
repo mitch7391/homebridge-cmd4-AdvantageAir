@@ -2,6 +2,33 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.3.0-beta.8 (2022-03-18)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
+
+### Notable Changes
+
+* MyPlace [Extras](https://www.advantageair.com.au/small-smarts-add-ons/) support!!!
+  * Lights - both simple on/off and dimmable. Config examples can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#lightbulbs-1).
+  * Garage Door Opener for Garage Doors and Gates. Config example can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#garage-door-and-gate).
+* Support for Advantage Air systems with more than one air conditioners! You can add up to 5 aircons if they are all accessible from the one control tablet. Config examples can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#multiple-aircons)
+* MyPlace users with the extras should set `"timeout"` in their config to `60000`.
+* It is reccomended to change `"queueType"` from `"WoRm"` to `"WoRm2"` for better performance.
+
+### Other Changes
+
+* MyPlace smart eco-systems required large scale under the hood changes to manage the communication between Cmd4 and the Advantage Air Controllers. Greater detail can be found in this [Pull Request](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/pull/37).
+* MyPlace Extras are now independent of the aircon system; for those who do not want to add the aircon system to HomeKit.
+* Use of the `flip` constant in the `"state_cmd_suffix"` of your garage door or gate; incase the Advantage Air has installed it backwards!
+
+### Bug Fixes
+
+* Fix the close multiple zones bug that causes constant zone to open to 100%.
+* Setting Thermostat to 'auto' from HomeKit will now default the Thermostat to the mode it was already on.
+* Shellcheck cleared out over 60 syntax errors in the script that could have posed issues.
+* Dev unit test fixes.
+
+
 ## 3.2.0 (2022-02-04)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding these new features! Thank you to all who participated in the beta testing! 

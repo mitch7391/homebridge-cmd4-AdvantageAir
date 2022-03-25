@@ -30,6 +30,15 @@ _common_teardown()
    fi
 }
 
+_common_beforeEach()
+{
+   # Constants can change with different data
+   MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants.txt_TEST"
+   if [ -f "${MY_AIR_CONSTANTS_FILE}" ]; then
+      rm "${MY_AIR_CONSTANTS_FILE}"
+   fi
+}
+
 _common_compareAgainstZones()
 {
    local io=$1

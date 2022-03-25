@@ -25,34 +25,18 @@ teardown()
    assert_equal "${lines[5]}" "0"
    z_status=$status
    z_lines=("${lines[@]}")
+   # AdvAir now calls getSystemData 5 times before parse
+   rm    ./data
+   ln -s ./testData/dataPassOn1 ./data
    run ./compare/AdvAir.sh Get Blah StatusLowBattery z01 TEST_ON
    assert_equal "$status" "$z_status" ]
    assert_equal "${lines[0]}" "${z_lines[0]}"
-   assert_equal "${lines[1]}" "${z_lines[1]}"
-   assert_equal "${lines[2]}" "${z_lines[2]}"
-   assert_equal "${lines[3]}" "${z_lines[3]}"
-   assert_equal "${lines[4]}" "${z_lines[4]}"
-   assert_equal "${lines[5]}" "${z_lines[5]}"
+   assert_equal "${lines[1]}" "${z_lines[5]}"
 
 }
 
 @test "AdvAir ( zones        ) Test PassOn1 Get StatusLowBattery z01" {
    # We symbolically link the directory of the test we want to use.
    ln -s ./testData/dataPassOn1 ./data
-   _common_compareAgainstZones Get Blah StatusLowBattery z01 TEST_ON
-}
-
-@test "AdvAir ( zones        ) Test PassOn3 Get StatusLowBattery z01" {
-   ln -s ./testData/dataPassOn3 ./data
-   _common_compareAgainstZones Get Blah StatusLowBattery z01 TEST_ON
-}
-
-@test "AdvAir ( zones        ) Test PassOn5 Get StatusLowBattery z01" {
-   ln -s ./testData/dataPassOn5 ./data
-   _common_compareAgainstZones Get Blah StatusLowBattery z01 TEST_ON
-}
-
-@test "AdvAir ( zones        ) Test FailOn5 Get StatusLowBattery z01" {
-   ln -s ./testData/dataFailOn5 ./data
    _common_compareAgainstZones Get Blah StatusLowBattery z01 TEST_ON
 }

@@ -46,49 +46,15 @@ teardown()
 }
 
 
-@test "AdvAir ( ezone inline ) Test PassOn5 Get Brightness z01" {
+@test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z01" {
    # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn5 ./data
+   ln -s ./testData/dataPassOn1 ./data
    # The original scripts do not have this function, so you can only
    # test against known data
    run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
-   assert_equal "${lines[5]}" "100"
-}
-
-@test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z01" {
-   ln -s ./testData/dataPassOn1 ./data
-   run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "100"
-}
-
-@test "AdvAir ( ezone inline ) Test PassOn3 Get Brightness z01" {
-   ln -s ./testData/dataPassOn3 ./data
-   run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "100"
-}
-
-
-@test "AdvAir ( ezone inline ) Test FailOn5 Get Brightness z01" {
-   ln -s ./testData/dataFailOn5 ./data
-   run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-   assert_equal "$status" 1
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
 }
 
 @test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z03" {
