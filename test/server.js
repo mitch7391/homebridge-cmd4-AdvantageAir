@@ -72,7 +72,7 @@ describe('Test homebridge-ui/server.js', () =>
             "statusMsg": true,
             "timeout": 5000,
             "queueTypes": [
-                { "queue": "7", "queueType": "WoRm" }
+                { "queue": "7", "queueType": "WoRm2" }
             ],
             "constants": [
                 { "key": "${IP}", "value": "192.168.2.65" },
@@ -511,8 +511,8 @@ describe('Test homebridge-ui/server.js', () =>
    {
       // Make the test fail in the way we would want.
       config_g.platforms[0].queueTypes = [
-                { "queue": "7", "queueType": "WoRm" },
-                { "queue": "8", "queueType": "WoRm" }
+                { "queue": "7", "queueType": "WoRm2" },
+                { "queue": "8", "queueType": "WoRm2" }
             ];
 
 
@@ -527,7 +527,7 @@ describe('Test homebridge-ui/server.js', () =>
       done( );
    }).timeout( 5000 );
 
-   it('Test Check #19. QueueTypes must be an array.', function ( done )
+   it('Test Check #19A. QueueTypes must be an array.', function ( done )
    {
       // Make the test fail in the way we would want.
       config_g.platforms[0].queueTypes = 
@@ -544,12 +544,28 @@ describe('Test homebridge-ui/server.js', () =>
       done( );
    }).timeout( 5000 );
 
+   it('Test Check #19B. Non WoRm2 QueueType should fail with correct message.', function ( done )
+   {
+      // Make the test fail in the way we would want.
+      config_g.platforms[0].queueTypes =
+                [{ "queue": "7", "queueType": "WoRm" }];
+
+      //server.debug = true;
+
+      server.checkInstallationButtonPressed( );
+
+      assert.equal( retVal_g.rc, false, `'For: "Theatre_Room" queue 7 queueType is not WoRm2. Please change to Worm2.` );
+
+      // Finish our unit test
+      done( );
+   }).timeout( 5000 );
+
    it('Test Check #20. Duplicate queues must not exist.', function ( done )
    {
       // Make the test fail in the way we would want.
       config_g.platforms[0].queueTypes = [
-                { "queue": "7", "queueType": "WoRm" },
-                { "queue": "7", "queueType": "WoRm" }
+                { "queue": "7", "queueType": "WoRm2" },
+                { "queue": "7", "queueType": "WoRm2" }
             ];
 
 
