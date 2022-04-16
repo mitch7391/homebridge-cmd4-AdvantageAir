@@ -1,15 +1,3 @@
-# Example Cmd4 config for Brightness
-# {
-#    "type": "Lightbulb",
-#    "displayName": "Light2",
-#    "on": "FALSE",
-#    "brightness": 50,
-#    "name": "Light2",
-#    "polling": [ { "characteristic": "on" },
-#                 { "characteristic": "brightness" }
-#               ],
-#    "state_cmd_suffix": "'light:Light2' ${IP}"
-# },
 setup()
 {
    load './test/setup'
@@ -43,41 +31,53 @@ beforeEach()
    fi
 }
 
+# Typical GarageDoorConfig for currentDoorState
+#  "type": "GarageDoorOpener",
+#  "displayName": "Garage Door",
+#  "currentDoorState": 0,
+#  "targetDoorState": 0,
+#  "polling": [ { "characteristic": "currentDoorState" },
+#               { "characteristic": "targetDoorState" }
+#             ],
+#  "state_cmd_suffix": "'thing:Garage' ${IP}"
 
-@test "AdvAir Test Get Brightness z01" {
+@test "AdvAir Test Get TargetDoorState" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
+   curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
+   run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z01.value"
-   assert_equal "${lines[6]}" "100"
+   assert_equal "${lines[5]}" "path: thing name: Garage ids=\"6801801\""
+   assert_equal "${lines[6]}" "Parsing for jqPath: .myThings.things.\"6801801\".value"
+   assert_equal "${lines[7]}" "1"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 7
+   assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir Test Get Brightness z03" {
+@test "AdvAir Test Get TargetDoorState - flip enabled" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Get Blah Brightness z03 127.0.0.1 TEST_ON
+   curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
+   run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
    assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z03.value"
-   assert_equal "${lines[6]}" "85"
+   assert_equal "${lines[5]}" "path: thing name: Garage ids=\"6801801\""
+   assert_equal "${lines[6]}" "Parsing for jqPath: .myThings.things.\"6801801\".value"
+   # flip should make this a 0
+   assert_equal "${lines[7]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 7
+   assert_equal "${#lines[@]}" 8
 }

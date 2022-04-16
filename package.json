@@ -3,7 +3,7 @@
    "displayName": "Homebridge Cmd4 Advantage Air",
    "description": "Catered shell script to integrate air conditioner control units by Advantage Air",
    "license": "MIT",
-   "version": "3.3.0",
+   "version": "3.4.0-beta1",
    "author": {
       "name": "Mitch Williams"
    },
@@ -28,6 +28,7 @@
       "bats-assert": "github:ztombol/bats-assert",
       "bats-support": "github:ztombol/bats-support",
       "chai": "^4.3.4",
+      "commander": "^9.0.0",
       "commitlint-plugin-function-rules": "^1.6.0",
       "eslint": "^8.1.0",
       "husky": "^7.0.4",
@@ -64,16 +65,19 @@
       "homebridge-plugin"
    ],
    "scripts": {
+      "pre-commit": "npm run allBats && npm run testjs && npm run check && npm run lint",
       "pretest": "if [ ! -d 'node_modules' ];then printf ' test is only done in a development environment\n';exit 1; fi",
       "precheck": "if [ ! -d 'node_modules' ];then printf ' check is only done in a development environment\n';exit 1; fi",
-      "check": "shellcheck test/compare/ezone.txt test/compare/zones.txt test/compare/AdvAir.sh",
+      "check": "shellcheck AdvAir.sh test/*.bats test/StartServer test/StopServer",
       "testjs": "node_modules/.bin/mocha ",
-      "allBats": "bats test/*.bats",
-      "bats": "bats",
+      "allBats": "a(){ npm run doBats test/StartServer test/*.bats test/StopServer; };a",
+      "doBats": "export PORT=2025; bats",
+      "bats": "a(){ npm run doBats test/StartServer $* test/StopServer; };a",
+      "batsDebug": "bats -x",
       "lint": "eslint",
       "test": "npm run allBats && npm run testjs && npm run check && npm run lint",
-      "eslint": "eslint  --ext .js *.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
-      "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'",
+      "eslint": "eslint  --ext .js *.js test/*.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
+      "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'test/*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'",
       "prepare": "husky install"
    }
 }

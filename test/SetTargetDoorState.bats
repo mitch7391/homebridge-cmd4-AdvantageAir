@@ -1,11 +1,15 @@
 setup()
 {
+   # This code is run *BEFORE* every test. Even skipped ones.
+   # Bug, defining setup() must have code in it
    load './test/setup'
    _common_setup
 }
 
 teardown()
 {
+   # This code is run *AFTER* every test. Even skipped ones.
+   # Bug, defining teardown() must have code in it
    _common_teardown
 }
 before()
@@ -31,22 +35,22 @@ beforeEach()
    fi
 }
 
-@test "AdvAir Test Get CurrentHeatingCoolingState" {
+@test "AdvAir Test Set TargetDoorState" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ../AdvAir.sh Get Blah CurrentHeatingCoolingState 127.0.0.1 TEST_ON
+   curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
+   run ../AdvAir.sh Set Blah TargetDoorState 1 'thing:Garage' 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[6]}" "2"
+   assert_equal "${lines[2]}" "path: thing name: Garage ids=\"6801801\""
+   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setThing?json={id:\"6801801\",value:0}"
+   assert_equal "${lines[4]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[5]}" "Try 0"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
    # No more lines than expected
    assert_equal "${#lines[@]}" 7
 }

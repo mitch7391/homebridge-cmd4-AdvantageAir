@@ -1,0 +1,34 @@
+#!/bin/bash
+# The above line put there to make shellcheck happy
+
+# This testcase is meant to be the last to shutdown the server
+setup()
+{
+   load './test/setup'
+   _common_setup
+}
+
+startServer()
+{
+   echo  "In startServer" >> /tmp/AirConServer.out
+
+   touch /tmp/AirConServer.out
+
+   # Start a new AirConServer
+   echo "Setup: Starting daemon" >> /tmp/AirConServer.out
+   node ./AirConServer.js >> /tmp/AirConServer.out 2>&1 &
+   rc=$?
+   if [ "$rc" != 0 ]; then
+      echo "Setup: Starting Daemon failed rc: $rc" >> /tmp/AirConServer.out
+   fi
+   sleep 3
+   echo "Setup: Daemon shold be started rc: $rc" >> /tmp/AirConServer.out
+
+}
+
+
+@test "AdvAir ( StartServer )" {
+   startServer
+   rc=$?
+   assert_equal "$rc" 0
+}

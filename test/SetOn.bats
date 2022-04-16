@@ -8,34 +8,97 @@ teardown()
 {
    _common_teardown
 }
-
-
-@test "AdvAir ( ezone inline ) Test PassOn5 Set On 1" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn5 ./data
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt Set Fan On 1 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   # AdvAir now calls getSystemData 5 times before parse
-   run ./compare/AdvAir.sh Set Fan On 1 192.168.0.173 TEST_ON
-   # No longer the same
-   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
-   assert_equal "$status" "$e_status"
-
+before()
+{
+   if [ -f "/tmp/AirConServer.out" ]; then
+      rm "/tmp/AirConServer.out"
+   fi
 }
 
-# zones (Cannot use compare as old does not allow IP and IP is now mandatory
-@test "AdvAir ( zones inline ) Test PassOn1 Set On 1 z01" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn1 ./data
-   run ./compare/zones.txt Set Fan On 1 z01 TEST_ON
-   assert_equal "${lines[0]}" "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh Set Fan On 1 z01 192.168.0.173 TEST_ON
-   assert_equal "${lines[0]}" "${e_lines[0]}"
-   assert_equal "$status" "$e_status"
+beforeEach()
+{
+   if [ -f "/tmp/myAirData.txt" ]; then
+      rm "/tmp/myAirData.txt"
+   fi
+   if [ -f "/tmp/myAirData.txt.date" ]; then
+      rm "/tmp/myAirData.txt.date"
+   fi
+   if [ -f "/tmp/myAirData.txt.lock" ]; then
+      rm "/tmp/myAirData.txt.lock"
+   fi
+   if [ -f "/tmp/myAirConstants.txt" ]; then
+      rm "/tmp/myAirConstants.txt"
+   fi
+}
+
+# fanSpecified = true because no zone (z01) specified
+@test "AdvAir Test Set On 1 - Default: fanSpecified = true, zoneSpecified = false" {
+   # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No longer the same
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 6
+}
+
+
+# fanSpecified = false because zone (z01) specified
+@test "AdvAir Test Set On 1 z01 - fanSpecified = false, zoneSpecified = true" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
+   # AdvAir.sh does a get first
+   assert_equal "$status" "0"
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:$PORT/setAircon?json={ac1:{zones:{z01:{state:open}}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[4]}" "Try 0"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 6
+}
+
+# fanSpecified = false because zone (z01) specified
+@test "AdvAir Test Set On 1 z01 - fanSpecified = false, timerSpecified = true" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   # TimerEnabled requires On to be set to 0
+   run ../AdvAir.sh Set Fan On 0 timer 127.0.0.1 TEST_ON
+   # AdvAir.sh does a get first
+   assert_equal "$status" "0"
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   # AdvAir.sh Set both "countDownToOn" and "countDownToOff" to 0
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOn:0}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   assert_equal "${lines[4]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:0}}}"
+   assert_equal "${lines[5]}" "Try 0"
+   # AdvAir.sh does a get last
+   assert_equal "${lines[6]}" "Try 0"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
 }
