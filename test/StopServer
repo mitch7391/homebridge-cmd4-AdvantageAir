@@ -11,21 +11,21 @@ setup()
 stopServer()
 {
    rc=0;
-   touch /tmp/AirConServer.out
-   echo "in stopServer" >> /tmp/AirConServer.out
+   touch /tmp/AA-001/AA-001/AirConServer.out
+   echo "in stopServer" >> /tmp/AA-001/AirConServer.out
    # Check if the server is running
    # lsof -Pi :3025 -sTCP:LISTEN
    # local rc=$?
    # if [ "$rc" = "0" ]; then
    if lsof -Pi :"$PORT" -sTCP:LISTEN -t >/dev/null ; then
-      echo "Setup: Stopping daemon" >> /tmp/AirConServer.out
+      echo "Setup: Stopping daemon" >> /tmp/AA-001/AirConServer.out
       # Stop it if it is, Just in case its old
-      curl -s -g "http://localhost:$PORT/quit" >> /tmp/AirConServer.out 2>&1
+      curl -s -g "http://localhost:$PORT/quit" >> /tmp/AA-001/AirConServer.out 2>&1
       rc=$?
       if [ "$rc" != 0 ]; then
-         echo "Setup: Stopping failed rc: $rc" >> /tmp/AirConServer.out
+         echo "Setup: Stopping failed rc: $rc" >> /tmp/AA-001/AirConServer.out
       fi
-      echo "Setup: Curl has Stoped daemon rc: $rc" >> /tmp/AirConServer.out
+      echo "Setup: Curl has Stoped daemon rc: $rc" >> /tmp/AA-001/AirConServer.out
    fi
 }
 
