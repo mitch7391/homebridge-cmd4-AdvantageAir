@@ -157,6 +157,7 @@ const requestListener = function (req, res)
    let filename;
    let setInProgress=false;
    let setThingInProgress=false;
+   let setLightInProgress=false;
 
 
    log( `parsing pathname:${ q.pathname }` );
@@ -195,6 +196,13 @@ const requestListener = function (req, res)
       {
          log( `Doing setAircon` );
          setInProgress=true;
+         ended = false;
+         break;
+      }
+      case "/setLight":
+      {
+         log( `Doing setLight` );
+         setLightInProgress=true;
          ended = false;
          break;
       }
@@ -306,7 +314,7 @@ const requestListener = function (req, res)
                return res.end();
             }
             let record = stack_g[0];
-            fs.writeFileSync( "/tmp/AirConServerData.json", record.getSystemData);
+            fs.writeFileSync( "/tmp/AA-001/AirConServerData.json", record.getSystemData);
 
             log( `SERVER: end\n` );
             return res.end();
@@ -370,7 +378,7 @@ const requestListener = function (req, res)
                //         {"ac1":{"zones":{"z01":{"state":"open"}}}}"
                //The first replace changes the last key/value pair
                //The second replace changes the keys
-               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
                            .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
                log( `In json before,PARSE '${quotedValues}'` );
 
@@ -411,6 +419,12 @@ const requestListener = function (req, res)
                               traverseAssign( setStatementObj, record.myAirData);
                               break;
                            }
+                           case "setTemp":
+                           {
+                              // Add/change myAirData just those elements in the set statement
+                              traverseAssign( setStatementObj, record.myAirData);
+                              break;
+                           }
                            default:
                            {
                               console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
@@ -446,6 +460,13 @@ const requestListener = function (req, res)
 
                            break;
                         }
+                        case "fan":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+
+                           break;
+                        }
                         case "countDownToOff":
                         {
                            // Add/change myAirData just those elements in the set statement
@@ -466,6 +487,55 @@ const requestListener = function (req, res)
                      }
                   }
                }
+            } else if (setLightInProgress == true )
+            {
+               log( `In json before, value: '${value}'` );
+
+               // Sets do not have .myLights at the beginning. Add it.
+               //value="{myLights:{lights:" + value + "}}";
+
+               // Parsing {id:{"6801801", value:0}" }
+               //The first replace changes the last key/value pair
+               //The second replace changes the keys
+               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
+                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+               log( `In json before,PARSE '${quotedValues}'` );
+
+               // Parse the given jqPath, to a json object
+               let setStatementObj = JSON.parse( quotedValues );
+
+               if ( setStatementObj.result == false )
+               {
+                  res.writeHead( 404, { 'Content-Type': 'text/html' } );
+                  log( `SERVER: Cannot Parse ${ value }` );
+                  log( `SERVER: end\n` );
+                  return res.end();
+               }
+
+               log( `SERVER: Changing record\n` );
+               // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
+               // GIVEN THE "Set" Statement
+               // Get the Keys of what is being "Set"
+               let id = setStatementObj.id;
+               log("setStatementObj.id=%s", id);
+               let newValue = setStatementObj.value;
+               // console.log("setStatementObj.value=%s", newValue);
+               if ( record.myAirData.myLights )
+               {
+                  if ( record.myAirData.myLights.lights )
+                  {
+                     if ( record.myAirData.myLights.lights[ id] )
+                     {
+                        log("BEFORE record.myAirData.myLights.lights[ %s ] ='%s'", id, record.myAirData.myLights.lights[ id ]);
+                        record.myAirData.myLights.lights[ id ].value = newValue;
+                        log("AFTER record.myAirData.myLights.lights[ %s ] ='%s'", id, record.myAirData.myLights.lights[ id ]);
+                     } else
+                     {
+                        console.log( `unhandled setLight key: ${id}` );
+                        process.exit( 1 );
+                     }
+                  }
+               }
             } else if (setThingInProgress == true )
             {
                log( `In json before, value: '${value}'` );
@@ -476,7 +546,7 @@ const requestListener = function (req, res)
                // Parsing {id:{"6801801", value:0}" }
                //The first replace changes the last key/value pair
                //The second replace changes the keys
-               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+               let quotedValues=value.replace(/([a-zA-Z0-9-.]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
                            .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
                log( `In json before,PARSE '${quotedValues}'` );
 
@@ -518,7 +588,7 @@ const requestListener = function (req, res)
             } else
             {
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: Parsing JSON without setAircon or setThing: ${ key }` );
+               log( `SERVER: Parsing JSON without setAircon, setThing or setLight: ${ key }` );
                log( `SERVER: end\n` );
                return res.end();
             }
