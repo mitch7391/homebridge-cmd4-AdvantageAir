@@ -32,14 +32,14 @@ bigSystem1()
   # and the earlier "curl" completed within 6 seconds
 
   t0=$(date '+%s')
-  t1=$((t0 - $curlRunTime + 1))
+  t1=$((t0 - $curlRunTime + 6))
   t2=$((t0 - 122)) # $MY_AIRDTA_FILE = 122 seconds old
 
   echo "$t1" > "/tmp/AA-001/myAirData.txt.lock"
   echo "$t2" > "/tmp/AA-001/myAirData.txt.date" 
   cp "testData/basicPassingSystemData.txt" "/tmp/AA-001/myAirData.txt"
 
-  sleep 1
+  sleep 6
   rm -f "/tmp/AA-001/myAirData.txt.lock"
 }
 
