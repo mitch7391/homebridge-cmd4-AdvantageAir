@@ -10,19 +10,19 @@ setup()
 
 startServer()
 {
-   echo  "In startServer" >> /tmp/AirConServer.out
+   echo  "In startServer" >> /tmp/AA-001/AirConServer.out
 
-   touch /tmp/AirConServer.out
+   touch /tmp/AA-001/AirConServer.out
 
    # Start a new AirConServer
-   echo "Setup: Starting daemon" >> /tmp/AirConServer.out
-   node ./AirConServer.js >> /tmp/AirConServer.out 2>&1 &
+   echo "Setup: Starting daemon" >> /tmp/AA-001/AirConServer.out
+   node ./AirConServer.js >> /tmp/AA-001/AirConServer.out 2>&1 &
    rc=$?
    if [ "$rc" != 0 ]; then
-      echo "Setup: Starting Daemon failed rc: $rc" >> /tmp/AirConServer.out
+      echo "Setup: Starting Daemon failed rc: $rc" >> /tmp/AA-001/AirConServer.out
    fi
    sleep 3
-   echo "Setup: Daemon shold be started rc: $rc" >> /tmp/AirConServer.out
+   echo "Setup: Daemon shold be started rc: $rc" >> /tmp/AA-001/AirConServer.out
 
 }
 

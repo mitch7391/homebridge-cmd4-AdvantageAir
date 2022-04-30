@@ -38,8 +38,5 @@ _common_teardown()
 _common_beforeEach()
 {
    # Constants can change with different data
-   MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants.txt_TEST"
-   if [ -f "${MY_AIR_CONSTANTS_FILE}" ]; then
-      rm "${MY_AIR_CONSTANTS_FILE}"
-   fi
+   rm -f "/tmp/AA-001/myAirConstants.txt"*
 }
