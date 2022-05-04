@@ -10,6 +10,13 @@ const program = new Command;
 var port_g = process.env.PORT || 2025;
 
 var debug_g = true;
+var exists_fan = true;
+var exists_state = true;
+
+var pfan = /fan/;
+var pstate = /state/;
+var quotedValues
+var newValues
 
 // A nice little getOpt node.js package
 program
@@ -80,7 +87,7 @@ const requestListener = function (req, res)
    req.on('close', function ()
    {
       log( `req.on: close listener: ` );
-      // Yry to remove connected listener
+      // Try to remove connected listener
       //nothing server_g.removeListener( "requestListener", requestListener, this);
       //nothing server_g.removeListener( "connection", requestListener );
       // The "listener" argument must be of type function. Received type string ('requestListener')
@@ -121,7 +128,7 @@ const requestListener = function (req, res)
 
 
    // Example URL parsing
-   //var adr = 'http://localhost:2025/default.htm?year=2017&month=february';
+   // var adr = 'http://localhost:2025/default.htm?year=2017&month=february';
    var q = url.parse(req.url, true);
    let ended = true;
 
@@ -132,7 +139,7 @@ const requestListener = function (req, res)
    //log(qdata.month); //returns 'february'
 
    // Format of stack is:
-   //    "filename": The file to loadbgetSystemData with
+   //    "filename":      The file to load getSystemData with
    //    "getSystemData": The myAirData json data read from filename,
    //    "repeat":        The number of times remaining for this data to be used.
    //    "myAirData":     The systemData in json format.
@@ -240,9 +247,9 @@ const requestListener = function (req, res)
          log( `SERVER: getSystemData filename: ${ fileToSend }` );
          res.writeHead(200, { 'Content-Type': 'text/json' } );
          log( `***** SERVER: writing length: ${ systemDataToSend.length }` );
-         res.write( systemDataToSend, 'utf8', ( err ) =>
+         res.write( systemDataToSend, 'utf8', () =>
          {
-           log( `Error: Writing string Data... ${ err }` );
+           log( `Writing Data...` );
          });
          log( `SERVER: end\n` );
          return res.end();
@@ -374,13 +381,22 @@ const requestListener = function (req, res)
                // Sets do not have .aircons at the beginning. Add it.
                value="{aircons:" + value + "}";
                log( `In json before, value: '${value}'` );
-               // Parsing {ac1:{zones:{z01:{state:open}}}}" into
-               //         {"ac1":{"zones":{"z01":{"state":"open"}}}}"
+               // Parsing {aircons:{ac1:{zones:{z01:{state:open}}}}} into
+               //         {"aircons":{"ac1":{"zones":{"z01":{"state":"open"}}}}}
                //The first replace changes the last key/value pair
                //The second replace changes the keys
-               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
-                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
-               log( `In json before,PARSE '${quotedValues}'` );
+               //quote the key/value pair only if the value is a string
+               exists_fan = pfan.test(value);
+               exists_state = pstate.test(value);
+               if ( exists_fan || exists_state )
+               {
+                  quotedValues=value.replace(/([a-zA-Z0-9-.]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                                    .replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+               } else
+               {
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+               }
+               log( `In json after,PARSE '${quotedValues}'` );
 
                // Parse the given jqPath, to a json object
                let setStatementObj = JSON.parse( quotedValues );
@@ -492,13 +508,20 @@ const requestListener = function (req, res)
                log( `In json before, value: '${value}'` );
 
                // Sets do not have .myLights at the beginning. Add it.
-               //value="{myLights:{lights:" + value + "}}";
+               value="{myLights:{lights:" + value + "}}";
 
-               // Parsing {id:{"6801801", value:0}" }
+               // Parsing {id:{"6801801", value:0} }
                //The first replace changes the last key/value pair
                //The second replace changes the keys
-               let quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
-                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+               exists_state = pstate.test(value);
+               if ( exists_state )
+               {
+                  quotedValues=value.replace(/([a-zA-Z0-9-]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                                    .replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+               } else
+               {
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+               }
                log( `In json before,PARSE '${quotedValues}'` );
 
                // Parse the given jqPath, to a json object
@@ -516,19 +539,29 @@ const requestListener = function (req, res)
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               let id = setStatementObj.id;
-               log("setStatementObj.id=%s", id);
-               let newValue = setStatementObj.value;
-               // console.log("setStatementObj.value=%s", newValue);
+               let id = setStatementObj.myLights.lights.id;
+               log(`setStatementObj.id=${id}`);
+               if ( exists_state )
+               {
+                  newValue = setStatementObj.myLights.lights.state;
+               } else
+               {
+                  newValue = setStatementObj.myLights.lights.value;
+               }
+               log(`setStatementObj.value=${newValue}`);
                if ( record.myAirData.myLights )
                {
                   if ( record.myAirData.myLights.lights )
                   {
-                     if ( record.myAirData.myLights.lights[ id] )
+                     if ( record.myAirData.myLights.lights[ id ] )
                      {
-                        log("BEFORE record.myAirData.myLights.lights[ %s ] ='%s'", id, record.myAirData.myLights.lights[ id ]);
-                        record.myAirData.myLights.lights[ id ].value = newValue;
-                        log("AFTER record.myAirData.myLights.lights[ %s ] ='%s'", id, record.myAirData.myLights.lights[ id ]);
+                        if ( exists_state )
+                        {
+                           record.myAirData.myLights.lights[ id ].state = newValue;
+                        } else
+                        {
+                           record.myAirData.myLights.lights[ id ].value = newValue;
+                        }
                      } else
                      {
                         console.log( `unhandled setLight key: ${id}` );
@@ -541,13 +574,12 @@ const requestListener = function (req, res)
                log( `In json before, value: '${value}'` );
 
                // Sets do not have .myThings at the beginning. Add it.
-               //value="{myThings:{things:" + value + "}}";
+               value="{myThings:{things:" + value + "}}";
 
                // Parsing {id:{"6801801", value:0}" }
                //The first replace changes the last key/value pair
                //The second replace changes the keys
-               let quotedValues=value.replace(/([a-zA-Z0-9-.]+):([a-zA-Z0-9-.]+)/g, "$1:\"$2\"")
-                           .replace(/(\{|,)\s*(.+?)\s*:/g, '$1 "$2":')
+               quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
                log( `In json before,PARSE '${quotedValues}'` );
 
                // Parse the given jqPath, to a json object
@@ -565,19 +597,17 @@ const requestListener = function (req, res)
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               let id = setStatementObj.id;
-               log("setStatementObj.id=%s", id);
-               let newValue = setStatementObj.value;
-               // console.log("setStatementObj.value=%s", newValue);
+               let id = setStatementObj.myThings.things.id;
+               log(`setStatementObj.id=${id}`);
+               newValue = setStatementObj.myThings.things.value;
+               log(`setStatementObj.value=${newValue}`);
                if ( record.myAirData.myThings )
                {
                   if ( record.myAirData.myThings.things )
                   {
-                     if ( record.myAirData.myThings.things[ id] )
+                     if ( record.myAirData.myThings.things[ id ] )
                      {
-                        log("BEFORE record.myAirData.myThings.things[ %s ] ='%s'", id, record.myAirData.myThings.things[ id ]);
                         record.myAirData.myThings.things[ id ].value = newValue;
-                        log("AFTER record.myAirData.myThings.things[ %s ] ='%s'", id, record.myAirData.myThings.things[ id ]);
                      } else
                      {
                         console.log( `unhandled setThing key: ${id}` );
