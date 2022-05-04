@@ -203,6 +203,7 @@ function queryCachedAirCon()
             # flag it and copy the existing cached file and move on. May not have enough time to retry
             rc=98
             echo "queryCachedAirCon_copy_earlier_CMD4_timed_out $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+
             # To test the logic, issue this comment
             if [ "$selfTest" = "TEST_ON" ]; then
                echo "Earlier \"curl\" to getSystemData has timed out"
@@ -213,9 +214,10 @@ function queryCachedAirCon()
       myAirData=$( cat "$MY_AIRDATA_FILE" )
       rc=$?
       echo "queryCachedAirCon_copy $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+
       # To test the logic, issue this comment
       if [ "$selfTest" = "TEST_ON" ]; then
-         echo "Fetching myAirData from cache file"
+         echo "Fetching myAirData from cached file"
       fi
 
    elif [ "$doFetch" = true ]; then
@@ -849,32 +851,33 @@ if [ "$io" = "Get" ]; then
          # get the timer current setting
          elif [ $timerEnabled = true ]; then
             parseMyAirDataWithJq ".aircons.$ac.info.state"
-            # If the aircon state is "off", check that whether it has a
-            # countDownToOn timer set.
-            if [ "$jqResult" = '"off"' ]; then
-               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
-               # If "countDownToOn" is 0 then switch the timer off
-               if [ "$jqResult" = '0' ]; then
-                  echo 0
-                  exit 0
-               else
-                  # If "countDownToOn" is not 0, switch on the timer
-                  echo 1
-                  exit 0
-               fi
-            # If the aircon state is "on", check that whether it has a
-            # countDownToOff timer set.
-            else
-               parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
-               if [ "$jqResult" = "0" ]; then
-                  # If "countDownToOff" is 0 then switch the timer off
-                  echo 0
-                  exit 0
-               else
-                  # If "contDownToOff" is not 0 then switch on the timer
-                  echo 1
-                  exit 0
-               fi
+            airconState=$jqResult
+            parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
+            countDownToOn=$jqResult
+            parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
+            countDownToOff=$jqResult
+
+            if [[ "$countDownToOn" == 0 && "$countDownToOff" == 0 ]]; then
+               echo 0
+               exit 0
+            fi
+            if [[ "$countDownToOn" != 0 && "$airconState" = '"on"' ]]; then
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOn:0}}}"
+               echo 0
+               exit 0
+            fi
+            if [[ "$countDownToOff" != 0 && "$airconState" = '"on"' ]]; then
+               echo 1
+               exit 0
+            fi
+            if [[ "$countDownToOn" != 0 && "$airconState" = '"off"' ]]; then
+               echo 1
+               exit 0
+            fi
+            if [[ "$countDownToOff" != 0 && "$airconState" = '"off"' ]]; then
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOff:0}}}"
+               echo 0
+               exit 0
             fi
          elif [ $fanSpeed = true ]; then
             # Set the "Fan Speed" accessory to "on" at all time
