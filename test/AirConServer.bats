@@ -276,7 +276,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 0
    jqResult=$( jq -e ".aircons.ac1.info.setTemp" < /tmp/AA-001/out )
    echo "jqResult=$jqResult"
-   assert_equal "$jqResult" "\"9\""
+   assert_equal "$jqResult" "9"
    # setAircon Temp = 22
    run curl -s -g "http://localhost:2025/setAircon?json={ac1:{info:{setTemp:22}}}"
    assert_equal "$status" 0
@@ -284,7 +284,7 @@ beforeEach()
    run $( curl -s -g "http://localhost:2025/getSystemData" -o /tmp/AA-001/out )
    assert_equal "$status" 0
    jqResult=$( jq -e ".aircons.ac1.info.setTemp" < /tmp/AA-001/out )
-   assert_equal "$jqResult" "\"22\""
+   assert_equal "$jqResult" "22"
 }
 
 @test "StartServer Test Load/Set/Read new data using AdvAir.sh" {
