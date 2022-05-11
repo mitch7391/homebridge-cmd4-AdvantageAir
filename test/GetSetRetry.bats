@@ -10,23 +10,23 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 @test "AdvAir Test Get CurrentTemperature ( PassOn5 - Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
@@ -53,9 +53,9 @@ beforeEach()
 @test "AdvAir Test Get CurrentTemperature ( PassOn1 - No Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
@@ -74,10 +74,10 @@ beforeEach()
 @test "AdvAir Test Get CurrentTemperature ( PassOn3 - Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
@@ -100,9 +100,9 @@ beforeEach()
 @test "AdvAir Test Get CurrentTemperature ( FailOn5 - Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 1
@@ -123,13 +123,12 @@ beforeEach()
 
 
 @test "AdvAir Test Set On 1 Fan ( PassOn5 - Retry )" {
-   # Old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?repeat=4&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
@@ -155,13 +154,12 @@ beforeEach()
 
 # ezone (Cannot use compare as old does not allow IP and IP is now mandatory
 @test "AdvAir Test Set On 1 Fan ( PassOn3 - Retry )" {
-   # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?repeat=2&load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
@@ -183,9 +181,9 @@ beforeEach()
 @test "AdvAir Test Set On 1 Fan ( FaillOn5 - Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/failedAirConRetrieveSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    # The new air will fail after the first 5
    assert_equal "$status" "1"
@@ -208,9 +206,9 @@ beforeEach()
 @test "AdvAir Test Set On 1 z01 ( PassOn1 - No Retry )" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?repeat=1&load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?repeat=1&load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 z01 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
    assert_equal "$status" "0"
