@@ -10,24 +10,23 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 # fanSpecified = true because no zone (z01) specified
 @test "AdvAir Test Set On 1       - fanSpecified = true (default)" {
-   # old returned "Setting url: http://192.168.0.173:2025/setAircon?json={ac1:{info:{state:on,mode:vent,fan:auto}}}"
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Blah On 1 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
@@ -47,9 +46,9 @@ beforeEach()
 @test "AdvAir Test Set On 1 z01   - zoneSpecified = true" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Blah On 1 z01 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
    assert_equal "$status" "0"
@@ -67,9 +66,9 @@ beforeEach()
 @test "AdvAir Test Set On 0 timer - timerSpecified = true" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # TimerEnabled requires On to be set to 0
    run ../AdvAir.sh Set Fan On 0 timer 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
@@ -91,9 +90,9 @@ beforeEach()
 @test "AdvAir Test Set On 1 light - lightSpecified = true" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/myPlaceFull.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
    run ../AdvAir.sh Set Fan On 1 'light:Study Patio' 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
