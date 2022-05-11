@@ -10,22 +10,22 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 @test "AdvAir Test Get CurrentTemperature" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
@@ -44,9 +44,9 @@ beforeEach()
 @test "AdvAir Test Get CurrentTemperature z01" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
@@ -66,9 +66,9 @@ beforeEach()
 @test "AdvAir Test Get CurrentTemperature z03" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z03
    assert_equal "$status" "0"
@@ -84,14 +84,14 @@ beforeEach()
    assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir Test Get CurrentTemperature with NoSensor Data (creating new myAirConstants" {
+@test "AdvAir Test Get CurrentTemperature with NoSensor Data (creating new myAirConstants)" {
    # The old scripts return 0 because it does not realize noSensors
    before
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/oneZonePassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/oneZonePassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" "0"
@@ -113,12 +113,12 @@ beforeEach()
    assert_equal "${#lines[@]}" 13
 }
 
-@test "AdvAir Test Get CurrentTemperature with NoSensor Data (with cached myAirConstants" {
+@test "AdvAir Test Get CurrentTemperature with NoSensor Data (with cached myAirConstants)" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/oneZonePassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/oneZonePassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" 0
