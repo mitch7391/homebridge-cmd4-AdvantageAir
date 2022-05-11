@@ -10,23 +10,23 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 # ezone
 @test "AdvAir Test Get On Fan" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Get Fan On TEST_ON 127.0.0.1
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -46,9 +46,9 @@ beforeEach()
 @test "AdvAir Test Get On z01" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Get Blab On TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
@@ -65,9 +65,9 @@ beforeEach()
 @test "AdvAir Test Get On light:Study Patio" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/myPlaceFull.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
    run ../AdvAir.sh Get Blab On 'light:Study Patio' 127.0.0.1 ac2 TEST_ON
    # AdvAir.sh does a get first
