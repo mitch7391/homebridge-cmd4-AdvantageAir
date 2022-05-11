@@ -10,14 +10,14 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 # Typical GarageDoorConfig for currentDoorState
@@ -33,9 +33,9 @@ beforeEach()
 @test "AdvAir Test Get TargetDoorState" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/myPlace.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
    run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
@@ -53,9 +53,9 @@ beforeEach()
 @test "AdvAir Test Get TargetDoorState - flip enabled" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/myPlace.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
    run ../AdvAir.sh Get Blah TargetDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
