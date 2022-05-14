@@ -8,6 +8,9 @@ setup()
    _common_setup
 }
 
+if [ -z "$TMPDIR" ]; then TMPDIR="/tmp"; fi
+if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
+
 stopServer()
 {
    rc=0;
