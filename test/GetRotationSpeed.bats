@@ -15,9 +15,9 @@ before()
 
 beforeEach()
 {
+   _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
    rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
-   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
 }
 
 @test "AdvAir Test Get RotationSpeed" {
