@@ -10,11 +10,10 @@ setup()
 
 if [ -z "$TMPDIR" ]; then TMPDIR="/tmp"; fi
 if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
-touch "${TMPDIR}/AA-001/AirConServer.out"
 
 startServer()
 {
-
+   touch "${TMPDIR}/AA-001/AirConServer.out"
    echo  "In startServer" >> "${TMPDIR}"/AA-001/AirConServer.out
 
    # Start a new AirConServer
