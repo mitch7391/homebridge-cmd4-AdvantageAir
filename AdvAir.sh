@@ -45,8 +45,10 @@ zoneSpecified=false
 fanSpecified=false
 argSTART=4
 logErrors=true
+debugSpecified=false
 noSensors=true
 fanSpeed=false
+sameAsCached=false
 fspeed="low"
 
 # By default selfTest is off
@@ -69,7 +71,8 @@ lightSpecified=false
 thingSpecified=false
 
 #Temporary files - the subdirectory full path will be defined later
-tmpSubDir="/tmp"
+if [ -z "${TMPDIR}" ]; then TMPDIR="/tmp"; fi
+tmpSubDir="${TMPDIR}"
 QUERY_AIRCON_LOG_FILE="queryCachedAirCon_calls.log"
 QUERY_IDBYNAME_LOG_FILE="queryIdByName.log"
 MY_AIRDATA_FILE="myAirData.txt"
@@ -118,6 +121,36 @@ function logError()
    } > "$fileName"
 }
 
+function logQueryAirConDiagnostic()
+{
+   if [ "$debugSpecified" != true ]; then
+      return
+   fi
+   local str="$1"
+   echo "$str" >> "$QUERY_AIRCON_LOG_FILE"
+
+   # Delete the log if it is > 15 MB
+   fSize=$(find "$QUERY_AIRCON_LOG_FILE" -ls | awk '{print $7}')
+   if [ "$fSize" -gt 15728640 ];then
+      rm "$QUERY_AIRCON_LOG_FILE"
+   fi
+}
+
+function logQueryIdByNameDiagnostic()
+{
+   if [ "$debugSpecified" != true ]; then
+      return
+   fi
+   local str="$1"
+   echo "$str" >> "$QUERY_IDBYNAME_LOG_FILE"
+
+   # Delete the log if it is > 15 MB
+   fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
+   if [ "$fSize" -gt 15728640 ];then
+      rm "$QUERY_IDBYNAME_LOG_FILE"
+   fi
+}
+
 function getFileStatDt()
 {
    local fileName="$1"
@@ -147,15 +180,12 @@ function queryCachedAirCon()
    local forceFetch="$3"
    local iteration="$4"
    local queryType
+   local myAirData_cached="{}"
 
    local lockFile="${MY_AIRDATA_FILE}.lock"
    local dateFile="${MY_AIRDATA_FILE}.date"
-   local tempFile="${MY_AIRDATA_FILE}.temp"
 
    t0=$(date '+%s')
-   t1=$((t0 + RANDOM))
-
-   local tempFile1="${tempFile}_$t1"
 
    # The dateFile is only valid if there is an MY_AIRDATA_FILE
    local useFileCache=false
@@ -174,14 +204,13 @@ function queryCachedAirCon()
          dtlf=$(( t0 - tlf ))
          if [ "$dtlf" -ge 60 ]; then # earlier curl has timed out, recover and try again
             rm "$lockFile"
-            rm -f "${tempFile}_"*
             rc=99
-            echo "queryCachedAirCon_calls_earlier_CMD4_timed_out $tf $t0 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            logQueryAirConDiagnostic "queryCachedAirCon_calls_earlier_CMD4_timed_out $tf $t0 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
             return
          fi
       fi
    fi
-   echo "queryCachedAirCon_calls $tf $t0 $dt $useFileCache itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+   logQueryAirConDiagnostic "queryCachedAirCon_calls $tf $t0 $dt $useFileCache itr=$iteration $io $device $characteristic $url" 
 
    if [ "$forceFetch" = true ] || [ "$useFileCache" = false ]; then
       doFetch=true
@@ -202,7 +231,7 @@ function queryCachedAirCon()
             # earlier CMD4 has timed out (CMD4 timeout:60000) - this rarely happen (<0.1% of the time)
             # flag it and copy the existing cached file and move on. May not have enough time to retry
             rc=98
-            echo "queryCachedAirCon_copy_earlier_CMD4_timed_out $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            logQueryAirConDiagnostic "queryCachedAirCon_copy_earlier_CMD4_timed_out $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
 
             # To test the logic, issue this comment
             if [ "$selfTest" = "TEST_ON" ]; then
@@ -213,7 +242,7 @@ function queryCachedAirCon()
       done
       myAirData=$( cat "$MY_AIRDATA_FILE" )
       rc=$?
-      echo "queryCachedAirCon_copy $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+      logQueryAirConDiagnostic "queryCachedAirCon_copy $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
 
       # To test the logic, issue this comment
       if [ "$selfTest" = "TEST_ON" ]; then
@@ -223,40 +252,32 @@ function queryCachedAirCon()
    elif [ "$doFetch" = true ]; then
       echo "$t0" > "$lockFile"
       queryType="curl"
-      #Need to output the curl result to a file directly to ensure a compact json file 
-      curl -o "$tempFile1" -s -g "$url" 
+      myAirData=$( curl -s -g "$url")
       rc=$?
       if [ "$rc" = "0" ]; then
-         myAirData=$(cat "$tempFile1")
          #Need to parse to ensure the json file is not empty
          parseMyAirDataWithJq ".aircons.$ac.info"
          if [ "$rc" = "0" ]; then
             t2=$(date '+%s') 
             echo "$t2" > "$dateFile"  # overwrite $dateFile
-            mv "$tempFile1" "$MY_AIRDATA_FILE"  # overwrite $MY_AIRDATA_FILE
+            #if $myAirData is not the same as the cached file, overwrite it with the new $myAirData 
+            if [ -f "$MY_AIRDATA_FILE" ]; then isMyAirDataSameAsCached; fi
+            if [ $sameAsCached = false ]; then echo "$myAirData" > "$MY_AIRDATA_FILE"; fi
             dt=$((t2 - t0))  # time-taken for curl command to complete
-            echo "queryCachedAirCon_curl $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+            logQueryAirConDiagnostic "queryCachedAirCon_curl $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
          else
             # just in case
             unset myAirData
-            rm "$tempFile1"
          fi
       else
-         echo "queryCachedAirCon_curl_failed $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url" >> "$QUERY_AIRCON_LOG_FILE"
+         logQueryAirConDiagnostic "queryCachedAirCon_curl_failed $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
       fi
       rm "$lockFile"
-      rm -f "$tempFile1"
 
    elif [ "$doFetch" = false ]; then
       queryType="cache"
       myAirData=$( cat "$MY_AIRDATA_FILE" )
       rc=$?
-   fi
-
-   # Delete the log if it is > 15 MB
-   fSize=$(find "$QUERY_AIRCON_LOG_FILE" -ls | awk '{print $7}')
-   if [ "$fSize" -gt 15728640 ];then
-      rm "$QUERY_AIRCON_LOG_FILE"
    fi
 
    if [ "$rc" != "0" ]; then
@@ -265,6 +286,36 @@ function queryCachedAirCon()
          exit $rc
       fi
    fi
+}
+
+function isMyAirDataSameAsCached()
+{
+   local aircons
+   local lights
+   local things
+   local myAirData_cached
+   local aircons_cached
+   local lights_cached
+   local things_cached
+
+   myAirData_cached=$(cat "$MY_AIRDATA_FILE")
+
+   if [ "$myAirData" = "$myAirData_cached" ]; then
+      sameAsCached=true
+      return
+   fi
+   # For aircon system with temperature sensors, "rssi" and "measuredTemp" are changing all the time
+   # do not need to compare "rssi" but if "measuredTemp" is changed, cached file will be updated 
+   # compare only the aircons, lights and things - all the rest does not matter
+   aircons=$(echo "$myAirData"|jq -ec ".aircons[]"|sed s/rssi\":[0-9]*/rssi\":0/g)
+   lights=$(echo "$myAirData"|jq -ec ".myLights.lights[]")
+   things=$(echo "$myAirData"|jq -ec ".myThings.things[]")
+
+   aircons_cached=$(echo "$myAirData_cached"|jq -ec ".aircons[]"|sed s/rssi\":[0-9]*/rssi\":0/g)
+   lights_cached=$(echo "$myAirData_cached"|jq -ec ".myLights.lights[]")
+   things_cached=$(echo "$myAirData_cached"|jq -ec ".myThings.things[]")
+
+   if [[ "$aircons" = "$aircons_cached" && "$lights" = "$lights_cached" && "$things" = "$things_cached" ]]; then sameAsCached=true; fi
 }
 
 function setAirConUsingIteration()
@@ -293,7 +344,7 @@ function setAirConUsingIteration()
       t3=$(date '+%s')
       curl --fail -s -g "$url"
       rc=$?
-      echo "setAirCon_curl $t3 rc=$rc itr=$i $io $device $characteristic $value $url" >> "$QUERY_AIRCON_LOG_FILE"
+      logQueryAirConDiagnostic "setAirCon_curl $t3 rc=$rc itr=$i $io $device $characteristic $value $url"
 
       if [ "$rc" == "0" ]; then
          # update $MY_AIRDATA_FILE directly instead of fetching a new copy from AdvantageAir controller after a set command
@@ -375,25 +426,21 @@ function updateMyAirDataCachedFileWithJq()
 
    local url="$1"
    local jqPath="$2"
-
-   t4=$(($(date '+%s') + RANDOM))
-   local tempFile2="${MY_AIRDATA_FILE}.temp_$t4"
+   local updatedMyAirData
    #
-   jq -ec "$jqPath" "$MY_AIRDATA_FILE" > "$tempFile2"
+   updatedMyAirData=$(jq -ec "$jqPath" "$MY_AIRDATA_FILE")
    rc=$?
    if [ "$rc" == "0" ]; then
-      mv "$tempFile2" "$MY_AIRDATA_FILE"
-      echo "setAirCon_setJson $t3 rc=$rc $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
+      echo "$updatedMyAirData" > "$MY_AIRDATA_FILE"
+      logQueryAirConDiagnostic "setAirCon_setJson $t3 rc=$rc $io $device $characteristic $jqPath"
       if [ "$selfTest" = "TEST_ON" ]; then
          # For Testing, you can compare whats sent
          echo "Setting json: $jqPath"
       fi
    else
       logError "setAirCon_setJson jq failed" "$rc" "$jqPath" "" "$url"
-      echo "setAirCon_setJson_failed $t3 rc=$rc $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
+      logQueryAirConDiagnostic "setAirCon_setJson_failed $t3 rc=$rc $io $device $characteristic $jqPath"
    fi
-   # just in case
-   rm -f "$tempFile2"
 }
 
 function parseMyAirDataWithJq()
@@ -411,7 +458,7 @@ function parseMyAirDataWithJq()
    if [ "$rc" != "0" ]; then
       if [ "$exitOnFail" = "1" ]; then
          logError "jq failed" "$rc" "$jqResult" "" "$jqPath"
-         echo "parseMyAirDataWithJq_failed rc=$rc jqResult=$jqResult $io $device $characteristic $jqPath" >> "$QUERY_AIRCON_LOG_FILE"
+         logQueryAirConDiagnostic "parseMyAirDataWithJq_failed rc=$rc jqResult=$jqResult $io $device $characteristic $jqPath"
          exit $rc
       fi
    fi
@@ -523,16 +570,11 @@ function queryIdByName()
 
    # for diagnostic purpuses
    t4=$(date '+%s')
-   echo "queryIdByName_jq $t4 rc=$rc $io path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
-   # Delete the log if it is > 15 MB
-   fSize=$(find "$QUERY_IDBYNAME_LOG_FILE" -ls | awk '{print $7}')
-   if [ "$fSize" -gt 15728640 ];then
-      rm "$QUERY_IDBYNAME_LOG_FILE"
-   fi
+   logQueryIdByNameDiagnostic "queryIdByName_jq $t4 rc=$rc $io path=$path $characteristic id=${ids} name=$name"
 
    if [ "$rc" != "0" ]; then
       logError "queryIdByName_jq failed" "$rc" "${ids}" "${path}" "$name"
-      echo "queryIdByName_jq_failed $t4 rc=$rc $io path=$path $characteristic id=${ids} name=$name" >> "$QUERY_IDBYNAME_LOG_FILE"
+      logQueryIdByNameDiagnostic "queryIdByName_jq_failed $t4 rc=$rc $io path=$path $characteristic id=${ids} name=$name"
       exit $rc
    fi
 
@@ -664,10 +706,16 @@ if [ $argEND -ge $argSTART ]; then
             #
             # See if the option is in the format of an IP
             #
-            if expr "$v" : '[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*$' >/dev/null; then
-               IP="$v"
+            if expr "$v" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*[-a-z]*$' >/dev/null; then
+               IP=$(echo "$v"|cut -d"-" -f1)
+               debug=$(echo "$v"|cut -d"-" -f2)
+               if [ "$debug" = "debug" ]; then debugSpecified=true; fi
+
                if [ "$selfTest" = "TEST_ON" ]; then
-                  echo "Using IP: $v"
+                  echo "Using IP: $IP"
+                  if [ "$debugSpecified" = true ]; then
+                     echo "Diagnostic log is turned on"
+                  fi
                fi
                optionUnderstood=true
             fi
@@ -681,7 +729,7 @@ fi
 
 # Create a temporary sub-directory "${tmpSubDir}" to store the temporary files
 subDir=$( echo "$IP"|cut -d"." -f4 )
-tmpSubDir=$( printf "/tmp/AA-%03d" "$subDir" )
+tmpSubDir=$( printf "${TMPDIR}/AA-%03d" "$subDir" )
 if [ ! -d "${tmpSubDir}/" ]; then mkdir "${tmpSubDir}/"; fi
 
 # Redefine temporary files with full path

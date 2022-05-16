@@ -8,21 +8,23 @@ setup()
    _common_setup
 }
 
+if [ -z "$TMPDIR" ]; then TMPDIR="/tmp"; fi
+if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
+
 startServer()
 {
-   echo  "In startServer" >> /tmp/AA-001/AirConServer.out
-
-   touch /tmp/AA-001/AirConServer.out
+   touch "${TMPDIR}/AA-001/AirConServer.out"
+   echo  "In startServer" >> "${TMPDIR}"/AA-001/AirConServer.out
 
    # Start a new AirConServer
-   echo "Setup: Starting daemon" >> /tmp/AA-001/AirConServer.out
-   node ./AirConServer.js >> /tmp/AA-001/AirConServer.out 2>&1 &
+   echo "Setup: Starting daemon" >> "${TMPDIR}"/AA-001/AirConServer.out
+   node ./AirConServer.js >> "${TMPDIR}/AA-001/AirConServer.out" 2>&1 &
    rc=$?
    if [ "$rc" != 0 ]; then
-      echo "Setup: Starting Daemon failed rc: $rc" >> /tmp/AA-001/AirConServer.out
+      echo "Setup: Starting Daemon failed rc: $rc" >> "${TMPDIR}"/AA-001/AirConServer.out
    fi
    sleep 3
-   echo "Setup: Daemon shold be started rc: $rc" >> /tmp/AA-001/AirConServer.out
+   echo "Setup: Daemon shold be started rc: $rc" >> "${TMPDIR}"/AA-001/AirConServer.out
 
 }
 

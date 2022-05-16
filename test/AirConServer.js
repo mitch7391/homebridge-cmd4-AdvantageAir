@@ -6,8 +6,9 @@ var url = require('url');
 const { Command } = require( "commander" );
 const program = new Command;
 
-// Setting up PORT
+// Setting up PORT and TMPDIR
 var port_g = process.env.PORT || 2025;
+var TMPDIR = process.env.TMPDIR || "/tmp"
 
 var debug_g = true;
 var exists_fan = true;
@@ -128,7 +129,7 @@ const requestListener = function (req, res)
 
 
    // Example URL parsing
-   // var adr = 'http://localhost:2025/default.htm?year=2017&month=february';
+   // var adr = 'http://localhost:$PORT/default.htm?year=2017&month=february';
    var q = url.parse(req.url, true);
    let ended = true;
 
@@ -148,14 +149,14 @@ const requestListener = function (req, res)
    // The last record is used continiously.
    //
    // Examples
-   //    curl -s -g 'http://localhost:2025?load=testData/dataPassOn1/getSystemData.txt0'
-   //    curl -s -g 'http://localhost:2025?repeat=5?load=testData/dataPassOn1/getSystemData.txt0'
-   //    curl -s -g 'http://localhost:2025/getDystemData'
-   //    curl -s -g 'http://localhost:2025/shutdown'
-   //    curl -s -g 'http://localhost:2025/quit'
-   //    curl -s -g 'http://localhost:2025/reInit'
-   //    curl -s -g 'http://localhost:2025?debug=1'
-   //    curl -s -g 'http://localhost:2025?dumpStack'
+   //    curl -s -g 'http://localhost:$PORT?load=testData/dataPassOn1/getSystemData.txt0'
+   //    curl -s -g 'http://localhost:$PORT?repeat=5?load=testData/dataPassOn1/getSystemData.txt0'
+   //    curl -s -g 'http://localhost:$PORT/getDystemData'
+   //    curl -s -g 'http://localhost:$PORT/shutdown'
+   //    curl -s -g 'http://localhost:$PORT/quit'
+   //    curl -s -g 'http://localhost:$PORT/reInit'
+   //    curl -s -g 'http://localhost:$PORT?debug=1'
+   //    curl -s -g 'http://localhost:$PORT?dumpStack'
    //
    //      Note: "repeat" must come first, otherwise 0 is used.
    //
@@ -321,7 +322,7 @@ const requestListener = function (req, res)
                return res.end();
             }
             let record = stack_g[0];
-            fs.writeFileSync( "/tmp/AA-001/AirConServerData.json", record.getSystemData);
+            fs.writeFileSync( `${TMPDIR}/AA-001/AirConServerData.json`, record.getSystemData);
 
             log( `SERVER: end\n` );
             return res.end();
@@ -761,8 +762,8 @@ async function startServer( port, handler, callback )
 // node ./AirConServer.js
 // In Second Terminal
 // cd test
-// curl -s -g 'http://localhost:2025/?load=testData/dataPassOn1/getSystemData.txt0'
-// curl -s -g 'http://localhost:2025/?loadFail=testData/dataFailOn5/getSystemData.txt4?loadFailureCound=4'
+// curl -s -g 'http://localhost:$PORT/?load=testData/dataPassOn1/getSystemData.txt0'
+// curl -s -g 'http://localhost:$PORT/?loadFail=testData/dataFailOn5/getSystemData.txt4?loadFailureCound=4'
 // ../AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
 //
 
