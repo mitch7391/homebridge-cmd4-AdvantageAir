@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.4.0-beta.0 (2022-05-21)
+Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
+
+### Notable Changes
+
+* Thermostat `Auto` mode is now used to set `dry` mode in Advantage Air control unit. This enable users to set the `dry` mode from Homekit.
+* Performance: New function to update `myAirData.txt` cache file immediately after every `Set` command using `jq` so that the cache file always reflects the latest state of the system in real time.
+* Minimized "write" events to the disk as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58).
+
+### Other Changes
+
+* Created temporary sub-directory to store all temporary files required for the smooth running of `AdvAir.sh`.
+* Dev: New `AirconServer` for better and more realistic unit testing.
+* Security: Bump `minimist` from `1.2.5` to `1.2.6`.
+
+### Bug Fixes
+
+* Resolve issue where `AdvAir.sh` fails to write to `"/tmp"` which is denied in some Linux distros; as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58). 
+* Issue where `countDownToOn` timer is set and if the aircon is turned on manually instead, the `countDownToOn` remains on. It should be turned off because the aircon is now on.
+* Minor bug fixes to new `AirconServer`.
+
+
 ## 3.3.0 (2022-03-25)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features! Another special thanks to John Wong and Kai Millar for all the beta testing that made this feature possible!
