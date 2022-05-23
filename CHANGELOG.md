@@ -2,11 +2,12 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.4.0-beta.0 (2022-05-21)
+## 3.4.0-beta.1 (2022-05-23)
 Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
 
 ### Notable Changes
 
+* Support for Advantage Air systems with a second control tablet! This is for users who may have multiple aircons controlled by separate control tablets.
 * Thermostat `Auto` mode is now used to set `dry` mode in Advantage Air control unit. This enable users to set the `dry` mode from Homekit.
 * Performance: New function to update `myAirData.txt` cache file immediately after every `Set` command using `jq` so that the cache file always reflects the latest state of the system in real time.
 * Minimized "write" events to the disk as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58).
@@ -16,6 +17,7 @@ Special thanks to the amazing uswong and ztalbot2000 for adding these new featur
 * Created temporary sub-directory to store all temporary files required for the smooth running of `AdvAir.sh`.
 * Dev: New `AirconServer` for better and more realistic unit testing.
 * Security: Bump `minimist` from `1.2.5` to `1.2.6`.
+* Security: Fix 'Prototype Pollution' in `merge`.
 
 ### Bug Fixes
 
