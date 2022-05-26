@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.4.0-beta.1 (2022-05-23)
+## 3.4.0-beta.2 (2022-05-26)
 Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
 
 ### Notable Changes
@@ -16,14 +16,13 @@ Special thanks to the amazing uswong and ztalbot2000 for adding these new featur
 
 * Created temporary sub-directory to store all temporary files required for the smooth running of `AdvAir.sh`.
 * Dev: New `AirconServer` for better and more realistic unit testing.
-* Security: Bump `minimist` from `1.2.5` to `1.2.6`.
-* Security: Fix 'Prototype Pollution' in `merge`.
 
 ### Bug Fixes
 
 * Resolve issue where `AdvAir.sh` fails to write to `"/tmp"` which is denied in some Linux distros; as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58). 
 * Issue where `countDownToOn` timer is set and if the aircon is turned on manually instead, the `countDownToOn` remains on. It should be turned off because the aircon is now on.
 * Minor bug fixes to new `AirconServer`.
+* Dev: NPM Audit to fix issues with dependencies causing unit tests to fail.
 
 
 ## 3.3.0 (2022-03-25)
