@@ -24,7 +24,7 @@
       "@commitlint/cli": "^16.1.0",
       "@commitlint/config-conventional": "^16.0.0",
       "background-eslint-hook": "^1.0.0",
-      "bats": "^1.4.1",
+      "bats": "^1.5.0",
       "bats-assert": "github:ztombol/bats-assert",
       "bats-support": "github:ztombol/bats-support",
       "chai": "^4.3.4",
@@ -36,7 +36,7 @@
       "onchange": "^7.1.0",
       "shellcheck": "^1.0.0",
       "sinon": "^12.0.1",
-      "watch": "^1.0.2"
+      "watch": "^0.13.0"
    },
    "directories": {
       "homebridge-ui": "homebridge-ui",
