@@ -6,6 +6,10 @@ var url = require('url');
 const { Command } = require( "commander" );
 const program = new Command;
 
+// Parse the args
+var args = process.argv.slice(2);
+var system = args[0] || "smallSystem";
+
 // Setting up PORT and TMPDIR
 var port_g = process.env.PORT || 2025;
 var TMPDIR = process.env.TMPDIR || "/tmp"
@@ -16,8 +20,11 @@ var exists_state = true;
 
 var pfan = /fan/;
 var pstate = /state/;
-var quotedValues
-var newValues
+var quotedValues;
+var newValues;
+var curlRunTime=0;
+
+var changingRecord = false;
 
 // A nice little getOpt node.js package
 program
@@ -49,6 +56,89 @@ const log = function( str )
 {
    if ( debug_g == true )
       console.log( str );
+}
+
+function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
+
+function simulateCurlRunTime() {
+   // This function is to simulate the time taken for "curl" command to complete
+   // for a big MyPlace system with lots of scenes programmed.
+   // This time taken simulator is based on the histogram generated from 6,107 actual
+   // measurements of time taken for curl to complete on a real MyPlace system.
+   // The time taken can range from 1 second to 60 seconds and occassionally beyond 60 seconds.
+   // On average, the time taken for curl to complete is ~6 seconds.
+
+   var value = Math.floor(Math.random() * 6108);
+   if (value >=  0 && value <= 58 ) { curlRunTime=1 }
+   if (value >=  59 && value <= 274 ) { curlRunTime=2 }
+   if (value >=  275 && value <= 1389 ) { curlRunTime=3 }
+   if (value >=  1390 && value <= 2891 ) { curlRunTime=4 }
+   if (value >=  2892 && value <= 3916 ) { curlRunTime=5 }
+   if (value >=  3917 && value <= 4589 ) { curlRunTime=6 }
+   if (value >=  4590 && value <= 5045 ) { curlRunTime=7 }
+   if (value >=  5046 && value <= 5295 ) { curlRunTime=8 }
+   if (value >=  5296 && value <= 5475 ) { curlRunTime=9 }
+   if (value >=  5476 && value <= 5591 ) { curlRunTime=10 }
+   if (value >=  5592 && value <= 5725 ) { curlRunTime=11 }
+   if (value >=  5726 && value <= 5775 ) { curlRunTime=12 }
+   if (value >=  5776 && value <= 5823 ) { curlRunTime=13 }
+   if (value >=  5824 && value <= 5855 ) { curlRunTime=14 }
+   if (value >=  5856 && value <= 5876 ) { curlRunTime=15 }
+   if (value >=  5877 && value <= 5900 ) { curlRunTime=16 }
+   if (value >=  5901 && value <= 5923 ) { curlRunTime=17 }
+   if (value >=  5924 && value <= 5948 ) { curlRunTime=18 }
+   if (value >=  5949 && value <= 5968 ) { curlRunTime=19 }
+   if (value >=  5969 && value <= 5979 ) { curlRunTime=20 }
+   if (value >=  5980 && value <= 5988 ) { curlRunTime=21 }
+   if (value >=  5989 && value <= 6001 ) { curlRunTime=22 }
+   if (value >=  6002 && value <= 6008 ) { curlRunTime=23 }
+   if (value >=  6009 && value <= 6018 ) { curlRunTime=24 }
+   if (value >=  6019 && value <= 6022 ) { curlRunTime=25 }
+   if (value >=  6023 && value <= 6028 ) { curlRunTime=26 }
+   if (value >=  6029 && value <= 6035 ) { curlRunTime=27 }
+   if (value >=  6036 && value <= 6040 ) { curlRunTime=28 }
+   if (value >=  6041 && value <= 6042 ) { curlRunTime=29 }
+   if (value >=  6043 && value <= 6044 ) { curlRunTime=30 }
+   if (value >=  6045 && value <= 6046 ) { curlRunTime=31 }
+   if (value >=  6047 && value <= 6048 ) { curlRunTime=32 }
+   if (value >=  6049 && value <= 6050 ) { curlRunTime=33 }
+   if (value >=  6051 && value <= 6052 ) { curlRunTime=34 }
+   if (value >=  6053 && value <= 6054 ) { curlRunTime=35 }
+   if (value >=  6055 && value <= 6056 ) { curlRunTime=36 }
+   if (value >=  6057 && value <= 6058 ) { curlRunTime=37 }
+   if (value >=  6059 && value <= 6060 ) { curlRunTime=38 }
+   if (value >=  6061 && value <= 6062 ) { curlRunTime=39 }
+   if (value >=  6063 && value <= 6064 ) { curlRunTime=40 }
+   if (value >=  6065 && value <= 6066 ) { curlRunTime=41 }
+   if (value >=  6067 && value <= 6068 ) { curlRunTime=42 }
+   if (value >=  6069 && value <= 6070 ) { curlRunTime=43 }
+   if (value >=  6071 && value <= 6072 ) { curlRunTime=44 }
+   if (value >=  6073 && value <= 6074 ) { curlRunTime=45 }
+   if (value >=  6075 && value <= 6076 ) { curlRunTime=46 }
+   if (value >=  6077 && value <= 6078 ) { curlRunTime=47 }
+   if (value >=  6079 && value <= 6080 ) { curlRunTime=48 }
+   if (value >=  6081 && value <= 6082 ) { curlRunTime=49 }
+   if (value >=  6083 && value <= 6084 ) { curlRunTime=50 }
+   if (value >=  6085 && value <= 6086 ) { curlRunTime=51 }
+   if (value >=  6087 && value <= 6088 ) { curlRunTime=52 }
+   if (value >=  6089 && value <= 6090 ) { curlRunTime=53 }
+   if (value >=  6091 && value <= 6092 ) { curlRunTime=54 }
+   if (value >=  6093 && value <= 6094 ) { curlRunTime=55 }
+   if (value >=  6095 && value <= 6096 ) { curlRunTime=56 }
+   if (value >=  6097 && value <= 6098 ) { curlRunTime=57 }
+   if (value >=  6099 && value <= 6100 ) { curlRunTime=58 }
+   if (value >=  6101 && value <= 6102 ) { curlRunTime=59 }
+   if (value >=  6103 && value <= 6104 ) { curlRunTime=60 }
+   if (value >=  6105 && value <= 6105 ) { curlRunTime=61 }
+   if (value >=  6106 && value <= 6106 ) { curlRunTime=62 }
+   if (value >=  6107 && value <= 6107 ) { curlRunTime=63 }
+   return curlRunTime
 }
 
 function traverseAssign( obj1, obj2 )
@@ -87,7 +177,7 @@ const requestListener = function (req, res)
 {
    req.on('close', function ()
    {
-      log( `req.on: close listener: ` );
+      //log( `req.on: close listener: ` );
       // Try to remove connected listener
       //nothing server_g.removeListener( "requestListener", requestListener, this);
       //nothing server_g.removeListener( "connection", requestListener );
@@ -168,28 +258,28 @@ const requestListener = function (req, res)
    let setLightInProgress=false;
 
 
-   log( `parsing pathname:${ q.pathname }` );
+   log( `SERVER: parsing pathname:${ q.pathname }` );
    switch( q.pathname )
    {
       case "/":
       {
          log( `Ignoring pathname /` );
-         log( `SERVER: end\n` );
+         log( `SERVER: end` );
          ended = false;
          break;
       }
       case "/reInit":
       {
-         log( `Doing reInit` );
+         log( `SERVER: Doing reInit` );
          repeat = 0;
          if ( filename ) filename = null;
          stack_g = [];
-         log( `SERVER: end\n` );
+         log( `SERVER: end` );
          return res.end();
       }
       case "/dumpStack":
       {
-         log( `Doing dumpStack` );
+         log( `SERVER: Doing dumpStack` );
          res.writeHead(200, { 'Content-Type': 'text/html' } );
          log( `stack.length=${ stack_g.length }` );
          for ( let index=0; index < stack_g.length; index++ )
@@ -197,26 +287,26 @@ const requestListener = function (req, res)
             let record = stack_g[ index ];
             res.write( `repeat: ${ record.repeat } filename: ${record.filename }\n` );
          }
-         log( `SERVER: end\n` );
+         log( `SERVER: end` );
          return res.end();
       }
       case "/setAircon":
       {
-         log( `Doing setAircon` );
+         log( `SERVER: Doing setAircon` );
          setInProgress=true;
          ended = false;
          break;
       }
       case "/setLight":
       {
-         log( `Doing setLight` );
+         log( `SERVER: Doing setLight` );
          setLightInProgress=true;
          ended = false;
          break;
       }
       case "/setThing":
       {
-         log( `Doing setThing` );
+         log( `SERVER: Doing setThing` );
          setThingInProgress=true;
          ended = false;
          break;
@@ -227,12 +317,11 @@ const requestListener = function (req, res)
          {
             log( `No File Loaded` );
             res.writeHead(404, { 'Content-Type': 'text/html' } );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end( `404 No File Loaded` );
          }
          let record = stack_g.shift();
          let fileToSend = record.filename;
-         let systemDataToSend = record.getSystemData;
 
          if ( stack_g.length == 0 )
          {
@@ -245,15 +334,95 @@ const requestListener = function (req, res)
                stack_g.unshift( record );
          }
 
-         log( `SERVER: getSystemData filename: ${ fileToSend }` );
+         // update the "countDownToOn", "countDownToOff" and "state" of aircon first
+         for(count = 1; count < 5; count++) {
+            ac = "ac" + count
+            if ( record.myAirData.aircons[ac] != undefined ) {
+               countDownToOnValue = record.myAirData.aircons[ac].info.countDownToOn;
+               countDownToOffValue = record.myAirData.aircons[ac].info.countDownToOff;
+               countDownFromValue = record.myAirData.aircons[ac].info.unitType;
+               if ( countDownToOnValue != 0 ) {
+                  if ( changingRecord == false ) {
+                     log(`SERVER: Changing record:`);
+                  }
+                  countDownToOnValue = countDownToOnValue - Math.floor((Date.now() - countDownFromValue) / 60000);
+                  countDownToOnValue = Math.max(countDownToOnValue, 0);
+                  value="{aircons:{" + ac + ":{info:{countDownToOn:" + countDownToOnValue + "}}}}";
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                  setStatementObj = JSON.parse( quotedValues );
+                  console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
+                  traverseAssign( setStatementObj, record.myAirData);
+                  if ( countDownToOnValue == 0 ) {
+                     // set the aircon state to "on"
+                     value="{aircons:{" + ac + ":{info:{state:on}}}}"
+                     quotedValues=value.replace(/([a-zA-Z0-9-.]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                                       .replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                     setStatementObj = JSON.parse( quotedValues );
+                     console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
+                     traverseAssign( setStatementObj, record.myAirData);
+                  }
+                  value="{aircons:{" + ac + ":{info:{unitType:" + Date.now() + "}}}}";
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                  setStatementObj = JSON.parse( quotedValues );
+                  traverseAssign( setStatementObj, record.myAirData);
+                  changingRecord = true
+               }
+               if ( countDownToOffValue != 0 ) {
+                  if ( changingRecord == false ) {
+                     log(`SERVER: Changing record:`);
+                  }
+                  countDownToOffValue = countDownToOffValue - Math.floor((Date.now() - countDownFromValue) / 60000);
+                  countDownToOffValue = Math.max(countDownToOffValue, 0);
+                  value="{aircons:{" + ac + ":{info:{countDownToOff:" + countDownToOffValue + "}}}}";
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                  setStatementObj = JSON.parse( quotedValues );
+                  console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
+                  traverseAssign( setStatementObj, record.myAirData);
+                  if ( countDownToOffValue == 0 ) {
+                     // set the aircon state to "off"
+                     value="{aircons:{" + ac + ":{info:{state:off}}}}";
+                     quotedValues=value.replace(/([a-zA-Z0-9-.]+):([a-zA-Z0-9-]+)/g, "$1:\"$2\"")
+                                       .replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                     setStatementObj = JSON.parse( quotedValues );
+                     console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
+                     traverseAssign( setStatementObj, record.myAirData);
+                  }
+                  value="{aircons:{" + ac + ":{info:{unitType:" + Date.now() + "}}}}";
+                  quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                  setStatementObj = JSON.parse( quotedValues );
+                  traverseAssign( setStatementObj, record.myAirData);
+                  changingRecord = true
+               }
+            }
+         }
+         if ( changingRecord ) {
+            log( `SERVER: creating new getSystemData` );
+            record.getSystemData = JSON.stringify( record.myAirData );
+            changingRecord = false;
+         }
+
+         //
+
+         let systemDataToSend = record.getSystemData;
+
          res.writeHead(200, { 'Content-Type': 'text/json' } );
-         log( `***** SERVER: writing length: ${ systemDataToSend.length }` );
          res.write( systemDataToSend, 'utf8', () =>
          {
-           log( `Writing Data...` );
+            log( `SERVER: Writing getSystemData, length: ${ systemDataToSend.length }` );
+            log( `SERVER: end` );
          });
-         log( `SERVER: end\n` );
+
+         // for big system, the curlRunTime takes longer
+         if (system=="bigSystem")
+         {
+            simulateCurlRunTime(curlRunTime);
+            sleep(curlRunTime*1000);
+            console.log(`SERVER: getSystemData curl RunTime: ${curlRunTime} seconds`);
+         }
+
          return res.end();
+
+
       }
       case "/quit":
       case "/shutdown":
@@ -277,37 +446,36 @@ const requestListener = function (req, res)
 
          log("GRACEFUL SHUTDOWN");
          res.writeHead(200, { 'Content-Type': 'text/html' } );
-         log( `SERVER: end\n` );
+         log( `SERVER: end` );
          return res.end();
       }
       default:
       {
          res.writeHead(404, { 'Content-Type': 'text/html' } );
          log( `SERVER: UNKNOWN pathname: ${ q.pathname }` );
-         log( `SERVER: end\n` );
+         log( `SERVER: end` );
          return res.end( `SERVER: UNKNOWN pathname: ${ q.pathname }` );
       }
    }
 
-   log ("SERVER PARSING KEYS");
    for ( let key in q.query )
    {
       let value = q.query[ key ];
-      log( `parsing key:${ key } value: ${ value }` );
+      log( `SERVER: parsing key: ${ key } value: ${ value }` );
       switch( key )
       {
          case "debug": // ?debug=1
          {
             debug_g = value;
             log( `Setting debug_g to ${ debug_g}` );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end();
          }
          case "repeat": // ?repeat=x
          {
             repeat = value;
             log( `Setting repeat to ${ repeat }` );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             // Do not return, possible furthet options
             ended = false;
             break;
@@ -318,13 +486,13 @@ const requestListener = function (req, res)
             {
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
                log( `SERVER: No data loaded to save` );
-               log( `SERVER: end\n` );
+               log( `SERVER: end` );
                return res.end();
             }
             let record = stack_g[0];
             fs.writeFileSync( `${TMPDIR}/AA-001/AirConServerData.json`, record.getSystemData);
 
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end();
          }
          case "load": // ?load=testData/getSystemData.txt
@@ -337,14 +505,14 @@ const requestListener = function (req, res)
             {
                log( `File not found: ${ filename }` );
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
-               log( `SERVER: end\n` );
+               log( `SERVER: end` );
                return res.end( `404 Not Found` );
             }
 
             log( `SERVER: reading: ${ filename }` );
             let getSystemData = fs.readFileSync( filename, 'utf-8')
             log( `SERVER: read length: ${ getSystemData.length }` );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             let myAirData=JSON.parse( getSystemData );
             res.writeHead( 200, { 'Content-Type': 'text/html' } );
             stack_g.push( { "filename": filename,
@@ -352,19 +520,17 @@ const requestListener = function (req, res)
                             "repeat": repeat,
                             "myAirData": myAirData } );
 
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end();
          }
          case "json": // ?json
          {
-            log( `In json` );
-
             // There must be systemData loaded
             if ( stack_g.length == 0 )
             {
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
                log( `SERVER: No data loaded to set for ${ value }` );
-               log( `SERVER: end\n` );
+               log( `SERVER: end` );
                return res.end();
             }
             let record = stack_g[0];
@@ -377,11 +543,10 @@ const requestListener = function (req, res)
                var re = new RegExp( /^{ac([0-9]+):.*/ ); // } vim balance
                var matches = re.exec( value );
                ac = "ac" + matches[1];
-               log(`Specified value:${value} ac: ${ac}`);
 
                // Sets do not have .aircons at the beginning. Add it.
                value="{aircons:" + value + "}";
-               log( `In json before, value: '${value}'` );
+               // log( `In json before, value: ${value}` );
                // Parsing {aircons:{ac1:{zones:{z01:{state:open}}}}} into
                //         {"aircons":{"ac1":{"zones":{"z01":{"state":"open"}}}}}
                //The first replace changes the last key/value pair
@@ -397,7 +562,7 @@ const requestListener = function (req, res)
                {
                   quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
                }
-               log( `In json after,PARSE '${quotedValues}'` );
+               // log( `In json after, value: ${quotedValues}` );
 
                // Parse the given jqPath, to a json object
                let setStatementObj = JSON.parse( quotedValues );
@@ -406,18 +571,18 @@ const requestListener = function (req, res)
                {
                   res.writeHead( 404, { 'Content-Type': 'text/html' } );
                   log( `SERVER: Cannot Parse ${ value }` );
-                  log( `SERVER: end\n` );
+                  log( `SERVER: end` );
                   return res.end();
                }
 
-               log( `SERVER: Changing record\n` );
+               log( `SERVER: Changing record:` );
 
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               console.log("setStatementObj[ac]=%s", setStatementObj.aircons[ac]);
                if ( setStatementObj.aircons[ac].zones )
                {
+                  console.log(`SERVER: setStatementObj.${ac}.zones =`, setStatementObj.aircons[ac].zones);
                   for ( let zone in setStatementObj.aircons[ac].zones )
                   {
                      for ( let key in setStatementObj.aircons[ac].zones[zone] )
@@ -453,6 +618,7 @@ const requestListener = function (req, res)
                }
                if ( setStatementObj.aircons[ac].info )
                {
+                  console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info)
                   for ( let key in setStatementObj.aircons[ac].info )
                   {
                      switch( key )
@@ -460,40 +626,83 @@ const requestListener = function (req, res)
                         case "state":
                         {
                            // Add/change myAirData just those elements in the set statement
+                           let currentState = setStatementObj.aircons[ac].info.state;
                            traverseAssign( setStatementObj, record.myAirData);
+                           if ( currentState == "on" ) {
+                              value="{aircons:{" + ac + ":{info:{countDownToOn:0}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info)
+                              traverseAssign( setStatementObj, record.myAirData);
+                           } else {
+                              value="{aircons:{" + ac + ":{info:{countDownToOff:0}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info)
+                              traverseAssign( setStatementObj, record.myAirData);
+                           }
                            break;
                         }
                         case "setTemp":
                         {
                            // Add/change myAirData just those elements in the set statement
                            traverseAssign( setStatementObj, record.myAirData);
-
                            break;
                         }
                         case "mode":
                         {
                            // Add/change myAirData just those elements in the set statement
                            traverseAssign( setStatementObj, record.myAirData);
-
                            break;
                         }
                         case "fan":
                         {
                            // Add/change myAirData just those elements in the set statement
                            traverseAssign( setStatementObj, record.myAirData);
-
                            break;
                         }
                         case "countDownToOff":
                         {
                            // Add/change myAirData just those elements in the set statement
+                           let currentValue = setStatementObj.aircons[ac].info.countDownToOff;
                            traverseAssign( setStatementObj, record.myAirData);
+                           // If contDownToOff is non-zero, countDownTonOn has to be set to zero
+                           // also record time the countDownToOff is set
+                           if ( currentValue != 0 ) {
+                              value="{aircons:{" + ac + ":{info:{countDownToOn:0}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info)
+                              traverseAssign( setStatementObj, record.myAirData);
+                              // set the time when countdownToOff is set
+                              // use the key "unitType" as a proxy for the time "countDownToOn" or "countDownToOff" is set
+                              value="{aircons:{" + ac + ":{info:{unitType:" + Date.now() + "}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              traverseAssign( setStatementObj, record.myAirData);
+                           } 
                            break;
                         }
                         case "countDownToOn":
                         {
                            // Add/change myAirData just those elements in the set statement
+                           let currentValue = setStatementObj.aircons[ac].info.countDownToOn;
                            traverseAssign( setStatementObj, record.myAirData);
+                           // If contDownToOn is non-zero, countDownTonOff has to be set to zero
+                           // also record time the countDownToOn is set
+                           if ( currentValue != 0 ) {
+                              value="{aircons:{" + ac + ":{info:{countDownToOff:0}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info)
+                              traverseAssign( setStatementObj, record.myAirData);
+                              // set the time when countdownToOn is set
+                              // use the key "unitType" as a proxy for the time "countDownToOn" or "countDownToOff" is set
+                              value="{aircons:{" + ac + ":{info:{unitType:" + Date.now() + "}}}}";
+                              quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
+                              setStatementObj = JSON.parse( quotedValues );
+                              traverseAssign( setStatementObj, record.myAirData);
+                           } 
                            break;
                         }
                         default:
@@ -506,7 +715,7 @@ const requestListener = function (req, res)
                }
             } else if (setLightInProgress == true )
             {
-               log( `In json before, value: '${value}'` );
+               // log( `In json before, value: ${value}` );
 
                // Sets do not have .myLights at the beginning. Add it.
                value="{myLights:{lights:" + value + "}}";
@@ -523,7 +732,7 @@ const requestListener = function (req, res)
                {
                   quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
                }
-               log( `In json before,PARSE '${quotedValues}'` );
+               // log( `In json after, value: ${quotedValues}` );
 
                // Parse the given jqPath, to a json object
                let setStatementObj = JSON.parse( quotedValues );
@@ -532,24 +741,21 @@ const requestListener = function (req, res)
                {
                   res.writeHead( 404, { 'Content-Type': 'text/html' } );
                   log( `SERVER: Cannot Parse ${ value }` );
-                  log( `SERVER: end\n` );
+                  log( `SERVER: end` );
                   return res.end();
                }
 
-               log( `SERVER: Changing record\n` );
+               log( `SERVER: Changing record:` );
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               let id = setStatementObj.myLights.lights.id;
-               log(`setStatementObj.id=${id}`);
-               if ( exists_state )
-               {
+               if ( exists_state ) {
                   newValue = setStatementObj.myLights.lights.state;
-               } else
-               {
+               } else {
                   newValue = setStatementObj.myLights.lights.value;
                }
-               log(`setStatementObj.value=${newValue}`);
+               let id = setStatementObj.myLights.lights.id;
+               console.log(`SERVER: setStatementObj.myLights.lights =`,setStatementObj.myLights.lights);
                if ( record.myAirData.myLights )
                {
                   if ( record.myAirData.myLights.lights )
@@ -572,7 +778,7 @@ const requestListener = function (req, res)
                }
             } else if (setThingInProgress == true )
             {
-               log( `In json before, value: '${value}'` );
+               // log( `In json before, value: ${value}` );
 
                // Sets do not have .myThings at the beginning. Add it.
                value="{myThings:{things:" + value + "}}";
@@ -581,7 +787,7 @@ const requestListener = function (req, res)
                //The first replace changes the last key/value pair
                //The second replace changes the keys
                quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
-               log( `In json before,PARSE '${quotedValues}'` );
+               // log( `In json after, value: ${quotedValues}` );
 
                // Parse the given jqPath, to a json object
                let setStatementObj = JSON.parse( quotedValues );
@@ -590,18 +796,17 @@ const requestListener = function (req, res)
                {
                   res.writeHead( 404, { 'Content-Type': 'text/html' } );
                   log( `SERVER: Cannot Parse ${ value }` );
-                  log( `SERVER: end\n` );
+                  log( `SERVER: end` );
                   return res.end();
                }
 
-               log( `SERVER: Changing record\n` );
+               log( `SERVER: Changing record:` );
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               let id = setStatementObj.myThings.things.id;
-               log(`setStatementObj.id=${id}`);
                newValue = setStatementObj.myThings.things.value;
-               log(`setStatementObj.value=${newValue}`);
+               let id = setStatementObj.myThings.things.id;
+               console.log(`SERVER: setStatementObj.myThings.things =`,setStatementObj.myThings.things);
                if ( record.myAirData.myThings )
                {
                   if ( record.myAirData.myThings.things )
@@ -620,21 +825,21 @@ const requestListener = function (req, res)
             {
                res.writeHead( 404, { 'Content-Type': 'text/html' } );
                log( `SERVER: Parsing JSON without setAircon, setThing or setLight: ${ key }` );
-               log( `SERVER: end\n` );
+               log( `SERVER: end` );
                return res.end();
             }
 
 
-            log( `SERVER: creating new getSystemData\n` );
+            log( `SERVER: creating new getSystemData` );
             record.getSystemData = JSON.stringify( record.myAirData );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end();
          }
          default:
          {
             res.writeHead( 404, { 'Content-Type': 'text/html' } );
             log( `SERVER: UNKNOWN query: ${ key }` );
-            log( `SERVER: end\n` );
+            log( `SERVER: end` );
             return res.end( `SERVER: UNKNOWN query: ${ key }` );
          }
       }
@@ -694,20 +899,20 @@ async function startServer( port, handler, callback )
          server.on('connection', (socket) => {
             // Add a newly connected socket
             var socketId = nextSocketId++;
-            log( `SERVER.on : connection add socketId ${ socketId }` );
+            log( `SERVER.on : connection add socket ${ socketId }` );
             sockets[socketId] = socket;
 
 
             socket.on('close', function () {
-              log( `socket.on: close socket: ${ socket} socketId: ${socketId}` );
-              log(`socket ${ socketId } closed`);
+              // log( `socket.on: close socket: ${ socket} socketId: ${socketId}` );
+              log(`socket ${ socketId } closed\n`);
               socket.destroy();
               delete sockets[socketId];
 
             });
             socket.on('end', function () {
-              log( `socket.on: end socket: ${ socket} socketId: ${socketId}` );
-              log(`socket ${ socketId } end`);
+              // log( `socket.on: end socket: ${ socket} socketId: ${socketId}` );
+              // log(`socket ${ socketId } end`);
               socket.destroy();
               //delete sockets[socketId];
             });
