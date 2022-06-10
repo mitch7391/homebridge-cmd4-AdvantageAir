@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.4.0-beta.2 (2022-05-26)
+## 3.4.0-beta.3 (2022-06-10)
 Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
 
 ### Notable Changes
@@ -16,6 +16,7 @@ Special thanks to the amazing uswong and ztalbot2000 for adding these new featur
 
 * Created temporary sub-directory to store all temporary files required for the smooth running of `AdvAir.sh`.
 * Dev: New `AirconServer` for better and more realistic unit testing.
+* Dev: Real time count down capability is added to the `AirconServer` to make it behave more like a real aircon system.
 
 ### Bug Fixes
 
