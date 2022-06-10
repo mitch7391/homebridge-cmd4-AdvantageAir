@@ -8,119 +8,142 @@ teardown()
 {
    _common_teardown
 }
+before()
+{
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
+}
 
 beforeEach()
 {
    _common_beforeEach
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
-
-@test "AdvAir ( ezone inline ) Test PassOn5 Get CurrentTemperature" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn5 ./data
+@test "AdvAir Test Get CurrentTemperature" {
    beforeEach
-   if [ -f "/tmp/myAirContants.txt_TEST" ]; then rm "/tmp/myAirConstants.txt_TEST";fi
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
-   assert_equal "${lines[5]}" "25.4"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   # AdvAir now calls getSystemData 5 times before parse
-   rm    ./data
-   ln -s ./testData/dataPassOn1 ./data
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 192.168.0.173 z01
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "Using IP: 192.168.0.173"
-   # result is still the same
-   assert_equal "${lines[1]}" "${e_lines[0]}"
-   assert_equal "${lines[2]}" "${e_lines[5]}"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[7]}" "25.4"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature z01" {
-   ln -s ./testData/dataPassOn1 ./data
+@test "AdvAir Test Get CurrentTemperature z01" {
    beforeEach
-   run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 192.168.0.173 z01
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "Using IP: 192.168.0.173"
-   assert_equal "${lines[1]}" "${e_lines[0]}"
-}
-
-
-@test "AdvAir ( zones inline ) Test PassOn1 Get CurrentTemperature z01" {
-   ln -s ./testData/dataPassOn1 ./data
-   beforeEach
-   run ./compare/zones.txt Get Blah CurrentTemperature z01 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 192.168.0.173 z01
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "Using IP: 192.168.0.173"
-   assert_equal "${lines[1]}" "${e_lines[0]}"
-}
-
-@test "AdvAir ( zones inline ) Test PassOn1 Get CurrentTemperature z03" {
-   ln -s ./testData/dataPassOn1 ./data
-   beforeEach
-   run ./compare/zones.txt Get Blah CurrentTemperature z03 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON 192.168.0.173 z03
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "Using IP: 192.168.0.173"
-   assert_equal "${lines[1]}" "${e_lines[0]}"
-}
-
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (creating new myAirConstants" {
-   # We symbolically link the directory of the test we want to use.
-   #ln -s ./testData/dataPassOn1 ./data
-   ln -s ./testData/dataOneZone ./data
-   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt Get Blah CurrentTemperature TEST_ON
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
    assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   # No Sensors does not have .aircons.ac1.zones.z01.measuredTemp ( It's 0.0 )
-   # Interesting, jq turns 0.0 into just 0.  Not a good thing
-   assert_equal "${lines[1]}" "0"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "${e_lines[0]}"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[7]}" "25.4"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
+}
+
+
+@test "AdvAir Test Get CurrentTemperature z03" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   # Bats "run" gobbles up all the stdout. Remove for debugging
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z03
+   assert_equal "$status" "0"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z03.measuredTemp"
+   assert_equal "${lines[7]}" "23.8"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
+}
+
+@test "AdvAir Test Get CurrentTemperature with NoSensor Data (creating new myAirConstants)" {
+   # The old scripts return 0 because it does not realize noSensors
+   before
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/oneZonePassingSystemData.txt"
+   # Bats "run" gobbles up all the stdout. Remove for debugging
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
+   assert_equal "$status" "0"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z03.rssi"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z04.rssi"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z05.rssi"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.zones.z06.rssi"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
    # The noSensors fixes this
-   assert_equal "${lines[1]}" "21"
+   assert_equal "${lines[12]}" "21"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 13
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get CurrentTemperature with NoSensor Data (with cached myAirConstants" {
-   # We symbolically link the directory of the test we want to use.
-   #ln -s ./testData/dataPassOn1 ./data
-   ln -s ./testData/dataOneZone ./data
+@test "AdvAir Test Get CurrentTemperature with NoSensor Data (with cached myAirConstants)" {
    beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/oneZonePassingSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
    assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "21"
-   e_status=$status
-   e_lines=("${lines[@]}")
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z03.rssi"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z04.rssi"
+   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z05.rssi"
+   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.zones.z06.rssi"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
+   assert_equal "${lines[12]}" "21"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 13
    # Running the same command again, will use the cached myAirConstants
-   run ./compare/AdvAir.sh Get Blah CurrentTemperature TEST_ON
-   assert_equal "$status" "$e_status"
-   assert_equal "${lines[0]}" "${e_lines[0]}"
-   assert_equal "${lines[1]}" "${e_lines[1]}"
+   run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1
+   assert_equal "$status" "0"
+   assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
+   assert_equal "${lines[1]}" "Try 0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.setTemp"
+   assert_equal "${lines[3]}" "21"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 4
 }

@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+# For shellcheck
+export status=0
+
+# Happens before every bat file
 _common_setup()
 {
    # This setup script would be called from the git home directory
@@ -12,7 +16,7 @@ _common_setup()
    # make executables in src/ visible to PATH
    PATH="$PROJECT_ROOT/src:$PATH"
 
-   cd "$PROJECT_ROOT/test"
+   cd "$PROJECT_ROOT/test" || exit
 
    # Remove previous symbolic link tests.
    # Note:  This is called even if skip is used.
@@ -22,6 +26,7 @@ _common_setup()
 
 }
 
+# Happens after every bat file
 _common_teardown()
 {
    # Remove final symbolic link so its not left around.
@@ -32,53 +37,9 @@ _common_teardown()
 
 _common_beforeEach()
 {
+   # define TMPDIR if not already defined 
+   if [ -z "${TMPDIR}" ]; then TMPDIR="/tmp"; fi
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
    # Constants can change with different data
-   MY_AIR_CONSTANTS_FILE="/tmp/myAirConstants.txt_TEST"
-   if [ -f "${MY_AIR_CONSTANTS_FILE}" ]; then
-      rm "${MY_AIR_CONSTANTS_FILE}"
-   fi
-}
-
-_common_compareAgainstZones()
-{
-   local io=$1
-   local device=$2
-   local characteristic=$3
-   local zones=$4
-   local testOnOff=$5
-
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/zones.txt $io $device $characteristic $zones $testOnOff
-   z_status=$status
-   z_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh  $io $device $characteristic $zones $testOnOff
-   assert_equal "$status" "$z_status" ]
-   assert_equal "${lines[0]}" "${z_lines[0]}"
-   assert_equal "${lines[1]}" "${z_lines[1]}"
-   assert_equal "${lines[2]}" "${z_lines[2]}"
-   assert_equal "${lines[3]}" "${z_lines[3]}"
-   assert_equal "${lines[4]}" "${z_lines[4]}"
-   assert_equal "${lines[5]}" "${z_lines[5]}"
-
-}
-
-_common_compareAgainstEzone()
-{
-   local io=$1
-   local device=$2
-   local characteristic=$3
-   local testOnOff=$4
-
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt $io $device $characteristic $testOnOff
-   e_status=$status
-   e_lines=("${lines[@]}")
-   run ./compare/AdvAir.sh $io $device $characteristic $zones $testOnOff
-   assert_equal "$status" "$e_status" ]
-   assert_equal "${lines[0]}" "${e_lines[0]}"
-   assert_equal "${lines[1]}" "${e_lines[1]}"
-   assert_equal "${lines[2]}" "${e_lines[2]}"
-   assert_equal "${lines[3]}" "${e_lines[3]}"
-   assert_equal "${lines[4]}" "${e_lines[4]}"
-   assert_equal "${lines[5]}" "${e_lines[5]}"
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }

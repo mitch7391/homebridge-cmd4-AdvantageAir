@@ -8,33 +8,35 @@ teardown()
 {
    _common_teardown
 }
-
-
-@test "AdvAir ( ezone inline ) Test PassOn5 Get CurrentHeatingCoolingState" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn5 ./data
-   # Bats "run" gobbles up all the stdout. Remove for debugging
-   run ./compare/ezone.txt Get Blah CurrentHeatingCoolingState TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Try 1"
-   assert_equal "${lines[2]}" "Try 2"
-   assert_equal "${lines[3]}" "Try 3"
-   assert_equal "${lines[4]}" "Try 4"
-   assert_equal "${lines[5]}" "2"
-   e_status=$status
-   e_lines=("${lines[@]}")
-   # AdvAir now calls getSystemData 5 times before parse
-   rm    ./data
-   ln -s ./testData/dataPassOn1 ./data
-   run ./compare/AdvAir.sh Get Blah CurrentHeatingCoolingState TEST_ON
-   assert_equal "$status" "$e_status" ]
-   assert_equal "${lines[0]}" "${e_lines[0]}"
-   # result is still the same
-   assert_equal "${lines[1]}" "${e_lines[5]}"
+before()
+{
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
-@test "AdvAir ( ezone        ) Test PassOn1 Get CurrentHeatingCoolingState" {
-   ln -s ./testData/dataPassOn1 ./data
-   _common_compareAgainstEzone Get Blah CurrentHeatingCoolingState TEST_ON
+beforeEach()
+{
+   _common_beforeEach
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+}
+
+@test "AdvAir Test Get CurrentHeatingCoolingState" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   # Bats "run" gobbles up all the stdout. Remove for debugging
+   run ../AdvAir.sh Get Blah CurrentHeatingCoolingState 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[7]}" "2"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
 }

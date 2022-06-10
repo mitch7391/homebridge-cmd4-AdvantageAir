@@ -1,39 +1,15 @@
-# Understanding these test cases
-#
-# What we are trying to do is compare the execution of AdvAir.sh with either
-# the previous ezone/zones scripts or some expected output. In that way
-# you can rerun these tests after any change to AdvAir.sh and gaurantee the
-# result in production without having to try every possible scenario.
-
-# Unit tests have a setup function before and a teardown function after each
-# test. These can be ignored if you are just trying to figure out what
-# went wrong. Remember that what we are testing is BASH shell commands you can
-# execute them also from the command line.
-
-# For example:
-#    cd test
-#    ln -s ./testData/dataPassOn5 ./data
-#    ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-#
-# Results to stdout:
-#     Try 0
-#     Try 1
-#     Try 2
-#     Try 3
-#     Try 4
-#     100
-#
-#
-# Note: TEST_ON is so that we do not actually talk to the real device,
-#       instead jq parses the given testData.
-#
-# Then afterwards:
-#    $status      - is the result of the ./compare/AdvAir.sh command
-#    ${lines[0]}  - is an array of text from the ./compare/AdvAir.sh command
-#    assert_equal "${lines[0]}" "Try 0"  - compares the output in line 0.
-
-
-
+# Example Cmd4 config for Brightness
+# {
+#    "type": "Lightbulb",
+#    "displayName": "Light2",
+#    "on": "FALSE",
+#    "brightness": 50,
+#    "name": "Light2",
+#    "polling": [ { "characteristic": "on" },
+#                 { "characteristic": "brightness" }
+#               ],
+#    "state_cmd_suffix": "'light:Light2' ${IP}"
+# },
 setup()
 {
    load './test/setup'
@@ -44,23 +20,77 @@ teardown()
 {
    _common_teardown
 }
-
-
-@test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z01" {
-   # We symbolically link the directory of the test we want to use.
-   ln -s ./testData/dataPassOn1 ./data
-   # The original scripts do not have this function, so you can only
-   # test against known data
-   run ./compare/AdvAir.sh Get Blah Brightness z01 192.168.50.99 TEST_ON
-   assert_equal "$status" 0
-   assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "100"
+before()
+{
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
-@test "AdvAir ( ezone inline ) Test PassOn1 Get Brightness z03" {
-   ln -s ./testData/dataPassOn1 ./data
-   run ./compare/AdvAir.sh Get Blah Brightness z03 192.168.50.99 TEST_ON
+beforeEach()
+{
+   _common_beforeEach
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
+}
+
+
+@test "AdvAir Test Get Brightness z01" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   run ../AdvAir.sh Get Blah Brightness z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "85"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z01.value"
+   assert_equal "${lines[6]}" "100"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 7
 }
+
+@test "AdvAir Test Get Brightness z03" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
+   run ../AdvAir.sh Get Blah Brightness z03 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z03.value"
+   assert_equal "${lines[6]}" "85"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 7
+}
+
+@test "AdvAir Test Get Brightness light:Study Patio" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
+   # TimerEnabled requires On to be set to 0
+   run ../AdvAir.sh Get Blab Brightness 'light:Study Patio' 127.0.0.1 ac2 TEST_ON
+   # AdvAir.sh does a get first
+   assert_equal "$status" "0"
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac2.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac2.info.noOfZones"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac2.zones.z01.rssi"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac2.info.constant1"
+   assert_equal "${lines[5]}" "path: light name: Study Patio ids=\"a70e005\""
+   assert_equal "${lines[6]}" "Parsing for jqPath: .myLights.lights.\"a70e005\".value"
+   assert_equal "${lines[7]}" "100"
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 8
+}
+
