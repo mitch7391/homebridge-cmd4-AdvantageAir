@@ -12,7 +12,7 @@
             "constant1":1,
             "constant2":0,
             "constant3":0,
-            "countDownToOff":73,
+            "countDownToOff":0,
             "countDownToOn":0,
             "fan":"auto",
             "filterCleanStatus":0,
