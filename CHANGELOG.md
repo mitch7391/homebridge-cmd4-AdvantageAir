@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.4.0-beta.3 (2022-06-10)
+## 3.4.0 (2022-06-10)
 Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
 
 ### Notable Changes
