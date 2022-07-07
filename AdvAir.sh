@@ -951,18 +951,22 @@ if [ "$io" = "Get" ]; then
             parseMyAirDataWithJq ".aircons.$ac.zones.$zone.value"
             echo "$jqResult"
             exit 0
-         # Get the timer setting
+         # Get the timer setting - 10% = 1 hour
          elif [ $timerEnabled = true ]; then
             parseMyAirDataWithJq ".aircons.$ac.info.state"
             # Get the timer countDowqnToOff value if the state of the aircon is "on"
             if [ "$jqResult" = '"on"' ]; then
                parseMyAirDataWithJq ".aircons.$ac.info.countDownToOff"
-               echo $((jqResult / 10))
+               timerInPercentage=$((jqResult / 6))
+               timerInPercentage=$((timerInPercentage < 100? timerInPercentage : 100)) 
+               echo $timerInPercentage
                exit 0
             # Get the timer countDownToOn value if the state of the aircon is "off"
             else
                parseMyAirDataWithJq ".aircons.$ac.info.countDownToOn"
-               echo $((jqResult / 10))
+               timerInPercentage=$((jqResult / 6))
+               timerInPercentage=$((timerInPercentage < 100? timerInPercentage : 100)) 
+               echo $timerInPercentage
                exit 0
             fi
          # get the lights dim level
@@ -1209,10 +1213,8 @@ if [ "$io" = "Set" ]; then
             setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}"
             exit 0
          elif [ $timerEnabled = true ]; then
-            # Make 1% to 10 minutes and capped at a max of 720 minutes
-            timerInMinutes=$((value * 10))
-            timerInMinutes=$((timerInMinutes < 720? timerInMinutes : 720))
-
+            # Make 10% to 1 hour (1% = 6 minutes) and capped at a max of 600 minutes
+            timerInMinutes=$((value * 6))
             parseMyAirDataWithJq ".aircons.$ac.info.state"
             if [ "$jqResult" = '"on"' ]; then
                setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{countDownToOff:$timerInMinutes}}}"
