@@ -287,28 +287,6 @@ function cmd4FanSwitch()
    } >> "$configFileName"
 }
 
-function cmd4FanSwitch()
-{
-   local fanName="$1"
-   { echo "        {"
-     echo "            \"type\": \"Switch\","
-     echo "            \"displayName\": \"${fanName}\","
-     echo "            \"on\": \"FALSE\","
-     echo "            \"name\": \"${fanName}\","
-     echo "            \"manufacturer\": \"Advantage Air Australia\","
-     echo "            \"model\": \"${sysType}\","
-     echo "            \"serialNumber\": \"${tspModel}\","
-     echo "            \"queue\": \"A\","
-     echo "            \"polling\": ["
-     echo "                {"
-     echo "                    \"characteristic\": \"on\""
-     echo "                }"
-     echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\","
-   } >> "$configFileName"
-}
-
 function cmd4FanLinkTypes()
 {
    local fanSpeedName="$1"
