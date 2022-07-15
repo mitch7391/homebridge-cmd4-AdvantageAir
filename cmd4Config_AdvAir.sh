@@ -238,6 +238,55 @@ function cmd4Thermostat()
    } >> "$configFileName"
 }
 
+function cmd4Fan()
+{
+   local fanName="$1"
+   { echo "        {"
+     echo "            \"type\": \"Fan\","
+     echo "            \"displayName\": \"${fanName}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"rotationSpeed\": 100,"
+     echo "            \"name\": \"${fanName}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"A\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"on\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"rotationSpeed\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\""
+     echo "        },"
+   } >> "$configFileName"
+}
+
+function cmd4FanSwitch()
+{
+   local fanName="$1"
+   { echo "        {"
+     echo "            \"type\": \"Switch\","
+     echo "            \"displayName\": \"${fanName}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"name\": \"${fanName}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"A\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"on\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\","
+   } >> "$configFileName"
+}
+
 function cmd4FanSwitch()
 {
    local fanName="$1"
@@ -295,14 +344,23 @@ function cmd4TempSensor()
    local name="$1"
    { echo "        {"
      echo "            \"type\": \"TemperatureSensor\","
+     echo "            \"subType\": \"TempSensor${b}\","
      echo "            \"displayName\": \"${name}\","
      echo "            \"currentTemperature\": 25,"
+     echo "            \"statusLowBattery\": \"BATTERY_LEVEL_LOW\","
      echo "            \"name\": \"${name}\","
      echo "            \"manufacturer\": \"Advantage Air Australia\","
      echo "            \"model\": \"${sysType}\","
      echo "            \"serialNumber\": \"${tspModel}\","
      echo "            \"queue\": \"A\","
-     echo "            \"polling\": true,"
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"currentTemperature\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"statusLowBattery\""
+     echo "                }"
+     echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
      echo "            \"state_cmd_suffix\": \"$zoneStr \${IP} ${ac}\""
      echo "        },"
@@ -380,8 +438,7 @@ if [ "$hasAircons" ]; then
          name=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.name" | sed 's/ /_/g' | sed 's/\"//g')
          cmd4Thermostat "${name}"
          cmd4FanLinkTypes "${name} FanSpeed"
-         cmd4FanSwitch "${name} Fan"
-         cmd4FanLinkTypes "${name} FanSpeed"
+         cmd4Fan "${name} Fan"
          cmd4TimerLightbulb "${name} Timer"
          #
          nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
