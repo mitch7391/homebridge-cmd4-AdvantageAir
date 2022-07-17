@@ -152,6 +152,10 @@ function cmd4GarageDoorOpener()
 function cmd4VentLightbulb()
 {
    local name="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -171,7 +175,7 @@ function cmd4VentLightbulb()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP} ${ac}\""
+     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP}${ac_l}\""
      echo "        },"
    } >> "$configFileName"
 }
@@ -179,6 +183,10 @@ function cmd4VentLightbulb()
 function cmd4TimerLightbulb()
 {
    local name="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -198,7 +206,7 @@ function cmd4TimerLightbulb()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"timer \${IP} ${ac}\""
+     echo "            \"state_cmd_suffix\": \"timer \${IP}${ac_l}\""
      echo "        },"
    } >> "$configFileName"
 }
@@ -206,6 +214,10 @@ function cmd4TimerLightbulb()
 function cmd4Thermostat()
 {
    local airconName="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Thermostat\","
      echo "            \"displayName\": \"${airconName}\","
@@ -234,13 +246,17 @@ function cmd4Thermostat()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\","
+     echo "            \"state_cmd_suffix\": \"\${IP}${ac_l}\","
    } >> "$configFileName"
 }
 
 function cmd4Fan()
 {
    local fanName="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Fan\","
      echo "            \"displayName\": \"${fanName}\","
@@ -260,7 +276,7 @@ function cmd4Fan()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\""
+     echo "            \"state_cmd_suffix\": \"\${IP}${ac_l}\""
      echo "        },"
    } >> "$configFileName"
 }
@@ -268,6 +284,10 @@ function cmd4Fan()
 function cmd4FanSwitch()
 {
    local fanName="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Switch\","
      echo "            \"displayName\": \"${fanName}\","
@@ -283,13 +303,17 @@ function cmd4FanSwitch()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"\${IP} ${ac}\","
+     echo "            \"state_cmd_suffix\": \"\${IP}${ac_l}\","
    } >> "$configFileName"
 }
 
 function cmd4FanLinkTypes()
 {
    local fanSpeedName="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "            \"linkedTypes\": ["
      echo "                {"
      echo "                    \"type\": \"Fan\","
@@ -310,7 +334,7 @@ function cmd4FanLinkTypes()
      echo "                        }"
      echo "                    ],"
      echo "                    \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "                    \"state_cmd_suffix\": \"\${IP} fanSpeed ${ac}\""
+     echo "                    \"state_cmd_suffix\": \"\${IP} fanSpeed${ac_l}\""
      echo "                }"
      echo "            ]"
      echo "        },"
@@ -320,6 +344,10 @@ function cmd4FanLinkTypes()
 function cmd4TempSensor()
 {
    local name="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"TemperatureSensor\","
      echo "            \"subType\": \"TempSensor${b}\","
@@ -340,7 +368,7 @@ function cmd4TempSensor()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP} ${ac}\""
+     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP}${ac_l}\""
      echo "        },"
    } >> "$configFileName"
 }
@@ -348,6 +376,10 @@ function cmd4TempSensor()
 function cmd4Switch()
 {
    local name="$1"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
    { echo "        {"
      echo "            \"type\": \"Switch\","
      echo "            \"displayName\": \"${name}\","
@@ -359,7 +391,7 @@ function cmd4Switch()
      echo "            \"queue\": \"A\","
      echo "            \"polling\": true,"
      echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP} ${ac}\""
+     echo "            \"state_cmd_suffix\": \"$zoneStr \${IP}${ac_l}\""
      echo "        },"
    } >> "$configFileName"
 }
@@ -428,6 +460,13 @@ if [ "$hasAircons" ]; then
                cmd4VentLightbulb "$name"
             else
                cmd4Switch "$name"
+            fi
+         done
+         for (( b=1;b<=nZones;b++ )); do
+            zoneStr=$( printf "z%02d" "$b" )
+            name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+            rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+            if [ "${rssi}" != "0" ]; then
                cmd4TempSensor "${name} Temperature"
             fi
          done
