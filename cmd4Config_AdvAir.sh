@@ -149,7 +149,7 @@ function cmd4GarageDoorOpener()
    } >> "$configFileName"
 }
 
-function cmd4VentLightbulb()
+function cmd4ZoneLightbulb()
 {
    local name="$1"
    local ac_l=" ${ac}"
@@ -341,7 +341,7 @@ function cmd4FanLinkTypes()
    } >> "$configFileName"
 }
 
-function cmd4TempSensor()
+function cmd4ZoneTempSensor()
 {
    local name="$1"
    local ac_l=" ${ac}"
@@ -373,7 +373,7 @@ function cmd4TempSensor()
    } >> "$configFileName"
 }
 
-function cmd4Switch()
+function cmd4ZoneSwitch()
 {
    local name="$1"
    local ac_l=" ${ac}"
@@ -457,9 +457,9 @@ if [ "$hasAircons" ]; then
             name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
             rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
             if [ "${rssi}" = "0" ]; then
-               cmd4VentLightbulb "$name"
+               cmd4ZoneLightbulb "$name"
             else
-               cmd4Switch "$name"
+               cmd4ZoneSwitch "$name"
             fi
          done
          for (( b=1;b<=nZones;b++ )); do
@@ -467,7 +467,7 @@ if [ "$hasAircons" ]; then
             name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
             rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
             if [ "${rssi}" != "0" ]; then
-               cmd4TempSensor "${name} Temperature"
+               cmd4ZoneTempSensor "${name} Temperature"
             fi
          done
       fi
