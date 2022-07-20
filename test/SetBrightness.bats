@@ -51,9 +51,9 @@ beforeEach()
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.state"
    # No longer the same
-   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:150}}}"
+   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:90}}}"
    assert_equal "${lines[4]}" "Try 0"
-   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.info.countDownToOff=150"
+   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.info.countDownToOff=90"
    # No more lines than expected
    assert_equal "${#lines[@]}" 6
 }
