@@ -2,8 +2,24 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.5.0 (2022-08-02)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
+
+### Notable Changes
+
+* New `ConfigCreator` script to automatically craft your homebridge-cmd4-AdvantageAir config! This feature is particularly helpful for users with larger MyPlace systems containing Lights, Garage Doors, etc., who can have over 100 accessories; but new and existing users with smaller systems can still benefit from this feature!
+   * You can choose to have the script generate a cmd4 config file for you to copy and paste into your existing `config.json` or opt to allow it to automaticaly add itself to your `config.json` to save you the effort of the copy/paste. This will not overwrite any other existing cmd4 accessories outside of this project.
+   * Instructions on how to run this script can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#configcreator-instructions).
+
+### Other Changes
+
+* Dev: `timeout` increased for `Server.js` unit tests to be more suitable to dev testing on RPi.
+
+
 ## 3.4.0 (2022-06-10)
-Special thanks to the amazing uswong and ztalbot2000 for adding these new features!
+
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
 ### Notable Changes
 

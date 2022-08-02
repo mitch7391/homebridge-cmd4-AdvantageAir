@@ -70,7 +70,7 @@ describe('Test homebridge-ui/server.js', () =>
             "platform": "Cmd4",
             "name": "Cmd4",
             "statusMsg": true,
-            "timeout": 5000,
+            "timeout": 60000,
             "queueTypes": [
                 { "queue": "7", "queueType": "WoRm2" }
             ],
@@ -148,7 +148,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #6. No AdvAir.sh FAILS', function ( done )
    {
@@ -164,7 +164,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    // Works
    it('Test Check #6. AdvAir.sh Passes', function ( done )
@@ -178,7 +178,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #7 & 32. For No Cmd4 Accessories will be detected', function ( done )
    {
@@ -197,7 +197,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #8A. Constants must be an Array.', function ( done )
    {
@@ -213,7 +213,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #8B. Constants must have a key.', function ( done )
    {
@@ -229,7 +229,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #8C. Constants must have a value.', function ( done )
    {
@@ -245,7 +245,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #8D. Key must start with ${', function ( done )
    {
@@ -261,7 +261,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #8E. Key must end with }', function ( done )
    {
@@ -277,7 +277,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #9. Check for no Advantage Air Accessories', function ( done )
    {
@@ -294,7 +294,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #10. Check See if any Advantage Air accessory has a defined name', function ( done )
    {
@@ -310,7 +310,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #11. Check See if any Advantage Air accessory has a defined displayName', function ( done )
    {
@@ -326,7 +326,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #12. Duplicate Display Names', function ( done )
    {
@@ -360,7 +360,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #13. The state_cmd must be defined for the Air accessory', function ( done )
    {
@@ -376,7 +376,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #14. See if the state_cmd does not match the cmd4AdvAir.sh', function ( done )
    {
@@ -392,7 +392,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #15. See if the state_cmd_suffix is defined for the Air accessory', function ( done )
    {
@@ -408,7 +408,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #16. The state_cmd_suffix must have an IP for the Air accessory', function ( done )
    {
@@ -424,7 +424,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #17A. The state_cmd_suffix must have a zone or noSensors EXCEPT Fan accessories', function ( done )
    {
@@ -456,7 +456,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #17B. The state_cmd_suffix must have a zone or noSensors EXCEPT Thermostat accessories', function ( done )
    {
@@ -488,7 +488,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #17C. The state_cmd_suffix must have a zone or noSensors for Sensors accessories', function ( done )
    {
@@ -505,7 +505,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #18. queueTypes array must pass.', function ( done )
    {
@@ -525,7 +525,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #19A. QueueTypes must be an array.', function ( done )
    {
@@ -542,7 +542,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #19B. Non WoRm2 QueueType should fail with correct message.', function ( done )
    {
@@ -558,7 +558,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #20. Duplicate queues must not exist.', function ( done )
    {
@@ -578,7 +578,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #21. Duplicate queues must not exist.', function ( done )
    {
@@ -595,7 +595,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #22. queue name must be an string.', function ( done )
    {
@@ -612,7 +612,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #23. queue must be defined in queueTypes.', function ( done )
    {
@@ -629,7 +629,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #24A. For AdvAir accessories polling must be defined.', function ( done )
    {
@@ -646,7 +646,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be a Boolean with false (Fails).', function ( done )
    {
@@ -663,7 +663,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be a Boolean with true (Passes).', function ( done )
    {
@@ -680,7 +680,7 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 
    it('Test Check #24B. For AdvAir accessories polling must be an Array.', function ( done )
    {
@@ -696,5 +696,5 @@ describe('Test homebridge-ui/server.js', () =>
 
       // Finish our unit test
       done( );
-   }).timeout( 5000 );
+   }).timeout( 10000 );
 });
