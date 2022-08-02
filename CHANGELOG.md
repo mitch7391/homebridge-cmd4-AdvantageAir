@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.5.1 (2022-08-02)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
+
+### Bug Fixes
+
+* Replaced use of command `tac` to `sort -nr` in new `ConfigCreator` (see `v3.5.0` below). Command `tac` is not available on macOS.
+
 ## 3.5.0 (2022-08-02)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
