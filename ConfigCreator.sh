@@ -573,7 +573,7 @@ function extractNonAAdevices()
    AAline=$(grep -n 'state_cmd' "${cmd4ConfigNonAA}"|grep 'cmd4-advantageair'|cut -d":" -f1|head -n 1)
 
    until [ -z "${AAline}" ]; do
-      grep -n '"type":' "${cmd4ConfigNonAA}"|grep -v '                    "type":'|cut -d":" -f1|tac|while read -r line;
+      grep -n '"type":' "${cmd4ConfigNonAA}"|grep -v '                    "type":'|cut -d":" -f1|sort -nr|while read -r line;
       do
          line1=$((line - 1)) 
          if [ "${line1}" -lt "${AAline}" ]; then
@@ -648,7 +648,7 @@ function extractNonAAqueueTypes()
       accessoriesLine=$(grep -n '"accessories":' "${cmd4ConfigNonAA}"|grep -v '     "accessories":'|cut -d":" -f1)
       grep 'queue' "${cmd4ConfigQueueTypesNonAA}"|grep -v 'queueType'|cut -d":" -f1,2|while read -r queue;
       do
-         queueLine=$(grep -n "${queue}" "${cmd4ConfigNonAA}"|cut -d":" -f1|tac|head -n 1)
+         queueLine=$(grep -n "${queue}" "${cmd4ConfigNonAA}"|cut -d":" -f1|sort -nr|head -n 1)
          if [ "${queueLine}" -lt "${accessoriesLine}" ]; then
             line=$(grep -n "${queue}" "${cmd4ConfigQueueTypesNonAA}"|cut -d":" -f1)
             line1=$((line - 1))
