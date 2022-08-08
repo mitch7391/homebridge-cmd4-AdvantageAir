@@ -1,6 +1,5 @@
-'use strict'
-
 const { HomebridgePluginUiServer } = require('@homebridge/plugin-ui-utils');
+const { RequestError } = require('@homebridge/plugin-ui-utils');
 const fs = require('fs')
 const chalk = require('chalk')
 
@@ -16,6 +15,7 @@ class UiServer extends HomebridgePluginUiServer
       super();
 
       this.ADVAIR_SH = "/homebridge-cmd4-advantageair/AdvAir.sh";
+      this.CONFIGCREATOR_SH = "/homebridge-cmd4-advantageair/ConfigCreator.sh";
       this.listOfConstants = { };
 
       // To enable debug, add the following to your config.json AT ANY TIME.
@@ -36,11 +36,43 @@ class UiServer extends HomebridgePluginUiServer
 
       this.updateConfigFirstTime( true );
 
+      // handle request
+      this.onRequest('/configcreator', this.ConfigCreator.bind(this));
       this.onRequest('/checkInstallationButtonPressed', this.checkInstallationButtonPressed.bind(this));
       this.onRequest('/consoleLog', this.consoleLog.bind(this));
 
       // console.log("HomebridgePluginUIServer ready");
       this.ready();
+   }
+
+   async ConfigCreator(payload) {
+      console.log('AA system ip address:', payload.ip);
+      console.log('AA system ip address:', payload.name);
+      console.log('AA system ip2 address:', payload.ip2);
+      console.log('AA system ip2 address:', payload.name2);
+      console.log('AA system ip3 address:', payload.ip3);
+      console.log('AA system ip3 address:', payload.name3);
+
+      try {
+         const AdvAir_shPath = this.getGlobalNodeModulesPathForFile( this.ADVAIR_SH );
+         const ConfigCreator_shPath = this.getGlobalNodeModulesPathForFile( this.CONFIGCREATOR_SH );
+
+         //This spawns a child process which runs a bash script
+         const spawnSync = require('child_process').spawnSync;
+         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip, payload.name, payload.ip2, payload.name2, payload.ip3, payload.name3, AdvAir_shPath], {encoding: 'utf8'});
+         let feedback = `${ FeedBack.stdout.replace(/\n*$/, "")}`
+
+         // return data to the ui
+         return {
+            AAIP: payload.ip,
+            AAIP2: payload.ip2,
+            AAIP3: payload.ip3,
+            feedback: feedback
+         }
+      }
+      catch (e) {
+         throw new RequestError('Failed to run ConfigCreator.sh', { message: e.message });
+      }
    }
 
    async consoleLog( msg )
