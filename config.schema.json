@@ -1,20 +1,58 @@
 {
-   "pluginAlias": "cmd4AdvantageAir",
-   "pluginType": "platform",
-   "headerDisplay": "Advantage Air",
-   "singular": false,
-   "customUi": true,
-   "schema":
-   {
-      "debug":
-      {
-         "title": "debug",
-         "type": "boolean",
-         "description": "Enables additional output in the log.",
-         "required": false,
-         "placeholder": false
-      }
-   }
+    "pluginAlias": "cmd4AdvantageAir",
+    "pluginType": "platform",
+    "singular": true,
+    "customUi": true,
+    "headerDisplay": "Homebridge plugin for AdvantageAir devices",
+    "schema": {
+        "debug": {
+           "title": "debug",
+           "type": "boolean",
+           "description": "Enables additional output in the log.",
+           "required": false,
+           "placeholder": false
+        },
+        "type": "object",
+        "properties": {
+            "name": {
+                "title": "Name",
+                "type": "string",
+                "default": "cmd4AdvantageAir"
+            },
+            "devices": {
+                "type": "array",
+                "items": {
+                    "title": "AdvantageAir device",
+                    "type": "object",
+                    "properties": {
+                        "name": {
+                            "title": "Name",
+                            "description": "The name of the AdvantageAir device.",
+                            "type": "string",
+                            "required": true,
+                            "default": ""
+                        },
+                        "ipAddress": {
+                            "title": "IP Address",
+                            "description": "The device's IP address. It is recommended to set a static IP for this device.",
+                            "type": "string",
+                            "format": "ipv4",
+                            "required": true,
+                            "default": ""
+                        }
+                    }
+                }
+            }
+        }
+    },
+ "layout": [{
+      "key": "devices",
+      "type": "tabarray",
+      "title": "{{ value.name || 'new device' }}",
+      "description": "A maximum of 3 AdvantageAir devices allowed.",
+      "items": [
+        "devices[].name",
+        "devices[].ipAddress"
+      ]
+   }]
 }
-
-
