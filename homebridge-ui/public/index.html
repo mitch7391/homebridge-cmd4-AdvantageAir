@@ -1,11 +1,45 @@
-<link rel="stylesheet" href="css/style.css">
+<script>
+  (async () => {
+    // get the initial config from cmd4AdvantageAir config - this is an array potentially containing multiple config blocks
+    const pluginConfig = await homebridge.getPluginConfig();
+    const configSchema = await homebridge.getPluginConfigSchema();
 
+    if (!pluginConfig.length) {
+      pluginConfig.push({});
+    }
+    const configuration = pluginConfig[0];
+    configuration.devices = configuration.devices || [];
+
+    function createForm(configSchema, configuration) {
+      const configForm = homebridge.createForm(configSchema, configuration);
+      configForm.onChange(async (changes) => {
+        await homebridge.updatePluginConfig([changes]);
+      })
+    }
+    createForm(configSchema, configuration);
+  })();
+</script>
+
+<div class="card card-body">
+  <img src="images/AdvAir.png" alt="Advantage Air" width="150px" class="center-it cmd4Logo">
+  <h5 class="text-center"><b style="font-weight: 600;">Advantage Air Configuration Creator</b></h5>
+  <h6 class="text-center">This script will create the AdvantageAir configuration file for Cmd4 Plugin based on the info from your AdvantageAir system! </h6>
+  <br>
+  <div class="text-center">
+    <button id="ConfigCreatorButton" type="button" class="btn btn-primary">Config Creator</button>
+  </div>
+  <div class="form-group">
+    <label for="feedbackOutput">Feedback messages from ConfigCreator (read only)</label>
+    <input type="text" class="form-control" id="feedbackOutput" readonly>
+  </div>
+</div>
+
+<link rel="stylesheet" href="css/style.css">
 <div id="main" class="card card-body pb-5">
 
   <!-- start -->
   <div id="start">
-    <img src="images/AdvAir.png" alt="Advantage Air" width="150px" class="center-it cmd4Logo">
-    <h3 class="text-center">Welcome to <br> <b style="font-weight: 800;">Advantage Air Configuration Check</b></h3>
+    <h5 class="text-center"> <b style="font-weight: 600;">Advantage Air Configuration Check</b></h5>
     <h6 class="text-center">This plugin augments the Cmd4 Plugin for Advantage Air, primarily to keep your Advantage Air Cmd4 scripts up to date! </h6>
     <button id="checkInstallationButton" type="submit" class="btn btn-primary center-it mt-3">Check Configuration</button>
   </div>
@@ -20,7 +54,7 @@
                <span aria-hidden="true">&times;</span>
             </button>
          </div>
-         <div class="modal-body">
+         <div class="modal-body"
             <p>Modal body text goes here.</p>
          </div>
       </div>
@@ -33,5 +67,104 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
 
 <!-- Main -->
-<script type="text/javascript" src="js/main.js?v=0.0.7"></script>
+<script type="text/javascript" src="js/main.js?v=0.0.7">
+</script>
 
+<script>
+  (async () => {
+    // get the initial config - this is an array potentially containing multiple config blocks
+    const pluginConfig = await homebridge.getPluginConfig();
+
+    AAIP2 = "";
+    AAname2 = "";
+    AAIP3 = "";
+    AAname3 = "";
+    feedback = "";
+
+    if (!pluginConfig.length) {
+      pluginConfig.push({});
+    }
+
+    // get the intial from the config and add it to the form
+    if (pluginConfig.length) {
+      if (pluginConfig[0].devices.length >= 1) {
+        AAIP = pluginConfig[0].devices[0].ipAddress;
+        AAname = pluginConfig[0].devices[0].name;
+      }
+      if (pluginConfig[0].devices.length >= 2) {
+        AAIP2 = pluginConfig[0].devices[1].ipAddress;
+        AAname2 = pluginConfig[0].devices[1].name;
+      }
+      if (pluginConfig[0].devices.length === 3) {
+        AAIP3 = pluginConfig[0].devices[2].ipAddress;
+        AAname3 = pluginConfig[0].devices[2].name;
+      }
+    }
+   
+
+
+    // watch for click events on the ConfigCreatorButton
+    document.querySelector('#ConfigCreatorButton').addEventListener('click', async () => {
+
+      // validate an ip was provided
+      if (pluginConfig[0].devices.length === 0) {
+        homebridge.toast.error(`No device defined yet. Please define at least 1 device and SAVE it.`, 'Error');
+        return;
+      }
+      if (AAIP === "undefined" || !AAIP) {
+        // create a error / red toast notification if the required input is not provided.
+        homebridge.toast.error('An ip address of your AdvantageAir system must be provided.', 'Error');
+        return;
+      }
+
+      // starting the request, show the loading spinner
+      homebridge.showSpinner();
+
+      // request key paths from the server
+      if(pluginConfig[0].devices.length === 1) {
+         // creat a warning toast notification of the error
+         homebridge.toast.info(`This process may take up to 1 minute`, 'Info');
+      }
+      if(pluginConfig[0].devices.length === 2) {
+         // creat a warning toast notification of the error
+         homebridge.toast.info(`This process may take up to 2 minutes`, 'Info');
+      }
+      if(pluginConfig[0].devices.length === 3) {
+         // creat a warning toast notification of the error
+         homebridge.toast.info(`This process may take up to 3 minutes`, 'Info');
+      }
+
+      try {
+        const response = await homebridge.request('/configcreator', {
+          ip: AAIP,
+          name: AAname,
+          ip2: AAIP2,
+          name2: AAname2,
+          ip3: AAIP3,
+          name3: AAname3,
+          feedback: feedback 
+        });
+
+        // update the ipform input with the response
+        document.querySelector('#feedbackOutput').value = response.feedback;
+
+        if(response.feedback.includes("ERROR")) {
+           // creat a red toast notification of the error
+           homebridge.toast.error(`${response.feedback}`, 'Error');
+           return;
+        } else if(response.feedback.includes("DONE")) {
+           // show a success toast notification
+           homebridge.toast.success('ConfigCreator completed!', 'Success');
+           return;
+        } else {
+           homebridge.toast.error(`ConfigCreator did not run!`, 'Error');
+        }
+      } catch (e) {
+        homebridge.toast.error(e.error, e.message);
+      } finally {
+        // remember to un-hide the spinner
+        homebridge.hideSpinner();
+      }
+    });
+  })();
+</script>
