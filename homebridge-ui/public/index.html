@@ -1,25 +1,3 @@
-<script>
-  (async () => {
-    // get the initial config from cmd4AdvantageAir config - this is an array potentially containing multiple config blocks
-    const pluginConfig = await homebridge.getPluginConfig();
-    const configSchema = await homebridge.getPluginConfigSchema();
-
-    if (!pluginConfig.length) {
-      pluginConfig.push({});
-    }
-    const configuration = pluginConfig[0];
-    configuration.devices = configuration.devices || [];
-
-    function createForm(configSchema, configuration) {
-      const configForm = homebridge.createForm(configSchema, configuration);
-      configForm.onChange(async (changes) => {
-        await homebridge.updatePluginConfig([changes]);
-      })
-    }
-    createForm(configSchema, configuration);
-  })();
-</script>
-
 <div class="card card-body">
   <img src="images/AdvAir.png" alt="Advantage Air" width="150px" class="center-it cmd4Logo">
   <h5 class="text-center"><b style="font-weight: 600;">Advantage Air Configuration Creator</b></h5>
@@ -74,16 +52,28 @@
   (async () => {
     // get the initial config - this is an array potentially containing multiple config blocks
     const pluginConfig = await homebridge.getPluginConfig();
+    const configSchema = await homebridge.getPluginConfigSchema();
 
+    if (!pluginConfig.length) {
+      pluginConfig.push({});
+    }
+    const configuration = pluginConfig[0];
+    configuration.devices = configuration.devices || [];
+
+    function createForm(configSchema, configuration) {
+      const configForm = homebridge.createForm(configSchema, configuration);
+      configForm.onChange(async (changes) => {
+        await homebridge.updatePluginConfig([changes]);
+      })
+    }
+
+    AAIP = "";
+    AAname = "";
     AAIP2 = "";
     AAname2 = "";
     AAIP3 = "";
     AAname3 = "";
     feedback = "";
-
-    if (!pluginConfig.length) {
-      pluginConfig.push({});
-    }
 
     // get the intial from the config and add it to the form
     if (pluginConfig.length) {
@@ -95,22 +85,22 @@
         AAIP2 = pluginConfig[0].devices[1].ipAddress;
         AAname2 = pluginConfig[0].devices[1].name;
       }
-      if (pluginConfig[0].devices.length === 3) {
+      if (pluginConfig[0].devices.length >= 3) {
         AAIP3 = pluginConfig[0].devices[2].ipAddress;
         AAname3 = pluginConfig[0].devices[2].name;
       }
     }
-   
-
 
     // watch for click events on the ConfigCreatorButton
     document.querySelector('#ConfigCreatorButton').addEventListener('click', async () => {
 
-      // validate an ip was provided
+
       if (pluginConfig[0].devices.length === 0) {
         homebridge.toast.error(`No device defined yet. Please define at least 1 device and SAVE it.`, 'Error');
         return;
       }
+
+      // validate an ip was provided
       if (AAIP === "undefined" || !AAIP) {
         // create a error / red toast notification if the required input is not provided.
         homebridge.toast.error('An ip address of your AdvantageAir system must be provided.', 'Error');
@@ -166,5 +156,6 @@
         homebridge.hideSpinner();
       }
     });
+    createForm(configSchema, configuration);
   })();
 </script>
