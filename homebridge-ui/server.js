@@ -64,9 +64,6 @@ class UiServer extends HomebridgePluginUiServer
 
          // return data to the ui
          return {
-            AAIP: payload.ip,
-            AAIP2: payload.ip2,
-            AAIP3: payload.ip3,
             feedback: feedback
          }
       }
