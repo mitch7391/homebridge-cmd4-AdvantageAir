@@ -5,28 +5,37 @@
 #
 # usage:
 #   This script is called from Homebridge customUi server
-#   The AA systems name(s) and IP address(es) are from cmd4AdvantageAir plugin config via the customUi server
+#   The name(s) and IP address(es) of the AA system(s) are taken from cmd4AdvantageAir plugin config
+#   which can be entered via the `Setting` of the plugin or edit the config directly using JASON Config Editor. 
 #      
-#   If you know what you are doing you can do some edits on this configuration file in the Cmd4 JASON Config Editor,
-#   like changing some names or deleting some accessories you do not need, etc, click SAVE when you are done.
+#   Once the Cmd4 configuration file is generated and if you know what you are doing you can do some edits
+#   on this configuration file in the Cmd4 JASON Config Editor. 
+#   Click SAVE when you are done.
 #
 #   NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
 # 
 
-if expr "$1" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-   AAIP="$1"
-   AAname="$2"
+AAIP="$1"
+AAname="$2"
+AAIP2="$3"
+AAname2="$4"
+AAIP3="$5"
+AAname3="$6"
+fanSetup="$7"
+ADVAIR_SH_PATH="$8"
+
+if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+   return
 else
-   echo "ERROR: the specified IP address $1 is in wrong format"
+   echo "ERROR: the specified IP address ${AAIP} is in wrong format"
    exit 1
 fi
 
-if [[ -n "$3" && "$3" != "undefined" ]]; then 
-   if expr "$3" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-      AAIP2="$3"
-      AAname2="$4"
+if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
+   if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+      return
    else
-      echo "ERROR: the specified IP address $2 is in wrong format"
+      echo "ERROR: the specified IP address ${AAIP2} is in wrong format"
       exit 1
    fi
 else
@@ -34,13 +43,11 @@ else
    AAname2=""
 fi
 
-if [[ -n "$5" && "$5" != "undefined" ]]; then 
+if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
    if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-      AAIP3="$5"
-      AAname3="$6"
-      
+     return 
    else
-      echo "ERROR: the specified IP address $3 is in wrong format"
+      echo "ERROR: the specified IP address ${AAIP3} is in wrong format"
       exit 1
    fi
 else
@@ -48,7 +55,6 @@ else
    AAname3=""
 fi
 
-ADVAIR_SH_PATH="$7"
 
 
 # define some other variables
@@ -795,7 +801,12 @@ for ((n=1; n<=noOfTablets; n++)); do
             #name=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.name" | sed 's/ /_/g' | sed 's/\"//g')
             cmd4Thermostat "${cmd4ConfigAccessoriesAA}" "${nameA}"
             cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
-            cmd4Fan "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
+            if [ "${fanSetup}" = "fan" ]; then
+               cmd4Fan "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
+            else
+               cmd4FanSwitch "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
+               cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
+            fi
             cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer"
             #
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
