@@ -1,10 +1,13 @@
+<link rel="stylesheet" href="css/style.css">
 <div class="card card-body">
   <img src="images/AdvAir.png" alt="Advantage Air" width="150px" class="center-it cmd4Logo">
   <h5 class="text-center"><b style="font-weight: 600;">Advantage Air Configuration Creator</b></h5>
   <h6 class="text-center">This script will create the AdvantageAir configuration file for Cmd4 Plugin based on the info from your AdvantageAir system! </h6>
-  <br>
   <div class="text-center">
     <button id="ConfigCreatorButton" type="button" class="btn btn-primary">Config Creator</button>
+  </div>
+  <div>
+    <input type="checkbox" id="fanSetup"> "Fan" setup as "FanSwitch"
   </div>
   <div class="form-group">
     <label for="feedbackOutput">Feedback messages from ConfigCreator (read only)</label>
@@ -12,7 +15,6 @@
   </div>
 </div>
 
-<link rel="stylesheet" href="css/style.css">
 <div id="main" class="card card-body pb-5">
 
   <!-- start -->
@@ -74,6 +76,7 @@
     AAIP3 = "";
     AAname3 = "";
     feedback = "";
+    var fanSetup;
 
     // get the intial from the config and add it to the form
     if (pluginConfig.length) {
@@ -94,7 +97,6 @@
     // watch for click events on the ConfigCreatorButton
     document.querySelector('#ConfigCreatorButton').addEventListener('click', async () => {
 
-
       if (pluginConfig[0].devices.length === 0) {
         homebridge.toast.error(`No device defined yet. Please define at least 1 device and SAVE it.`, 'Error');
         return;
@@ -106,6 +108,14 @@
         homebridge.toast.error('An ip address of your AdvantageAir system must be provided.', 'Error');
         return;
       }
+
+      if (document.getElementById("fanSetup").checked == true) {
+         fanSetup = "fanSwitch";
+      } else {
+         fanSetup = "fan";
+      }
+      document.querySelector('#feedbackOutput').value = fanSetup;
+
 
       // starting the request, show the loading spinner
       homebridge.showSpinner();
@@ -132,14 +142,15 @@
           name2: AAname2,
           ip3: AAIP3,
           name3: AAname3,
+          fanSetup: fanSetup,
           feedback: feedback 
         });
 
-        // update the ipform input with the response
+        // update the #feedbackOutput with the response
         document.querySelector('#feedbackOutput').value = response.feedback;
 
         if(response.feedback.includes("ERROR")) {
-           // creat a red toast notification of the error
+           // create a red toast notification of the error
            homebridge.toast.error(`${response.feedback}`, 'Error');
            return;
         } else if(response.feedback.includes("DONE")) {
