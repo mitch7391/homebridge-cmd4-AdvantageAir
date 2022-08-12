@@ -52,6 +52,7 @@ class UiServer extends HomebridgePluginUiServer
       console.log('AA system ip2 address:', payload.name2);
       console.log('AA system ip3 address:', payload.ip3);
       console.log('AA system ip3 address:', payload.name3);
+      console.log('Fan setup instruction:', payload.fanSetup);
 
       try {
          const AdvAir_shPath = this.getGlobalNodeModulesPathForFile( this.ADVAIR_SH );
@@ -59,7 +60,7 @@ class UiServer extends HomebridgePluginUiServer
 
          //This spawns a child process which runs a bash script
          const spawnSync = require('child_process').spawnSync;
-         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip, payload.name, payload.ip2, payload.name2, payload.ip3, payload.name3, AdvAir_shPath], {encoding: 'utf8'});
+         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip, payload.name, payload.ip2, payload.name2, payload.ip3, payload.name3,payload.fanSetup,  AdvAir_shPath], {encoding: 'utf8'});
          let feedback = `${ FeedBack.stdout.replace(/\n*$/, "")}`
 
          // return data to the ui
@@ -664,7 +665,7 @@ class UiServer extends HomebridgePluginUiServer
                }
                else if ( accessory.type.match( /Switch/ ) )
                {
-                   if ( ! ( accessory.displayName.match( /Aircon Fan/ ) ||
+                   if ( ! ( accessory.displayName.match( / Fan$/ ) ||
                     state_cmd_suffix.match( /z[0-9][0-9]/ ) 
                       )       
                    )
