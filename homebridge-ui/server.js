@@ -46,12 +46,9 @@ class UiServer extends HomebridgePluginUiServer
    }
 
    async ConfigCreator(payload) {
-      console.log('AA system ip address:', payload.ip);
-      console.log('AA system ip address:', payload.name);
-      console.log('AA system ip2 address:', payload.ip2);
-      console.log('AA system ip2 address:', payload.name2);
-      console.log('AA system ip3 address:', payload.ip3);
-      console.log('AA system ip3 address:', payload.name3);
+      if (payload.ip !== "") {console.log('Processing AA system:', payload.name,payload.ip)};
+      if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2)};
+      if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3)};
       console.log('Fan setup instruction:', payload.fanSetup);
 
       try {
