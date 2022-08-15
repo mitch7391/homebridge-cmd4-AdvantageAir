@@ -14,6 +14,12 @@
       },
       "type": "object",
       "properties": {
+         "name": {
+           "title": "Name",
+           "type": "string",
+           "default": "cmd4AdvantageAir",
+           "required": true
+         },
          "devices": {
             "type": "array",
             "items": {
@@ -52,7 +58,7 @@
       "key": "devices",
       "type": "tabarray",
       "title": "{{ value.name || 'new device' }}",
-      "description": "A maximum of 3 AdvantageAir devices will be processed.",
+      "description": "Note: only a maximum of 3 AdvantageAir devices can be processed by Config Creator.",
       "items": [
          "devices[].name",
          "devices[].ipAddress"
