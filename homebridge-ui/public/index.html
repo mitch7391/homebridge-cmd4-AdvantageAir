@@ -7,7 +7,7 @@
     <button id="ConfigCreatorButton" type="button" class="btn btn-primary">Config Creator</button>
   </div>
   <div>
-    <input type="checkbox" id="fanSetup"> "Fan" setup as "FanSwitch"
+    <input type="checkbox" id="fanSetup" checked> "Fan" setup as "FanSwitch"
   </div>
   <div class="form-group">
     <label for="feedbackOutput">Feedback messages from ConfigCreator (read only)</label>
@@ -122,15 +122,12 @@
 
       // request key paths from the server
       if(pluginConfig[0].devices.length === 1) {
-         // creat a warning toast notification of the error
          homebridge.toast.info(`This process may take up to 1 minute`, 'Info');
       }
       if(pluginConfig[0].devices.length === 2) {
-         // creat a warning toast notification of the error
          homebridge.toast.info(`This process may take up to 2 minutes`, 'Info');
       }
       if(pluginConfig[0].devices.length === 3) {
-         // creat a warning toast notification of the error
          homebridge.toast.info(`This process may take up to 3 minutes`, 'Info');
       }
 
