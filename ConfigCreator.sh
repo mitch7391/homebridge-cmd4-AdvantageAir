@@ -55,8 +55,6 @@ else
    AAname3=""
 fi
 
-
-
 # define some other variables
 name=""
 
@@ -508,7 +506,7 @@ function readHomebridgeConfigJson()
       cp "${homebridgeConfigJson}" "${configJson}" 
    else
       echo " ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed"
-      exit 0
+      exit 1
    fi
 }
 
@@ -522,7 +520,7 @@ function extractCmd4ConfigFromConfigJson()
          # extract those lines pertaining to cmd4
          sed -n "${cmd4Line0},${cmd4Line2}p" "${configJson}" | sed 's/^        //g' > "${cmd4ConfigJson}"
          # remove those lines pertaining to cmd4 for later use
-         sed "${cmd4Line0},${cmd4Line2}d" "${configJson}" > "${configJson}.tmp"
+         sed "${cmd4Line0},${cmd4Line2}d" "${configJson}" > "${configJson}.Cmd4less"
          return
       else
          cmd4Line0=$((line + 1))
@@ -701,36 +699,34 @@ function assembleCmd4ConfigJsonAAwithNonAA()
 
 function writeToHomebridgeConfigJson()
 {
-   # writing the created ${cmd4ConfigJsonAA} to Homebriege Config JSON Editor
-   #echo " Copying the created \"${cmd4ConfigJsonAA}\" to Homebridge config.json" 
+   # Writing the created "${cmd4ConfigJsonAAwithNonAA}" to "${configJson}.Cmd4less" to create "${configJsonNew}"
+   # before copying to Homebridge config.json
    
-   configJsonNew="${configJsonNew}"
-
-   # save the last few lines including the portion with "disabledPlugins" if presence then remove those lines + 1
-   nLine=$(wc -l < "${configJson}.tmp")
-   disabledPluginsLine=$(grep -n '"disabledPlugins":' "${configJson}.tmp" | cut -d":" -f1)
+   # Save the last few lines including the portion with "disabledPlugins" if presence then remove those lines + 1
+   nLine=$(wc -l < "${configJson}.Cmd4less")
+   disabledPluginsLine=$(grep -n '"disabledPlugins":' "${configJson}.Cmd4less" | cut -d":" -f1)
    if [ "${disabledPluginsLine}" = "" ]; then disabledPluginsLine=nLine; fi
-   tail -n $((nLine - disabledPluginsLine + 2)) "${configJson}.tmp" > "${configJson}.tail"
-   head -n $((disabledPluginsLine - 3)) "${configJson}.tmp" > "${configJsonNew}"
+   tail -n $((nLine - disabledPluginsLine + 2)) "${configJson}.Cmd4less" > "${configJson}.tail"
+   head -n $((disabledPluginsLine - 3)) "${configJson}.Cmd4less" > "${configJsonNew}"
 
-   # append a line
+   # Append a line with a curly closing bracket and a comma, getting ready to accept next set of config  
    echo "        }," >> "${configJsonNew}"
 
-   # put 8 spaces at the beginning of the ${cmd4ConfigJsonAA} file created earlier before merging with Homebridge
-   # config.json
+   # Put 8 spaces at the beginning of the ${cmd4ConfigJsonAAwithNonAA} file created earlier before merging with
+   # Homebridge config.json
    sed -e 's/^/        /' "${cmd4ConfigJsonAAwithNonAA}" > "${cmd4ConfigJsonAAwithNonAA}.tmp"
 
-   # append the modified Cmd4 config.json to ${homebridgeConfigJson}    
+   # Append the modified Cmd4 config.json to "${configJsonNew}"    
    cat "${cmd4ConfigJsonAAwithNonAA}.tmp" >> "${configJsonNew}"
 
-   # append the saved last few lines including the portion with "disabledPlugins" if presence
+   # Append the saved last few lines including the portion with "disabledPlugins" if presence
    cat "${configJson}.tail" >> "${configJsonNew}"
 
-   # copy the new config.json to homebridge directory
+   # Copy the "${configJsonNew}" to Homebridge config.json
    cp "${configJsonNew}" "${homebridgeConfigJson}"
 
    # cleaning up
-   rm -f "${configJson}.tmp"
+   rm -f "${configJson}.Cmd4less"
    rm -f "${configJson}.tail"
    rm -f "${cmd4ConfigJsonAAwithNonAA}.tmp"
 }
@@ -761,7 +757,7 @@ for ((n=1; n<=noOfTablets; n++)); do
    myAirData=$(curl -s -g --max-time 15 --fail --connect-timeout 15 "http://${IPA}:2025/getSystemData")
    #
    if [ -z "$myAirData" ]; then
-      echo "ERROR: AdvantageAir system is inacessible or your IP address ${IPA} is invalid!"
+      echo "ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!"
       exit 1
    fi
 
@@ -815,9 +811,9 @@ for ((n=1; n<=noOfTablets; n++)); do
                name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
                rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
                if [ "${rssi}" = "0" ]; then
-                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name"
+                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
                else
-                  cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name"
+                  cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name Zone"
                fi
             done
             for (( b=1;b<=nZones;b++ )); do
@@ -857,24 +853,26 @@ for ((n=1; n<=noOfTablets; n++)); do
 
 done
 
-#Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} for RPi and Mac
+# Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} replacing all 
+# existing AA-related configuration 
 
+# Assemble a complete Cmd4 configuration file for the specified AA device(s)
 assembleCmd4ConfigJson
 
-#echo "Cmd4 configuration file created: ${cmd4ConfigJsonAA};"
-
+# Read the existing Homebridge config.json file
 readHomebridgeConfigJson
-if [ -n "${configJson}" ]; then
-   extractCmd4ConfigFromConfigJson
-   extractNonAAconstantsQueueTypesAccessoriesMisc
-   assembleCmd4ConfigJsonAAwithNonAA
-   writeToHomebridgeConfigJson
-   echo " DONE!" 
-   echo " Reatart Homebridge for the Cmd4 config to take effect"
-else
-   echo " ERROR: No Homebridge config.json found!"
-   echo " Cut and Paste \"${cmd4ConfigJsonAA}\" to Homebridge Cmd4 JASON Config Editor"
-fi
+
+# Extract all non-AA related Cmd4 devices
+extractCmd4ConfigFromConfigJson
+extractNonAAconstantsQueueTypesAccessoriesMisc
+
+# Assemble a complete Cmd4 configuration file for the specified AA devices(s) with the extracted 
+# non-AA related Cmd4 devices
+assembleCmd4ConfigJsonAAwithNonAA
+
+# Write the assembled AA + non-AA Cmd4 configuration into the Homebridge config.json
+writeToHomebridgeConfigJson
+echo " DONE! Restart Homebridge for the Cmd4 config to take effect" 
   
 # Finally cleaning up
 rm -f "${cmd4ConfigConstantsAA}"
