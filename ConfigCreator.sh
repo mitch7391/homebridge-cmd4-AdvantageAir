@@ -4,38 +4,58 @@
 # This script can handle up to 3 separate AdvantageAir (AA) systems
 #
 # usage:
-#       First, identify the IP address(es) of your AdvantageAir system(s)
-#       then on a Terminal on the machine where the Homebridge is running
-#       run this script as follow:
-#
-#       ./ConfigCreator.sh and you will be asked to input your AA ip address(es)
-#
-#       or you can pass your AA ip address(es) as an argument:
-#
-#       ./ConfigCreator.sh "your first AA ip address" "your second AA ip address" "your third AA ip address"
-# e.g.  ./ConfigCreator.sh "192.168.0.31" "192.168.0.173" "127.0.0.1"
-#
-#       Ingore the second or third argument if you do not have second or third AA systems.
-#
-#       A Cmd4 configuration file  "cmd4Config_AA_xxxxx.json" will be created, where xxxxx is the name of
-#       your first AA system.
-#       
-#       If your Homebridge machine is a Raspberry Pi (RPi) or a Mac, then the created configuration file will be
-#       copied to Homebridge Cmd4 JASON Config Editor automatically.
+#   This script is called from Homebridge customUi server
+#   The name(s) and IP address(es) of the AA system(s) are taken from cmd4AdvantageAir plugin config
+#   which can be entered via the `Setting` of the plugin or edit the config directly using JASON Config Editor. 
 #      
-#       If your Homebridge machine is not a RPi or a Mac, then you have to copy this configuration file in its
-#       entirety into Homebridge Cmd4 JASON Config Editor manually, then click SAVE. 
-#       If you know what you are doing you can do some edits on this configuration file in the JASON Config Editor,
-#       like changing some names or deleting some accessories you do not need, etc, click SAVE when you are done.
+#   Once the Cmd4 configuration file is generated and if you know what you are doing you can do some edits
+#   on this configuration file in the Cmd4 JASON Config Editor. 
+#   Click SAVE when you are done.
 #
-#       NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
+#   NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
 # 
 
 AAIP="$1"
-AAIP2="$2"
-AAIP3="$3"
+AAname="$2"
+AAIP2="$3"
+AAname2="$4"
+AAIP3="$5"
+AAname3="$6"
+fanSetup="$7"
+ADVAIR_SH_PATH="$8"
 
-# define some variables
+if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+   return
+else
+   echo "ERROR: the specified IP address ${AAIP} is in wrong format"
+   exit 1
+fi
+
+if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
+   if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+      return
+   else
+      echo "ERROR: the specified IP address ${AAIP2} is in wrong format"
+      exit 1
+   fi
+else
+   AAIP2=""
+   AAname2=""
+fi
+
+if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
+   if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+     return 
+   else
+      echo "ERROR: the specified IP address ${AAIP3} is in wrong format"
+      exit 1
+   fi
+else
+   AAIP3=""
+   AAname3=""
+fi
+
+# define some other variables
 name=""
 
 hasAircons=false
@@ -64,53 +84,6 @@ cmd4ConfigMiscNonAA="cmd4Config.json.nonAAmisc"
 
 configJsonNew="${configJson}.new"     # new homebridge config.json
 
-if [ -z "${AAIP}" ]; then
-   until [ -n "${AAIP}" ]; do 
-      echo "Please enter your AdvantageAir system IP address (xxx.xxx.xxx.xxx):"
-      read -r INPUT
-      if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-         AAIP="${INPUT}"
-      else
-         echo ""
-         echo "ERROR: Wrong format for an IP address! Please enter again!"
-         echo ""
-      fi
-   done
-   # enter the IP address of your second AA tablet if any
-   until [ -n "${AAIP2}" ]; do 
-      echo "Please enter your second AdvantageAir system IP address (xxx.xxx.xxx.xxx) if any. Just hit 'enter' if none:"
-      read -r INPUT
-      if [ -z "${INPUT}" ]; then
-         break
-      else
-         if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-            AAIP2="${INPUT}"
-         else
-            echo ""
-            echo "ERROR: Wrong format for an IP address! Please enter again!"
-            echo ""
-         fi
-      fi
-   done
-   # enter the IP address of your third AA tablet if any
-   if [ -n "${AAIP2}" ]; then
-      until [ -n "${AAIP3}" ]; do 
-         echo "Please enter your third AdvantageAir system IP address (xxx.xxx.xxx.xxx) if any. Just hit 'enter' if none:"
-         read -r INPUT
-         if [ -z "${INPUT}" ]; then
-            break
-         else
-            if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-               AAIP3="${INPUT}"
-            else
-               echo ""
-               echo "ERROR: Wrong format for an IP address! Please enter again!"
-               echo ""
-            fi
-         fi
-      done
-   fi
-fi
 if [ -n "${AAIP}" ]; then noOfTablets=1; fi
 if [ -n "${AAIP2}" ]; then noOfTablets=2; fi
 if [ -n "${AAIP3}" ]; then noOfTablets=3; fi
@@ -193,7 +166,7 @@ function cmd4LightbulbNoDimmer()
      echo "                    \"characteristic\": \"on\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"'light:$name' ${ip}\""
      echo "        },"
    } >> "$1"
@@ -220,7 +193,7 @@ function cmd4LightbulbWithDimmer()
      echo "                    \"characteristic\": \"brightness\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"'light:${name}' ${ip}\""
      echo "        },"
    } >> "$1"
@@ -248,7 +221,7 @@ function cmd4GarageDoorOpener()
      echo "                    \"characteristic\": \"targetDoorState\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"'thing:${name}' ${ip}\""
      echo "        },"
    } >> "$1"
@@ -279,7 +252,7 @@ function cmd4ZoneLightbulb()
      echo "                    \"characteristic\": \"brightness\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
@@ -310,7 +283,7 @@ function cmd4TimerLightbulb()
      echo "                    \"characteristic\": \"brightness\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"timer ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
@@ -350,7 +323,7 @@ function cmd4Thermostat()
      echo "                    \"characteristic\": \"targetTemperature\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"${ip}${ac_l}\","
    } >> "$1"
 }
@@ -380,7 +353,7 @@ function cmd4Fan()
      echo "                    \"characteristic\": \"rotationSpeed\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
@@ -407,7 +380,7 @@ function cmd4FanSwitch()
      echo "                    \"characteristic\": \"on\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"${ip}${ac_l}\","
    } >> "$1"
 }
@@ -438,7 +411,7 @@ function cmd4FanLinkTypes()
      echo "                            \"characteristic\": \"rotationSpeed\""
      echo "                        }"
      echo "                    ],"
-     echo "                    \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "                    \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "                    \"state_cmd_suffix\": \"${ip} fanSpeed${ac_l}\""
      echo "                }"
      echo "            ]"
@@ -472,7 +445,7 @@ function cmd4ZoneTempSensor()
      echo "                    \"characteristic\": \"statusLowBattery\""
      echo "                }"
      echo "            ],"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
@@ -495,7 +468,7 @@ function cmd4ZoneSwitch()
      echo "            \"serialNumber\": \"${tspModel}\","
      echo "            \"queue\": \"$queue\","
      echo "            \"polling\": true,"
-     echo "            \"state_cmd\": \"'/usr/local/lib/node_modules/homebridge-cmd4-advantageair/AdvAir.sh'\","
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
@@ -523,29 +496,17 @@ function cmd4Footer()
 
 function readHomebridgeConfigJson()
 {
-   configJson="${configJson}.backup.${t0}"
+   configJson="${configJson}.copy"
+   
+   homebridgeConfigJson="config.json"
 
-   # first find the Homebridge Config Json file and make a copy
-   homebridgeConfigJson=$(find / -name 'config.json' 2>&1 |grep -v find|grep -v cmd4|grep -v System|grep homebridge)
-   echo ""
-   echo "Homebridge config.json: ${homebridgeConfigJson}"
-   if [ -n "${homebridgeConfigJson}" ]; then
-      validFile=$(grep -n '"platform": "Cmd4"' "${homebridgeConfigJson}"|cut -d":" -f1)
-      if [ -n "${validFile}" ]; then
-         # make a backup copy of the original Config Json file
-         cp "${homebridgeConfigJson}" "${configJson}" 
-         echo "         A backup copy: ${configJson}"
-      else
-         echo ""
-         echo "ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed"
-         echo "INFO:  the created ${cmd4ConfigJsonAA} is not copied to Homebridge-Cmd4 JASON Config Editor!"
-         exit 7
-      fi
+   validFile=$(grep -n '"platform": "Cmd4"' "${homebridgeConfigJson}"|cut -d":" -f1)
+   if [ -n "${validFile}" ]; then
+      # make a copy 
+      cp "${homebridgeConfigJson}" "${configJson}" 
    else
-      echo ""
-      echo "ERROR: no Homebridge config.json found!"
-      echo "INFO:  the created ${cmd4ConfigJsonAA} was unable to be copied to Homebridge-Cmd4 JASON Config Editor!"
-      exit 7
+      echo " ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed"
+      exit 1
    fi
 }
 
@@ -559,7 +520,7 @@ function extractCmd4ConfigFromConfigJson()
          # extract those lines pertaining to cmd4
          sed -n "${cmd4Line0},${cmd4Line2}p" "${configJson}" | sed 's/^        //g' > "${cmd4ConfigJson}"
          # remove those lines pertaining to cmd4 for later use
-         sed "${cmd4Line0},${cmd4Line2}d" "${configJson}" > "${configJson}.tmp"
+         sed "${cmd4Line0},${cmd4Line2}d" "${configJson}" > "${configJson}.Cmd4less"
          return
       else
          cmd4Line0=$((line + 1))
@@ -738,37 +699,34 @@ function assembleCmd4ConfigJsonAAwithNonAA()
 
 function writeToHomebridgeConfigJson()
 {
-   # writing the created ${cmd4ConfigJsonAA} to Homebriege Config JSON Editor
-   echo ""
-   echo "Now copying the created \"${cmd4ConfigJsonAA}\" to Homebridge config.json" 
+   # Writing the created "${cmd4ConfigJsonAAwithNonAA}" to "${configJson}.Cmd4less" to create "${configJsonNew}"
+   # before copying to Homebridge config.json
    
-   configJsonNew="${configJsonNew}.${t0}"
-
-   # save the last few lines including the portion with "disabledPlugins" if presence then remove those lines + 1
-   nLine=$(wc -l < "${configJson}.tmp")
-   disabledPluginsLine=$(grep -n '"disabledPlugins":' "${configJson}.tmp" | cut -d":" -f1)
+   # Save the last few lines including the portion with "disabledPlugins" if presence then remove those lines + 1
+   nLine=$(wc -l < "${configJson}.Cmd4less")
+   disabledPluginsLine=$(grep -n '"disabledPlugins":' "${configJson}.Cmd4less" | cut -d":" -f1)
    if [ "${disabledPluginsLine}" = "" ]; then disabledPluginsLine=nLine; fi
-   tail -n $((nLine - disabledPluginsLine + 2)) "${configJson}.tmp" > "${configJson}.tail"
-   head -n $((disabledPluginsLine - 3)) "${configJson}.tmp" > "${configJsonNew}"
+   tail -n $((nLine - disabledPluginsLine + 2)) "${configJson}.Cmd4less" > "${configJson}.tail"
+   head -n $((disabledPluginsLine - 3)) "${configJson}.Cmd4less" > "${configJsonNew}"
 
-   # append a line
+   # Append a line with a curly closing bracket and a comma, getting ready to accept next set of config  
    echo "        }," >> "${configJsonNew}"
 
-   # put 8 spaces at the beginning of the ${cmd4ConfigJsonAA} file created earlier before merging with Homebridge
-   # config.json
+   # Put 8 spaces at the beginning of the ${cmd4ConfigJsonAAwithNonAA} file created earlier before merging with
+   # Homebridge config.json
    sed -e 's/^/        /' "${cmd4ConfigJsonAAwithNonAA}" > "${cmd4ConfigJsonAAwithNonAA}.tmp"
 
-   # append the modified Cmd4 config.json to ${homebridgeConfigJson}    
+   # Append the modified Cmd4 config.json to "${configJsonNew}"    
    cat "${cmd4ConfigJsonAAwithNonAA}.tmp" >> "${configJsonNew}"
 
-   # append the saved last few lines including the portion with "disabledPlugins" if presence
+   # Append the saved last few lines including the portion with "disabledPlugins" if presence
    cat "${configJson}.tail" >> "${configJsonNew}"
 
-   # copy the new config.json to homebridge directory
-   sudo cp "${configJsonNew}" "${homebridgeConfigJson}"
+   # Copy the "${configJsonNew}" to Homebridge config.json
+   cp "${configJsonNew}" "${homebridgeConfigJson}"
 
    # cleaning up
-   rm -f "${configJson}.tmp"
+   rm -f "${configJson}.Cmd4less"
    rm -f "${configJson}.tail"
    rm -f "${cmd4ConfigJsonAAwithNonAA}.tmp"
 }
@@ -779,38 +737,34 @@ for ((n=1; n<=noOfTablets; n++)); do
 
    if [ "${n}" = "1" ]; then 
       ip="\${AAIP}"
-      IPA=${AAIP}
+      IPA="${AAIP}"
+      nameA="${AAname}"
       queue="AAA"
    fi
    if [ "${n}" = "2" ]; then 
       ip="\${AAIP2}"
-      IPA=${AAIP2}
+      IPA="${AAIP2}"
+      nameA="${AAname2}"
       queue="AAB"
    fi
    if [ "${n}" = "3" ]; then 
       ip="\${AAIP3}"
-      IPA=${AAIP3}
+      IPA="${AAIP3}"
+      nameA="${AAname3}"
       queue="AAC"
    fi
 
-   if [ "${n}" = "1" ]; then
-      echo "In the process of creating the Cmd4 configuration file for your AdvantageAir system(s)."
-      echo "It may take up to 2 minutes...."
-   fi
-   echo "Fetching and processing data from your AdvantageAir system (${IPA}).... "
-
-   myAirData=$(curl -s -g --max-time 15 --fail --connect-timeout 15 "http://${IPA}:2025/getSystemData")
+   myAirData=$(curl -s -g --max-time 45 --fail --connect-timeout 45 "http://${IPA}:2025/getSystemData")
    #
    if [ -z "$myAirData" ]; then
-      echo ""
-      echo "ERROR: either your AdvantageAir system is inacessible or your IP address ${IPA} is invalid!"
+      echo "ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!"
       exit 1
    fi
 
 
    if [ "${n}" = "1" ]; then 
-      name=$(echo "$myAirData"|jq -e ".system.name" | sed 's/ /_/g' | sed s/[\'\"]//g)
-      cmd4ConfigJsonAA="cmd4Config_AA_${name}.json"
+      #nameA=$(echo "$myAirData"|jq -e ".system.name" | sed 's/ /_/g' | sed s/[\'\"]//g)
+      cmd4ConfigJsonAA="cmd4Config_AA_${nameA}.json"
       cmd4ConfigJsonAAwithNonAA="${cmd4ConfigJsonAA}.withNonAA"
    fi
    #
@@ -839,11 +793,17 @@ for ((n=1; n<=noOfTablets; n++)); do
          ac=$( printf "ac%1d" "$a" )
          aircon=$(echo "$myAirData" | jq -e ".aircons.${ac}.info")
          if [ "${aircon}" != "null" ]; then
-            name=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.name" | sed 's/ /_/g' | sed 's/\"//g')
-            cmd4Thermostat "${cmd4ConfigAccessoriesAA}" "${name}"
-            cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${name} FanSpeed"
-            cmd4Fan "${cmd4ConfigAccessoriesAA}" "${name} Fan"
-            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${name} Timer"
+            if [ "${a}" -ge "2" ]; then nameA="${nameA}_${ac}"; fi
+            #name=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.name" | sed 's/ /_/g' | sed 's/\"//g')
+            cmd4Thermostat "${cmd4ConfigAccessoriesAA}" "${nameA}"
+            cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
+            if [ "${fanSetup}" = "fan" ]; then
+               cmd4Fan "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
+            else
+               cmd4FanSwitch "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
+               cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
+            fi
+            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer"
             #
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
             for (( b=1;b<=nZones;b++ )); do
@@ -851,9 +811,9 @@ for ((n=1; n<=noOfTablets; n++)); do
                name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
                rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
                if [ "${rssi}" = "0" ]; then
-                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name"
+                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
                else
-                  cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name"
+                  cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name Zone"
                fi
             done
             for (( b=1;b<=nZones;b++ )); do
@@ -893,41 +853,26 @@ for ((n=1; n<=noOfTablets; n++)); do
 
 done
 
-#Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} for RPi and Mac
+# Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} replacing all 
+# existing AA-related configuration 
 
-t0=$(date '+%s')
-
-cmd4ConfigJsonAA="${cmd4ConfigJsonAA}.${t0}"
+# Assemble a complete Cmd4 configuration file for the specified AA device(s)
 assembleCmd4ConfigJson
 
-echo ""
-echo "Cmd4 configuration file has now been created successfully: ${cmd4ConfigJsonAA}"
-echo ""
-echo "This newly created config can be copied to Homebridge config.json automatically"
-echo "The existing Cmd4 configuration pertaining to AdvantageAir system(s) will be overwritten by this new one"
-echo "Do you want to proceed? (y/n)" 
-read -r INPUT
-if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
-   readHomebridgeConfigJson
-   if [ -n "${configJson}" ]; then
-      extractCmd4ConfigFromConfigJson
-      extractNonAAconstantsQueueTypesAccessoriesMisc
-      assembleCmd4ConfigJsonAAwithNonAA
-      writeToHomebridgeConfigJson
-      echo ""
-      echo "DONE! You should find the newly created \"${cmd4ConfigJsonAA}\" in Homebridge Cmd4 JASON Config Editor"
-      echo "All you need to do now is to reatart Homebridge"
-   else
-      echo ""
-      echo "ERROR: No Homebridge config.json found!"
-      echo "       The created \"${cmd4ConfigJsonAA}\" cannot be copied to Homebridge config.json"
-      echo "       Please copy the content of the file \"${cmd4ConfigJsonAA}\" to Homebridge Cmd4 JASON Config Editor"
-   fi
-else
-      echo ""
-      echo "All done now!  please copy the content of the file \"${cmd4ConfigJsonAA}\" to Homebridge Cmd4 JASON Config Editor"
-      echo "SAVE it then reatart Homebridge"
-fi
+# Read the existing Homebridge config.json file
+readHomebridgeConfigJson
+
+# Extract all non-AA related Cmd4 devices
+extractCmd4ConfigFromConfigJson
+extractNonAAconstantsQueueTypesAccessoriesMisc
+
+# Assemble a complete Cmd4 configuration file for the specified AA devices(s) with the extracted 
+# non-AA related Cmd4 devices
+assembleCmd4ConfigJsonAAwithNonAA
+
+# Write the assembled AA + non-AA Cmd4 configuration into the Homebridge config.json
+writeToHomebridgeConfigJson
+echo " DONE! Restart Homebridge for the Cmd4 config to take effect" 
   
 # Finally cleaning up
 rm -f "${cmd4ConfigConstantsAA}"
@@ -939,6 +884,7 @@ rm -f "${cmd4ConfigAccessoriesNonAA}"
 rm -f "${cmd4ConfigMiscNonAA}"
 rm -f "${cmd4ConfigJsonAAwithNonAA}"
 rm -f "${cmd4ConfigNonAA}"
+rm -f "${cmd4ConfigJsonAA}"
 rm -f "${cmd4ConfigJson}"
-
-exit 0
+rm -f "${configJson}"
+rm -f "${configJsonNew}"

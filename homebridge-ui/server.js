@@ -1,6 +1,5 @@
-'use strict'
-
 const { HomebridgePluginUiServer } = require('@homebridge/plugin-ui-utils');
+const { RequestError } = require('@homebridge/plugin-ui-utils');
 const fs = require('fs')
 const chalk = require('chalk')
 
@@ -16,6 +15,7 @@ class UiServer extends HomebridgePluginUiServer
       super();
 
       this.ADVAIR_SH = "/homebridge-cmd4-advantageair/AdvAir.sh";
+      this.CONFIGCREATOR_SH = "/homebridge-cmd4-advantageair/ConfigCreator.sh";
       this.listOfConstants = { };
 
       // To enable debug, add the following to your config.json AT ANY TIME.
@@ -36,11 +36,38 @@ class UiServer extends HomebridgePluginUiServer
 
       this.updateConfigFirstTime( true );
 
+      // handle request
+      this.onRequest('/configcreator', this.ConfigCreator.bind(this));
       this.onRequest('/checkInstallationButtonPressed', this.checkInstallationButtonPressed.bind(this));
       this.onRequest('/consoleLog', this.consoleLog.bind(this));
 
       // console.log("HomebridgePluginUIServer ready");
       this.ready();
+   }
+
+   async ConfigCreator(payload) {
+      if (payload.ip !== "") {console.log('Processing AA system:', payload.name,payload.ip)};
+      if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2)};
+      if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3)};
+      console.log('Fan setup instruction:', payload.fanSetup);
+
+      try {
+         const AdvAir_shPath = this.getGlobalNodeModulesPathForFile( this.ADVAIR_SH );
+         const ConfigCreator_shPath = this.getGlobalNodeModulesPathForFile( this.CONFIGCREATOR_SH );
+
+         //This spawns a child process which runs a bash script
+         const spawnSync = require('child_process').spawnSync;
+         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip, payload.name, payload.ip2, payload.name2, payload.ip3, payload.name3,payload.fanSetup,  AdvAir_shPath], {encoding: 'utf8'});
+         let feedback = `${ FeedBack.stdout.replace(/\n*$/, "")}`
+
+         // return data to the ui
+         return {
+            feedback: feedback
+         }
+      }
+      catch (e) {
+         throw new RequestError('Failed to run ConfigCreator.sh', { message: e.message });
+      }
    }
 
    async consoleLog( msg )
@@ -635,7 +662,7 @@ class UiServer extends HomebridgePluginUiServer
                }
                else if ( accessory.type.match( /Switch/ ) )
                {
-                   if ( ! ( accessory.displayName.match( /Aircon Fan/ ) ||
+                   if ( ! ( accessory.displayName.match( / Fan$/ ) ||
                     state_cmd_suffix.match( /z[0-9][0-9]/ ) 
                       )       
                    )
