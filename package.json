@@ -74,7 +74,7 @@
       "doBats": "export PORT=2025; bats",
       "bats": "a(){ npm run doBats test/StartServer $* test/StopServer; };a",
       "batsDebug": "bats -x",
-      "lint": "eslint",
+      "lint": "npm run eslint",
       "test": "npm run allBats && npm run testjs && npm run check && npm run lint",
       "eslint": "eslint  --ext .js *.js test/*.js homebridge-ui/server.js homebridge-ui/public/js/*.js",
       "eslint:onchange": "./node_modules/onchange/dist/bin.js '.js' '*.js' 'test/*.js' 'homebridge-ui/server.js' 'homebridge-ui/public/js/*.js' -- ./tools/lintIt '{{ file }}'",
