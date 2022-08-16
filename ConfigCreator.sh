@@ -754,7 +754,7 @@ for ((n=1; n<=noOfTablets; n++)); do
       queue="AAC"
    fi
 
-   myAirData=$(curl -s -g --max-time 15 --fail --connect-timeout 15 "http://${IPA}:2025/getSystemData")
+   myAirData=$(curl -s -g --max-time 45 --fail --connect-timeout 45 "http://${IPA}:2025/getSystemData")
    #
    if [ -z "$myAirData" ]; then
       echo "ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!"
