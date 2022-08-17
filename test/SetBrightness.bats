@@ -10,22 +10,22 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   _common_beforeEach
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "AdvAir Test SetBrightness With Zone Specified damper 15" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Blah Brightness 15 z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
@@ -41,9 +41,9 @@ beforeEach()
 @test "AdvAir Test SetBrightness With timer enabled State Off" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    run ../AdvAir.sh Set Blah Brightness 15 timer 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
@@ -51,18 +51,18 @@ beforeEach()
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.state"
    # No longer the same
-   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:150}}}"
+   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{countDownToOff:90}}}"
    assert_equal "${lines[4]}" "Try 0"
-   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.info.countDownToOff=150"
+   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.info.countDownToOff=90"
    # No more lines than expected
    assert_equal "${#lines[@]}" 6
 }
 @test "AdvAir Test Set brightness 80 light:Study Patio" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/myPlaceFull.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
    run ../AdvAir.sh Set Blab Brightness 80 'light:Study Patio' 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first

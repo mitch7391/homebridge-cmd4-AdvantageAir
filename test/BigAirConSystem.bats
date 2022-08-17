@@ -10,14 +10,14 @@ teardown()
 }
 before()
 {
-   rm -f "/tmp/AA-001/AirConServer.out"
+   rm -f "${TMPDIR}/AA-001/AirConServer.out"
 }
 
 beforeEach()
 {
-   rm -f "/tmp/AA-001/myAirData.txt"*
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
-   if [ ! -d "/tmp/AA-001" ]; then mkdir "/tmp/AA-001"; fi
+   _common_beforeEach  
+   rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 bigSystem1()
@@ -32,15 +32,15 @@ bigSystem1()
   # and the earlier "curl" completed within 6 seconds
 
   t0=$(date '+%s')
-  t1=$((t0 - $curlRunTime + 6))
+  t1=$((t0 - curlRunTime + 6))
   t2=$((t0 - 122)) # $MY_AIRDTA_FILE = 122 seconds old
 
-  echo "$t1" > "/tmp/AA-001/myAirData.txt.lock"
-  echo "$t2" > "/tmp/AA-001/myAirData.txt.date" 
-  cp "testData/basicPassingSystemData.txt" "/tmp/AA-001/myAirData.txt"
+  echo "$t1" > "${TMPDIR}/AA-001/myAirData.txt.lock"
+  echo "$t2" > "${TMPDIR}/AA-001/myAirData.txt.date" 
+  cp "testData/basicPassingSystemData.txt" "${TMPDIR}/AA-001/myAirData.txt"
 
   sleep 6
-  rm -f "/tmp/AA-001/myAirData.txt.lock"
+  rm -f "${TMPDIR}/AA-001/myAirData.txt.lock"
 }
 
 bigSystem2()
@@ -55,12 +55,12 @@ bigSystem2()
   # and the earlier "curl" has taken more than 60 seconds and CMD4 timed out
 
   t0=$(date '+%s')
-  t1=$((t0 - $curlRunTime ))
+  t1=$((t0 - curlRunTime ))
   t2=$((t0 - 122)) # $MY_AIRDTA_FILE = 122 seconds old
 
-  echo "$t1" > "/tmp/AA-001/myAirData.txt.lock"
-  echo "$t2" > "/tmp/AA-001/myAirData.txt.date" 
-  cp "testData/basicPassingSystemData.txt" "/tmp/AA-001/myAirData.txt"
+  echo "$t1" > "${TMPDIR}/AA-001/myAirData.txt.lock"
+  echo "$t2" > "${TMPDIR}/AA-001/myAirData.txt.date" 
+  cp "testData/basicPassingSystemData.txt" "${TMPDIR}/AA-001/myAirData.txt"
 }
 
 bigSystem3()
@@ -75,23 +75,21 @@ bigSystem3()
   # and the earlier "curl" has taken more than 60 seconds and CMD4 timed out
 
   t0=$(date '+%s')
-  t1=$((t0 - $curlRunTime))
+  t1=$((t0 - curlRunTime))
   t2=$((t0 - 185)) # $MY_AIRDTA_FILE > 180 seconds old
-  t3=$((t0 + RANDOM))
 
-  echo "$t1" > "/tmp/AA-001/myAirData.txt.lock"
-  echo "$t2" > "/tmp/AA-001/myAirData.txt.date" 
-  cp "testData/basicPassingSystemData.txt" "/tmp/AA-001/myAirData.txt"
-  cp "/tmp/AA-001/myAirData.txt" "/tmp/AA-001/myAirData.txt.temp_$t3"
+  echo "$t1" > "${TMPDIR}/AA-001/myAirData.txt.lock"
+  echo "$t2" > "${TMPDIR}/AA-001/myAirData.txt.date" 
+  cp "testData/basicPassingSystemData.txt" "${TMPDIR}/AA-001/myAirData.txt"
 }
 
 # test for the situation where the $lockFile is detected and erlier curl completed within 6 seconds
 @test "AdvAir Test Big AirCon System 1 - \$MY_AIRDATA_FILE =122s old and \$lockFile detected and earlier getSystemData completed within 6 seconds " {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    bigSystem1 &
    run ../AdvAir.sh Get Fan On TEST_ON 127.0.0.1
    assert_equal "$status" 0
@@ -112,9 +110,9 @@ bigSystem3()
 @test "AdvAir Test Big AirCon System 2 - \$MY_AIRDATA_FILE =122s old and \$lockFile detected and earlier getSystemData timed out" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    bigSystem2 &
    run ../AdvAir.sh Get Fan On TEST_ON 127.0.0.1
    assert_equal "$status" 0
@@ -138,9 +136,9 @@ bigSystem3()
 @test "AdvAir Test Big AirCon System 3 - \$MY_AIRDATA_FILE >180s old and \$lockFile detected and earlier getSystemData timed out, recover and retry" {
    beforeEach
    # Issue the reInit
-   curl -s -g "http://localhost:2025/reInit"
+   curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
-   curl -s -g "http://localhost:2025?load=testData/basicPassingSystemData.txt"
+   curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
    bigSystem3 &
    run ../AdvAir.sh Get Fan On TEST_ON 127.0.0.1
    assert_equal "$status" 0

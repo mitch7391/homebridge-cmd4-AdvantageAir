@@ -108,7 +108,11 @@ brew install curl
 # Synology/QNAP NAS
 apk add curl
 ``` 
-7. Edit your homebridge `config.json` by modifying the samples included in the directory [Config_Samples](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master/Config_Samples) or by reading through and following the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation) guide to create your own config. This should all be edited from the Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab. <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
+7. Edit your Homebridge `config.json` by following one of the following three methods:
+* Use the `ConfigCreator` script to automatically generate your `config.json`. Instructions can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#configcreator-instructions).
+* Modifying the samples included in the directory [Config_Samples](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master/Config_Samples) and pasting these into your Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab.
+* Read through and follow the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation) guide to create your own config step by step. This should all be edited from the Homebridge UI tab.
+* <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
 8. Restart Homebridge. 
 9. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Check'.
 

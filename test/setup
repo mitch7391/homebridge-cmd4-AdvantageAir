@@ -37,6 +37,9 @@ _common_teardown()
 
 _common_beforeEach()
 {
+   # define TMPDIR if not already defined 
+   if [ -z "${TMPDIR}" ]; then TMPDIR="/tmp"; fi
+   if [ ! -d "${TMPDIR}/AA-001" ]; then mkdir "${TMPDIR}/AA-001"; fi
    # Constants can change with different data
-   rm -f "/tmp/AA-001/myAirConstants.txt"*
+   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }

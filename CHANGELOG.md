@@ -2,6 +2,54 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.5.1 (2022-08-02)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
+
+### Bug Fixes
+
+* Replaced use of command `tac` to `sort -nr` in new `ConfigCreator` (see `v3.5.0` below). Command `tac` is not available on macOS.
+
+## 3.5.0 (2022-08-02)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
+
+### Notable Changes
+
+* New `ConfigCreator` script to automatically craft your homebridge-cmd4-AdvantageAir config! This feature is particularly helpful for users with larger MyPlace systems containing Lights, Garage Doors, etc., who can have over 100 accessories; but new and existing users with smaller systems can still benefit from this feature!
+   * You can choose to have the script generate a cmd4 config file for you to copy and paste into your existing `config.json` or opt to allow it to automaticaly add itself to your `config.json` to save you the effort of the copy/paste. This will not overwrite any other existing cmd4 accessories outside of this project.
+   * Instructions on how to run this script can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#configcreator-instructions).
+
+### Other Changes
+
+* Dev: `timeout` increased for `Server.js` unit tests to be more suitable to dev testing on RPi.
+
+
+## 3.4.0 (2022-06-10)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
+
+### Notable Changes
+
+* Support for Advantage Air systems with a second control tablet! This is for users who may have multiple aircons controlled by separate control tablets.
+* Thermostat `Auto` mode is now used to set `dry` mode in Advantage Air control unit. This enable users to set the `dry` mode from Homekit.
+* Performance: New function to update `myAirData.txt` cache file immediately after every `Set` command using `jq` so that the cache file always reflects the latest state of the system in real time.
+* Minimized "write" events to the disk as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58).
+
+### Other Changes
+
+* Created temporary sub-directory to store all temporary files required for the smooth running of `AdvAir.sh`.
+* Dev: New `AirconServer` for better and more realistic unit testing.
+* Dev: Real time count down capability is added to the `AirconServer` to make it behave more like a real aircon system.
+
+### Bug Fixes
+
+* Resolve issue where `AdvAir.sh` fails to write to `"/tmp"` which is denied in some Linux distros; as per [issue #58](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues/58). 
+* Issue where `countDownToOn` timer is set and if the aircon is turned on manually instead, the `countDownToOn` remains on. It should be turned off because the aircon is now on.
+* Minor bug fixes to new `AirconServer`.
+* Dev: NPM Audit to fix issues with dependencies causing unit tests to fail.
+
+
 ## 3.3.0 (2022-03-25)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features! Another special thanks to John Wong and Kai Millar for all the beta testing that made this feature possible!
