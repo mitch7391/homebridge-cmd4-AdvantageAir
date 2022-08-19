@@ -761,14 +761,17 @@ for ((n=1; n<=noOfTablets; n++)); do
       exit 1
    fi
 
-
    if [ "${n}" = "1" ]; then 
       #nameA=$(echo "$myAirData"|jq -e ".system.name" | sed 's/ /_/g' | sed s/[\'\"]//g)
       cmd4ConfigJsonAA="cmd4Config_AA_${nameA}.json"
       cmd4ConfigJsonAAwithNonAA="${cmd4ConfigJsonAA}.withNonAA"
    fi
    #
-   sysType=$(echo "$myAirData" | jq -e ".system.sysType" | sed 's/ /_/g' | sed 's/\"//g')
+   sysType=$(echo "$myAirData" | jq -e ".system.sysType" | sed 's/ /_/g' | sed 's/\"//g')   
+   if [ -z "${sysType}" ]; then
+      echo "ERROR: jq failed! Please make sure that jq is installed."
+      exit 1
+   fi   
    tspModel=$(echo "$myAirData" | jq -e ".system.tspModel" | sed 's/ /_/g' | sed 's/\"//g')
 
    hasAircons=$(echo "$myAirData"|jq -e ".system.hasAircons")
