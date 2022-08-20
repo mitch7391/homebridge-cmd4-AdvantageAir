@@ -25,7 +25,7 @@ fanSetup="$7"
 ADVAIR_SH_PATH="$8"
 
 if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-   return
+   echo ""
 else
    echo "ERROR: the specified IP address ${AAIP} is in wrong format"
    exit 1
@@ -33,7 +33,7 @@ fi
 
 if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
    if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-      return
+      echo ""
    else
       echo "ERROR: the specified IP address ${AAIP2} is in wrong format"
       exit 1
@@ -45,7 +45,7 @@ fi
 
 if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
    if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-     return 
+     echo "" 
    else
       echo "ERROR: the specified IP address ${AAIP3} is in wrong format"
       exit 1
