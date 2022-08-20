@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.6.0-beta.0
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
+
+### Notable Changes
+
+The new `ConfigCreator` can now be run from Homebridge UI! Once the AdvantageAir device(s) is/are defined (note that only a maximum of 3 devices can be processed by ConfigCreator) and saved, click the `CONFIG CREATOR` button to auto-create the cmd4 configuration file required to run the cmd4-AdvantageAir plugin. Make sure you check the checkbox if you want the fan to be setup as `FanSwitch` instead of a 'Fan' accessory before you click the `CONFIG CREATOR` button.
+
+Once the configuration is created, you can then use the `CHECK CONFIGURATION` button to check whether the configuration meets all the requirements. 
+
+You can always inspect or edit the configuration created in Cmd4 (not cmd4-AdvantageAir) JASON Config editor if you want.
+
+### Bug Fixes
+
+* Dev: All lint errors resolved.
+* Dev: Removed prepare script for husky
+
+
 ## 3.5.1 (2022-08-02)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
@@ -9,6 +27,7 @@ Special thanks to the amazing [uswong](https://github.com/uswong) for adding thi
 ### Bug Fixes
 
 * Replaced use of command `tac` to `sort -nr` in new `ConfigCreator` (see `v3.5.0` below). Command `tac` is not available on macOS.
+
 
 ## 3.5.0 (2022-08-02)
 
