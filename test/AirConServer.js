@@ -21,7 +21,6 @@ var exists_state = true;
 var pfan = /fan/;
 var pstate = /state/;
 var quotedValues;
-var newValues;
 var curlRunTime=0;
 
 var changingRecord = false;
@@ -321,7 +320,6 @@ const requestListener = function (req, res)
             return res.end( `404 No File Loaded` );
          }
          let record = stack_g.shift();
-         let fileToSend = record.filename;
 
          if ( stack_g.length == 0 )
          {
@@ -335,21 +333,21 @@ const requestListener = function (req, res)
          }
 
          // update the "countDownToOn", "countDownToOff" and "state" of aircon first
-         for(count = 1; count < 5; count++) {
-            ac = "ac" + count
+         for(let count = 1; count < 5; count++) {
+            let ac = "ac" + count
             if ( record.myAirData.aircons[ac] != undefined ) {
-               countDownToOnValue = record.myAirData.aircons[ac].info.countDownToOn;
-               countDownToOffValue = record.myAirData.aircons[ac].info.countDownToOff;
-               countDownFromValue = record.myAirData.aircons[ac].info.unitType;
+               let countDownToOnValue = record.myAirData.aircons[ac].info.countDownToOn;
+               let countDownToOffValue = record.myAirData.aircons[ac].info.countDownToOff;
+               let countDownFromValue = record.myAirData.aircons[ac].info.unitType;
                if ( countDownToOnValue != 0 ) {
                   if ( changingRecord == false ) {
                      log(`SERVER: Changing record:`);
                   }
                   countDownToOnValue = countDownToOnValue - Math.floor((Date.now() - countDownFromValue) / 60000);
                   countDownToOnValue = Math.max(countDownToOnValue, 0);
-                  value="{aircons:{" + ac + ":{info:{countDownToOn:" + countDownToOnValue + "}}}}";
+                  let value="{aircons:{" + ac + ":{info:{countDownToOn:" + countDownToOnValue + "}}}}";
                   quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
-                  setStatementObj = JSON.parse( quotedValues );
+                  let setStatementObj = JSON.parse( quotedValues );
                   console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
                   traverseAssign( setStatementObj, record.myAirData);
                   if ( countDownToOnValue == 0 ) {
@@ -373,9 +371,9 @@ const requestListener = function (req, res)
                   }
                   countDownToOffValue = countDownToOffValue - Math.floor((Date.now() - countDownFromValue) / 60000);
                   countDownToOffValue = Math.max(countDownToOffValue, 0);
-                  value="{aircons:{" + ac + ":{info:{countDownToOff:" + countDownToOffValue + "}}}}";
+                  let value="{aircons:{" + ac + ":{info:{countDownToOff:" + countDownToOffValue + "}}}}";
                   quotedValues=value.replace(/(\{|,)\s*(.+?)\s*:/g, '$1"$2":');
-                  setStatementObj = JSON.parse( quotedValues );
+                  let setStatementObj = JSON.parse( quotedValues );
                   console.log(`SERVER: setStatementObj.aircons.${ac}.info =`,setStatementObj.aircons[ac].info);
                   traverseAssign( setStatementObj, record.myAirData);
                   if ( countDownToOffValue == 0 ) {
@@ -749,6 +747,7 @@ const requestListener = function (req, res)
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
+               let newValue="";
                if ( exists_state ) {
                   newValue = setStatementObj.myLights.lights.state;
                } else {
@@ -804,7 +803,7 @@ const requestListener = function (req, res)
                // AT THIS POINT WE CAN DO WHAT THE AIRCON WOULD HAVE DONE
                // GIVEN THE "Set" Statement
                // Get the Keys of what is being "Set"
-               newValue = setStatementObj.myThings.things.value;
+               let newValue = setStatementObj.myThings.things.value;
                let id = setStatementObj.myThings.things.id;
                console.log(`SERVER: setStatementObj.myThings.things =`,setStatementObj.myThings.things);
                if ( record.myAirData.myThings )
