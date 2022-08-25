@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.6.0-beta.1
+## 3.6.0-beta.2
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
 
@@ -17,6 +17,7 @@ This can be run by existing users if they want to update to the newest (and best
 ### Other Changes
 
 * Addition of `FanSwitch` config option. For users who would rather have the Advantage Air fan as a `Switch` accessory instead of a `Fan` accessory. Fan speed will still be coupled and controlled with the `Thermostat` accessory.
+* Terminal mode of `ConfigCreator.sh` now has improved instructions in coloured form.
 
 ### Bug Fixes
 
