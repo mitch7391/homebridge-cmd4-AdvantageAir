@@ -37,8 +37,9 @@ fanSetup="$7"
 ADVAIR_SH_PATH="$8"
 
 # define the possible names for cmd4 platform
-cmd4Platform="\"platform\": \"Cmd4\""
-cmd4Platform1="\"platform\": \"homebridge-cmd4\""
+cmd4Platform=""
+cmd4Platform1="\"platform\": \"Cmd4\""
+cmd4Platform2="\"platform\": \"homebridge-cmd4\""
 
 # define some other variables
 name=""
@@ -808,7 +809,7 @@ function getGlobalNodeModulesPathForFile()
       case $tryIndex in  
          1)
             foundPath=$(find /var/lib/hoobs "${file}" 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "${file}") 
-            fullPath=$(echo "${foundPath}"|cut -d" " -f1)
+            fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
             fi
@@ -852,14 +853,23 @@ function getHomebridgeConfigJsonPath()
 {
    fullPath=""
 
-   for ((tryIndex = 1; tryIndex <= 5; tryIndex ++)); do
+   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
       case $tryIndex in
          1)
+            # HOOBS has multiple bridges and hence has multiple config.json files, need to scan all config.json file for the Cmd4 plugin
             foundPath=$(find /var/lib/hoobs -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
-            fullPath=$(echo "${foundPath}"|cut -d" " -f1)
-            if [ -f "${fullPath}" ]; then
-               return
-            fi
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
          ;;
          2)
             fullPath="/var/lib/homebridge/config.json"
@@ -875,17 +885,48 @@ function getHomebridgeConfigJsonPath()
          ;;
          4)
             foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
-            fullPath=$(echo "${foundPath}"|cut -d" " -f1)
-            if [ -f "${fullPath}" ]; then
-               return
-            fi
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
          ;;
          5)
-            fullPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
-            fullPath=$(echo "${fullPath}"|cut -d" " -f1)
-            if [ -f "${fullPath}" ]; then
-               return
-            fi
+            foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+         6)
+            foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
          ;;
       esac
    done
@@ -897,22 +938,47 @@ function checkForPlatformCmd4InHomebridgeConfigJson()
    for ((tryIndex = 1; tryIndex <= 2; tryIndex ++)); do
       case $tryIndex in
          1)
-            validFile=$(grep -n "${cmd4Platform}" "${configJson}"|cut -d":" -f1)
-            if [ -n "${validFile}" ]; then
-               cmd4Platform="${cmd4Platform}"
-               return
-            fi
-         ;;
-         2)
             validFile=$(grep -n "${cmd4Platform1}" "${configJson}"|cut -d":" -f1)
             if [ -n "${validFile}" ]; then
                cmd4Platform="${cmd4Platform1}"
                return
             fi
          ;;
+         2)
+            validFile=$(grep -n "${cmd4Platform2}" "${configJson}"|cut -d":" -f1)
+            if [ -n "${validFile}" ]; then
+               cmd4Platform="${cmd4Platform2}"
+               return
+            fi
+         ;;
       esac
    done
 }
+
+function checkForCmd4PlatformNameInFile()
+{
+   cmd4PlatformNameFound=""
+
+   for ((Index = 1; Index <= 2; Index ++)); do
+      case $Index in
+         1)
+            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -c13-50)
+            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            if [ -n "${cmd4PlatformNameFound}" ]; then
+               return
+            fi
+         ;;
+         2)
+            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -c13-50)
+            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            if [ -n "${cmd4PlatformNameFound}" ]; then
+               return
+            fi
+         ;;
+      esac
+   done
+}
+
  
 function cleanUp()
 {
