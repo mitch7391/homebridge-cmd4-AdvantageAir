@@ -1,19 +1,31 @@
 #!/bin/bash
 #
 # This script is to generate a complete Cmd4 configuration file needed for the cmd4-advantageair plugin
-# This script can handle up to 3 separate AdvantageAir (AA) systems
+# This script can handle up to 3 independent AdvantageAir (AA) systems
 #
-# usage:
-#   This script is called from Homebridge customUi server
-#   The name(s) and IP address(es) of the AA system(s) are taken from cmd4AdvantageAir plugin config
-#   which can be entered via the `Setting` of the plugin or edit the config directly using JASON Config Editor. 
+# This script can be invoked in two ways:  
+# 1. from homebridge customUI
+#    a. click "SETTING" on cmd4-advantageair plugin and 
+#    b. at the bottom of the SETTING page, define your AdvantageAir Device(s), then clikc SAVE
+#    c. click "SETTING" again and 
+#    d. check the checkbox if you want the fan to be setup as fanSwitch
+#    e. click "CONFIG CREATOR" button 
+#
+# 2. from a terminal
+#    a. find out where the bash script "ConfigCreator.sh" is installed (please see plugin wiki for details)  
+#    b. run the bash script ConfigCreator.sh 
+#    c. Enter the name and IP address of your AdvantageAir system(s) - up to 3 systems can be processed
+#    d. you can choose whether you want the fan to be setup as fanSwitch or not
+#    e. you might need to enter the path to AdvAir.sh if it is not found by the script. 
+#    f. you might also need to enter the path to the Homebridge config.json file if it is not found by the script.
 #      
-#   Once the Cmd4 configuration file is generated and if you know what you are doing you can do some edits
-#   on this configuration file in the Cmd4 JASON Config Editor. 
-#   Click SAVE when you are done.
+# Once the Cmd4 configuration file is generated and copied to Homebridge config.json and if you know
+# what you are doing you can do some edits on the Cmd4 configuration file in Cmd4 Config Editor
+# Click SAVE when you are done.
 #
-#   NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
+# NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
 # 
+UIversion="customUI"
 
 AAIP="$1"
 AAname="$2"
@@ -24,69 +36,42 @@ AAname3="$6"
 fanSetup="$7"
 ADVAIR_SH_PATH="$8"
 
-if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-   echo ""
-else
-   echo "ERROR: the specified IP address ${AAIP} is in wrong format"
-   exit 1
-fi
-
-if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
-   if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-      echo ""
-   else
-      echo "ERROR: the specified IP address ${AAIP2} is in wrong format"
-      exit 1
-   fi
-else
-   AAIP2=""
-   AAname2=""
-fi
-
-if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
-   if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-     echo "" 
-   else
-      echo "ERROR: the specified IP address ${AAIP3} is in wrong format"
-      exit 1
-   fi
-else
-   AAIP3=""
-   AAname3=""
-fi
+# define the possible names for cmd4 platform
+cmd4Platform=""
+cmd4Platform1="\"platform\": \"Cmd4\""
+cmd4Platform2="\"platform\": \"homebridge-cmd4\""
 
 # define some other variables
 name=""
-
 hasAircons=false
 hasLights=false
 hasThings=false
 
 # define some file variables
-homebridgeConfigJson=""
-
-configJson="config.json"          # homebridge config.json
+homebridgeConfigJson=""           # homebridge config.json
+configJson="config.json.copy"     # a working copy of homebridge config.json
 cmd4ConfigJson="cmd4Config.json"  # Homebridge-Cmd4 config.json
-
 cmd4ConfigJsonAA="cmd4Config_AA.json"
-
 cmd4ConfigConstantsAA="cmd4Config.json.AAconstants"
 cmd4ConfigQueueTypesAA="cmd4Config.json.AAqueueTypes"
 cmd4ConfigAccessoriesAA="cmd4Config.json.AAaccessories"
-
 cmd4ConfigJsonAAwithNonAA="${cmd4ConfigJsonAA}.withNonAA"
-
 cmd4ConfigNonAA="cmd4Config.json.nonAA"
 cmd4ConfigConstantsNonAA="cmd4Config.json.nonAAconstants"
 cmd4ConfigQueueTypesNonAA="cmd4Config.json.nonAAqueueTypes"
 cmd4ConfigAccessoriesNonAA="cmd4Config.json.nonAAaccessories"
 cmd4ConfigMiscNonAA="cmd4Config.json.nonAAmisc"
-
 configJsonNew="${configJson}.new"     # new homebridge config.json
 
-if [ -n "${AAIP}" ]; then noOfTablets=1; fi
-if [ -n "${AAIP2}" ]; then noOfTablets=2; fi
-if [ -n "${AAIP3}" ]; then noOfTablets=3; fi
+# fun color stuff
+BOLD=$(tput bold)
+TRED=$(tput setaf 1)
+TGRN=$(tput setaf 2)
+TYEL=$(tput setaf 3)
+TPUR=$(tput setaf 5)
+TLBL=$(tput setaf 6)
+TNRM=$(tput sgr0)
+
 
 function cmd4Header()
 {
@@ -496,23 +481,98 @@ function cmd4Footer()
 
 function readHomebridgeConfigJson()
 {
-   configJson="${configJson}.copy"
-   
-   homebridgeConfigJson="config.json"
-
-   validFile=$(grep -n '"platform": "Cmd4"' "${homebridgeConfigJson}"|cut -d":" -f1)
-   if [ -n "${validFile}" ]; then
-      # make a copy 
-      cp "${homebridgeConfigJson}" "${configJson}" 
-   else
-      echo " ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed"
-      exit 1
-   fi
+   case  $UIversion in
+      customUI )
+         DIR=$(pwd) 
+         homebridgeConfigJson="${DIR}/config.json"
+         if [ -f "${homebridgeConfigJson}" ]; then
+            # expand the json just in case it is in compact form
+            jq --indent 4 '.' "${homebridgeConfigJson}" > "${configJson}"
+            checkForPlatformCmd4InHomebridgeConfigJson
+            if [ -z "${validFile}" ]; then
+               echo "ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed"
+               exit 1
+            fi
+         else
+            echo "ERROR: no Homebridge config.json found in \"${DIR}\"! Please copy \"${cmd4ConfigJsonAA}\" to cmd4 JASON Config manually."
+            cleanUp
+            exit 1
+         fi
+      ;;
+      nonUI )
+         INPUT=""
+         homebridgeConfigJson=""
+         getHomebridgeConfigJsonPath
+         if [ "${fullPath}" != "" ]; then homebridgeConfigJson="${fullPath}"; fi 
+ 
+         # if no config.json file found, ask user to input the full path
+         if [ -z "${homebridgeConfigJson}" ]; then
+            homebridgeConfigJson=""
+            echo ""
+            echo "${TPUR}WARNING: No Homebridge config.json file located by the script!${TNRM}"
+            echo ""
+            until [ -n "${INPUT}" ]; do
+               echo "${TYEL}Please enter the full path of your Homebridge config.json file,"
+               echo "otherwise just hit enter to abort copying \"${cmd4ConfigJsonAA}\" to Homebridge config.json."
+               echo "The config.json path should be in the form of /*/*/*/config.json ${TNRM}"
+               read -r -p "${BOLD}> ${TNRM}" INPUT
+               if [ -z "${INPUT}" ]; then
+                  echo "${TPUR}WARNING: No Homebridge config.json file specified"
+                  echo "         Copying of ${cmd4ConfigJsonAA} to Homebridge config.json was aborted"
+                  echo ""
+                  echo "${TLBL}${BOLD}INFO: Please copy/paste the ${cmd4ConfigJsonAA} into Cmd4 JASON Config Editor manually${TNRM}"
+                  cleanUp
+                  exit 1
+               elif expr "${INPUT}" : '[./a-zA-Z0-9]*/config.json$' >/dev/null; then
+                  if [ -f "${INPUT}" ]; then
+                     homebridgeConfigJson="${INPUT}"
+                     break
+                  else
+                     echo ""
+                     echo "${TPUR}WARNING: No such file exits!${TNRM}"
+                     echo ""
+                     INPUT=""
+                  fi
+               else
+                  echo ""
+                  echo "${TPUR}WARNING: Wrong format for file path for Homebridge config.json!${TNRM}"
+                  echo ""
+                  INPUT=""
+               fi
+           done
+         fi
+         if [ -f "${homebridgeConfigJson}" ]; then
+            if [ -z "${INPUT}" ]; then
+               echo ""
+               echo "${TLBL}INFO: The Homebridge config.json found: ${homebridgeConfigJson}${TNRM}"
+               echo ""
+            else
+               echo ""
+               echo "${TLBL}INFO: The Homebridge config.json specified: ${homebridgeConfigJson}${TNRM}"
+               echo ""
+            fi
+            # expand the json just in case it is in compact form
+            jq --indent 4 '.' "${homebridgeConfigJson}" > "${configJson}"
+            checkForPlatformCmd4InHomebridgeConfigJson
+            if [ -z "${validFile}" ]; then
+               echo ""
+               echo "${TRED}ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed${TNRM}"
+               echo "${TLBL}INFO: ${cmd4ConfigJsonAA} was created but not copied to Homebridge-Cmd4 JASON Config Editor!"
+               echo "      Please copy/paste the ${cmd4ConfigJsonAA} into Cmd4 JASON Config Editor manually${TNRM}"
+               cleanUp
+               exit 1
+            fi
+         fi
+      ;;
+   esac
 }
 
 function extractCmd4ConfigFromConfigJson()
 {
-   cmd4Line1=$(grep -n '"platform": "Cmd4"' "${configJson}" | cut -d":" -f1)
+   cmd4Line1=$(grep -n "${cmd4Platform}" "${configJson}" | cut -d":" -f1)
+   # for the case that the cmd4 platform is at the very top 
+   cmd4Line0=$(grep -n '"platforms":' "${configJson}" | cut -d":" -f1)
+   cmd4Line0=$((cmd4Line0 + 1))
    grep -n '      }' "${configJson}" | grep -v '           }' | cut -d":" -f1 | while read -r line;
    do
       if [ "${line}" -gt "${cmd4Line1}" ]; then
@@ -642,7 +702,7 @@ function extractNonAAaccessoriesMisc()
          nLines=$((line2 - line1))
          if [ "${nLines}" -gt 0 ]; then
             sed -n "${line1},${line2}p" "${cmd4ConfigNonAA}" > "${cmd4ConfigMiscNonAA}"
-            platformLine=$(grep -n '"platform": "Cmd4"' "${cmd4ConfigMiscNonAA}"|cut -d":" -f1)
+            platformLine=$(grep -n "${cmd4Platform}" "${cmd4ConfigMiscNonAA}"|cut -d":" -f1)
             if [ -n "${platformLine}" ]; then
                sed -i "${platformLine}d" "${cmd4ConfigMiscNonAA}" 
                validFile=$(head -n 1 "${cmd4ConfigMiscNonAA}")
@@ -723,7 +783,16 @@ function writeToHomebridgeConfigJson()
    cat "${configJson}.tail" >> "${configJsonNew}"
 
    # Copy the "${configJsonNew}" to Homebridge config.json
-   cp "${configJsonNew}" "${homebridgeConfigJson}"
+   case $UIversion in 
+      customUI )
+         cp "${configJsonNew}" "${homebridgeConfigJson}" 
+         rc=$?
+      ;;
+      nonUI )
+         sudo cp "${configJsonNew}" "${homebridgeConfigJson}"
+         rc=$?
+      ;;
+   esac
 
    # cleaning up
    rm -f "${configJson}.Cmd4less"
@@ -731,7 +800,339 @@ function writeToHomebridgeConfigJson()
    rm -f "${cmd4ConfigJsonAAwithNonAA}.tmp"
 }
 
+function getGlobalNodeModulesPathForFile()
+{
+   file="$1"
+   fullPath=""    
+
+   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+      case $tryIndex in  
+         1)
+            foundPath=$(find /var/lib/hoobs "${file}" 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "${file}") 
+            fullPath=$(echo "${foundPath}"|head -n 1)
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         2)
+            foundPath=$(npm root -g)
+            fullPath="${foundPath}/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return    
+            fi
+         ;;
+         3)
+            fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return   
+            fi
+         ;;
+         4)
+            fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         5)
+            fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         6)
+            fullPath="/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+      esac
+   done
+}
+
+function getHomebridgeConfigJsonPath()
+{
+   fullPath=""
+
+   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+      case $tryIndex in
+         1)
+            # HOOBS has multiple bridges and hence has multiple config.json files, need to scan all config.json file for the Cmd4 plugin
+            foundPath=$(find /var/lib/hoobs -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+         2)
+            fullPath="/var/lib/homebridge/config.json"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         3)
+            fullPath="$HOME/.homebridge/config.json"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         4)
+            foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+         5)
+            foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+         6)
+            foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+      esac
+   done
+}
+
+function checkForPlatformCmd4InHomebridgeConfigJson()
+{
+   validFile=""
+   for ((tryIndex = 1; tryIndex <= 2; tryIndex ++)); do
+      case $tryIndex in
+         1)
+            validFile=$(grep -n "${cmd4Platform1}" "${configJson}"|cut -d":" -f1)
+            if [ -n "${validFile}" ]; then
+               cmd4Platform="${cmd4Platform1}"
+               return
+            fi
+         ;;
+         2)
+            validFile=$(grep -n "${cmd4Platform2}" "${configJson}"|cut -d":" -f1)
+            if [ -n "${validFile}" ]; then
+               cmd4Platform="${cmd4Platform2}"
+               return
+            fi
+         ;;
+      esac
+   done
+}
+
+function checkForCmd4PlatformNameInFile()
+{
+   cmd4PlatformNameFound=""
+
+   for ((Index = 1; Index <= 2; Index ++)); do
+      case $Index in
+         1)
+            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -c13-50)
+            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            if [ -n "${cmd4PlatformNameFound}" ]; then
+               return
+            fi
+         ;;
+         2)
+            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -c13-50)
+            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            if [ -n "${cmd4PlatformNameFound}" ]; then
+               return
+            fi
+         ;;
+      esac
+   done
+}
+
+ 
+function cleanUp()
+{
+   rm -f "${cmd4ConfigConstantsAA}"
+   rm -f "${cmd4ConfigConstantsNonAA}"
+   rm -f "${cmd4ConfigQueueTypesAA}"
+   rm -f "${cmd4ConfigQueueTypesNonAA}"
+   rm -f "${cmd4ConfigAccessoriesAA}"
+   rm -f "${cmd4ConfigAccessoriesNonAA}"
+   rm -f "${cmd4ConfigMiscNonAA}"
+   rm -f "${cmd4ConfigJsonAAwithNonAA}"
+   rm -f "${cmd4ConfigNonAA}"
+   rm -f "${cmd4ConfigJson}"
+   rm -f "${configJson}"
+   rm -f "${configJsonNew}"
+}
+
 # main starts here
+
+if [ -z "${ADVAIR_SH_PATH}" ]; then UIversion="nonUI"; fi
+
+case $UIversion in
+   customUI )
+      if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+         echo ""
+      else
+         echo "WARNING: the specified IP address ${AAIP} is in wrong format"
+         exit 1
+      fi
+
+      if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
+         if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+           echo "" 
+         else
+            echo "WARNING: the specified IP address ${AAIP2} is in wrong format"
+            exit 1
+         fi
+      else
+         AAIP2=""
+         AAname2=""
+      fi
+
+      if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
+         if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+            echo ""
+         else
+            echo "WARNING: the specified IP address ${AAIP3} is in wrong format"
+            exit 1
+         fi
+      else
+         AAIP3=""
+         AAname3=""
+      fi
+   ;;
+   nonUI )
+      AAIP=""
+      AAIP2=""
+      AAIP3=""
+
+      until [ -n "${AAIP}" ]; do
+         echo "${TYEL}Please enter the name (default: Aircon) and IP address of your AdvanatageAir system:"
+         read -r -p "Name: ${TNRM}" AAname
+         if [ -z "${AAname}" ]; then AAname="Aircon"; fi
+         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+         if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+            AAIP="${INPUT}"
+         else
+            echo ""
+            echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+            echo ""
+         fi
+      done
+      until [ -n "${AAIP2}" ]; do
+         echo ""
+         echo "${TYEL}Please enter the name and IP address of your 2nd AdvantageAir System if any. Just hit 'enter' if none:"
+         read -r -p "Name: ${TNRM}" AAname2
+         if [ -z "${AAname2}" ]; then
+            break
+         fi
+         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+         if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+            AAIP2="${INPUT}"
+         else
+            echo ""
+            echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+            echo ""
+         fi
+      done
+      if [ -n "${AAIP2}" ]; then
+         until [ -n "${AAIP3}" ]; do
+            echo ""
+            echo "${TYEL}Please enter the name and IP address of your 3rd AdvantageAir System if any. Just hit 'enter' if none:"
+            read -r -p "Name: ${TNRM}" AAname3
+            if [ -z "${AAname3}" ]; then
+               break
+            fi
+            read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+            if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+               AAIP3="${INPUT}"
+            else
+               echo ""
+               echo "${TNRM}${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+               echo ""
+            fi
+         done
+      fi
+
+      echo ""
+      read -r -p "${TYEL}Do you want to set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
+      if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
+         fanSetup="fanSwitch"
+      else
+         fanSetup="fan"
+      fi
+      echo ""
+      echo "${TLBL}INFO: fanSetup=${fanSetup}${TNRM}"
+
+      # get the full path to AdvAir.sh
+      ADVAIR_SH_PATH=""
+      getGlobalNodeModulesPathForFile "AdvAir.sh"
+      if [ -n "${fullPath}" ]; then
+         ADVAIR_SH_PATH=${fullPath}
+         echo "${TLBL}INFO: AdvAir.sh found: ${ADVAIR_SH_PATH}${TNRM}"
+      fi
+
+      if [ -z "${ADVAIR_SH_PATH}" ]; then
+         ADVAIR_SH_PATH=""
+         until [ -n "${ADVAIR_SH_PATH}" ]; do
+            echo ""
+            echo "${TYEL}Please enter the full path of where the AdvAir.sh is installed in your system"
+            echo "The file path format should be : /*/*/*/node_modules/homebridge-cmd4-advantageair/AdvAir.sh${TNRM}"
+            read -r -p "${BOLD}> ${TNRM}" INPUT
+            if expr "${INPUT}" : '/[a-zA-Z0-9/_]*/node_modules/homebridge-cmd4-advantageair/AdvAir.sh$' >/dev/null; then
+               if [ -f "${INPUT}" ]; then
+                  ADVAIR_SH_PATH=${INPUT}
+                  echo ""
+                  echo "${TLBL}INFO: AdvAir.sh specified: ${ADVAIR_SH_PATH}${TNRM}"
+                  break
+               else
+                  echo ""
+                  echo "${TPUR}WARNING: file ${INPUT} not found${TNRM}"
+               fi
+            else
+               echo ""
+               echo "${TPUR}WARNING: file ${INPUT} is in wrong format${TNRM}"
+            fi
+         done
+      fi
+   ;;
+esac
+
+if [ -n "${AAIP}" ]; then noOfTablets=1; fi
+if [ -n "${AAIP2}" ]; then noOfTablets=2; fi
+if [ -n "${AAIP3}" ]; then noOfTablets=3; fi
 
 for ((n=1; n<=noOfTablets; n++)); do
 
@@ -753,13 +1154,25 @@ for ((n=1; n<=noOfTablets; n++)); do
       nameA="${AAname3}"
       queue="AAC"
    fi
+  
+   if [[ "${n}" = "1" && "${UIversion}" = "nonUI" ]]; then
+      echo ""
+      if [ "${noOfTablets}" = "1" ]; then echo "${TLBL}INFO: This process may take up to 1 minute!${TNRM}"; fi
+      if [ "${noOfTablets}" = "2" ]; then echo "${TLBL}INFO: This process may take up to 2 minutes!${TNRM}"; fi
+      if [ "${noOfTablets}" = "3" ]; then echo "${TLBL}INFO: This process may take up to 3 minutes!${TNRM}"; fi
+   fi
+
+   if [ "${UIversion}" = "nonUI" ]; then
+      echo "${TLBL}INFO: Fetching and processing data from your AdvantageAir system (${nameA} ${IPA}).... ${TNRM}"
+   fi
 
    myAirData=$(curl -s -g --max-time 45 --fail --connect-timeout 45 "http://${IPA}:2025/getSystemData")
    #
    if [ -z "$myAirData" ]; then
-      echo "ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!"
+      echo "${TRED}ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!${TNRM}"
       exit 1
    fi
+
 
    if [ "${n}" = "1" ]; then 
       #nameA=$(echo "$myAirData"|jq -e ".system.name" | sed 's/ /_/g' | sed s/[\'\"]//g)
@@ -767,11 +1180,11 @@ for ((n=1; n<=noOfTablets; n++)); do
       cmd4ConfigJsonAAwithNonAA="${cmd4ConfigJsonAA}.withNonAA"
    fi
    #
-   sysType=$(echo "$myAirData" | jq -e ".system.sysType" | sed 's/ /_/g' | sed 's/\"//g')   
+   sysType=$(echo "$myAirData" | jq -e ".system.sysType" | sed 's/ /_/g' | sed 's/\"//g')
    if [ -z "${sysType}" ]; then
-      echo "ERROR: jq failed! Please make sure that jq is installed."
+      echo "${TRED}ERROR: jq failed! Please make sure that jq is installed!${TNRM}"
       exit 1
-   fi   
+   fi
    tspModel=$(echo "$myAirData" | jq -e ".system.tspModel" | sed 's/ /_/g' | sed 's/\"//g')
 
    hasAircons=$(echo "$myAirData"|jq -e ".system.hasAircons")
@@ -875,19 +1288,13 @@ assembleCmd4ConfigJsonAAwithNonAA
 
 # Write the assembled AA + non-AA Cmd4 configuration into the Homebridge config.json
 writeToHomebridgeConfigJson
-echo " DONE! Restart Homebridge for the Cmd4 config to take effect" 
-  
-# Finally cleaning up
-rm -f "${cmd4ConfigConstantsAA}"
-rm -f "${cmd4ConfigConstantsNonAA}"
-rm -f "${cmd4ConfigQueueTypesAA}"
-rm -f "${cmd4ConfigQueueTypesNonAA}"
-rm -f "${cmd4ConfigAccessoriesAA}"
-rm -f "${cmd4ConfigAccessoriesNonAA}"
-rm -f "${cmd4ConfigMiscNonAA}"
-rm -f "${cmd4ConfigJsonAAwithNonAA}"
-rm -f "${cmd4ConfigNonAA}"
-rm -f "${cmd4ConfigJsonAA}"
-rm -f "${cmd4ConfigJson}"
-rm -f "${configJson}"
-rm -f "${configJsonNew}"
+
+if [ "${rc}" = "0" ]; then
+   echo "${TGRN}${BOLD}DONE! Restart Homebridge for the Cmd4 config to take effect${TNRM}" 
+   rm -f "${cmd4ConfigJsonAA}"
+   cleanUp
+else
+   echo "${TRED}${BOLD}ERROR: Copying of \"${cmd4ConfigJsonAA}\" to Homebridge config.json failed!${TNRM}"
+   echo "${TLBL}${BOLD}INFO: Instead you can copy/paste the content of \"${cmd4ConfigJsonAA}\" into Cmd4 JASON Config editor.${TNRM}"
+   cleanUp
+fi
