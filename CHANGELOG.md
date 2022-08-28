@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.6.0-beta.2
+## 3.6.0 (2022-08-28)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
 
@@ -12,11 +12,11 @@ The new `ConfigCreator` can now be run from Homebridge UI! Once the Advantage Ai
 
 This can be run by existing users if they want to update to the newest (and best!) config options available. You can always inspect or edit the configuration created in `homebridge-cmd4` (not `homebridge-cmd4-AdvantageAir`) JASON Config editor if you want after the fact; for example if you do not like the naming convention used. Once the configuration is created, you can then use the `CHECK CONFIGURATION` button to check whether the configuration meets all the requirements. 
 
-<I><B> NOTE: </B> HOOBS users and users without access to Homebridge UI have to run the `ConfigCreator` from their terminal and follow the prompts. Instructions can be found here (instructions to come). </I>
+<I><B> NOTE: </B> HOOBS users and users without access to Homebridge UI have to run the `ConfigCreator` from their terminal and follow the prompts. Instructions can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#configcreator). </I>
 
 ### Other Changes
 
-* Addition of `FanSwitch` config option. For users who would rather have the Advantage Air fan as a `Switch` accessory instead of a `Fan` accessory. Fan speed will still be coupled and controlled with the `Thermostat` accessory.
+* Addition of `FanSwitch` config option. For users who would rather have the Advantage Air fan as a `Switch` accessory instead of a `Fan` accessory. Fan speed will still be coupled and controlled with the `FanSwitch` accessory like it is with the `Thermostat`.
 * Terminal mode of `ConfigCreator.sh` now has improved instructions in coloured form.
 
 ### Bug Fixes
