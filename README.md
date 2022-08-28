@@ -73,7 +73,7 @@ No affiliation with Advantage Air.
 
 ## Installation:
 ### Raspbian/HOOBS/macOS/NAS:
-1. Install Homebridge via these instructions for [Raspbian/HOOBS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
+1. Install Homebridge via these instructions for [Raspbian](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian), [HOOBS](https://support.hoobs.org/docs) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function.
 
 ![Install Cmd4](Screenshots/cmd4Install.png)
@@ -108,17 +108,19 @@ brew install curl
 # Synology/QNAP NAS
 apk add curl
 ``` 
-7. Edit your Homebridge `config.json` by following one of the following three methods:
-* Use the `ConfigCreator` script to automatically generate your `config.json`. Instructions can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#configcreator-instructions).
-* Modifying the samples included in the directory [Config_Samples](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master/Config_Samples) and pasting these into your Homebridge UI ['config'](https://github.com/oznu/homebridge-config-ui-x#configuration-screen) tab.
+7. Automatically create your Homebridge `config.json` by stepping through one of the following four methods:
+* Homebridge users with access to the Homebridge web UI can skip to `Step 8`.
+* Homebridge users without access to the Homebridge web UI can use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#homebridge-terminal-instructions).
+* HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#hoobs-terminal-instructions).
 * Read through and follow the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation) guide to create your own config step by step. This should all be edited from the Homebridge UI tab.
 * <I><B>NOTE:</I></B> Two accessories cannot have the exact same `displayName` in your config. E.g. A switch and temperature sensor cannot both be named 'Kitchen'.
-8. Restart Homebridge. 
-9. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Check'.
+8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
 
-![Advantage Air Shell Check](Screenshots/AdvAirShellCheck.png)
+![Advantage Air Shell Check](Screenshots/AdvAirConfigCreator.png)
 
-10. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
+9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
+10. Tick/untick the `"Fan" setup as "FanSwitch"` checkbox, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
+11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
 <p align="center">
   <img width="384px" src="Screenshots/AdvAirShellCheckPassed.png">
