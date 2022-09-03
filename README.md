@@ -23,6 +23,7 @@ No affiliation with Advantage Air.
   * [MyAir](https://apps.apple.com/au/app/myair/id481563583)
   * [MyAir3](https://apps.apple.com/au/app/myair3/id645762642)
   * [MyAir4](https://apps.apple.com/au/app/myair4/id925994861)
+  * MyAir5 - Appears to not have its own app.
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
 
