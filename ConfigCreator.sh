@@ -1293,6 +1293,14 @@ if [ "${rc}" = "0" ]; then
    echo "${TGRN}${BOLD}DONE! Restart Homebridge for the Cmd4 config to take effect${TNRM}" 
    rm -f "${cmd4ConfigJsonAA}"
    cleanUp
+   if [ "${UIversion}" = "nonUI" ]; then
+      getGlobalNodeModulesPathForFile "CheckConfig.sh"
+      check1="${fullPath}"
+      echo ""
+      echo "${TYEL}Please copy/paste and run the following two commands to check whether the Cmd4 configuration meets all the requirements${TNRM}"
+      echo "check1=\"${check1}\""
+      echo "\$check1"
+   fi
 else
    echo "${TRED}${BOLD}ERROR: Copying of \"${cmd4ConfigJsonAA}\" to Homebridge config.json failed!${TNRM}"
    echo "${TLBL}${BOLD}INFO: Instead you can copy/paste the content of \"${cmd4ConfigJsonAA}\" into Cmd4 JASON Config editor.${TNRM}"
