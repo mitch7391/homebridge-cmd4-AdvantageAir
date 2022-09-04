@@ -2,6 +2,20 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.7.0 (2022-09-04)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for executing this new feature! And happy birthday to my cat Pumpkin, the Red Menace!
+
+### Notable Changes
+
+* Much like how the new `ConfigCreator` can be run from the terminal for HOOBS users and Homebridge users without access to the web UI; the existing `CheckConfig` web UI button can now also be called from the terminal.
+* The `CheckConfig` script when called, will run through all the requirements of the plug-in installation steps and your config to make sure you are all set!
+
+### Other Changes
+
+* The `ConfigCreator` script will now prompt you to call the `CheckConfig` script in the very last steps.
+
+
 ## 3.6.0 (2022-08-28)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for adding this new feature!
