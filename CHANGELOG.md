@@ -8,7 +8,7 @@ Special thanks to the amazing [uswong](https://github.com/uswong) for executing 
 
 ### Notable Changes
 
-* Much like how the new `ConfigCreator` can be run from the terminal for HOOBS users and Homebridge users without access to the web UI; the existing `CheckConfig` web UI button can now also be called from the terminal.
+* Much like how the new `ConfigCreator` can be run from the terminal for HOOBS users and Homebridge users without access to the web UI; the existing `CheckConfig` web UI button can now also be called from the terminal. Instructions can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#checkconfig).
 * The `CheckConfig` script when called, will run through all the requirements of the plug-in installation steps and your config to make sure you are all set!
 
 ### Other Changes
