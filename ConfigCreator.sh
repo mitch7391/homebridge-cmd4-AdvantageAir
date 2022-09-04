@@ -1290,7 +1290,7 @@ assembleCmd4ConfigJsonAAwithNonAA
 writeToHomebridgeConfigJson
 
 if [ "${rc}" = "0" ]; then
-   echo "${TGRN}${BOLD}DONE! Restart Homebridge for the Cmd4 config to take effect${TNRM}" 
+   echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}" 
    rm -f "${cmd4ConfigJsonAA}"
    cleanUp
    if [ "${UIversion}" = "nonUI" ]; then
