@@ -46,7 +46,9 @@ describe('Test homebridge-ui/server.js', () =>
          }, 1500);
       }
 
-      node_modules_g = server.getGlobalNodeModulesPathForFile( "" );
+      node_modules_g = server.getGlobalNodeModulesPathForFile( ADVAIR_SH );
+      node_modules_g = node_modules_g.replace("/homebridge-cmd4-advantageair/AdvAir.sh", "");
+      console.log(`Global node_modules path: ${node_modules_g}`)
       if ( node_modules_g == null )
       {
          console.log( "ERROR: cannot determine node_modules for testing" );
