@@ -659,6 +659,12 @@ const requestListener = function (req, res)
                            traverseAssign( setStatementObj, record.myAirData);
                            break;
                         }
+                        case "myZone":
+                        {
+                           // Add/change myAirData just those elements in the set statement
+                           traverseAssign( setStatementObj, record.myAirData);
+                           break;
+                        }
                         case "countDownToOff":
                         {
                            // Add/change myAirData just those elements in the set statement
