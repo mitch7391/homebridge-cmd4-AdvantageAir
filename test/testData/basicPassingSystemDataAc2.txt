@@ -20,7 +20,7 @@
             "mode":"cool",
             "myAutoModeCurrentSetMode":"cool",
             "myAutoModeIsRunning":false,
-            "myZone":0,
+            "myZone":5,
             "name":"AC??",
             "noOfConstants":1,
             "noOfZones":6,
