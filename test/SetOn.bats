@@ -85,7 +85,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 6
 }
 
-@test "AdvAir Test Set On 1 myZone=3 -set myZone=3 {
+@test "AdvAir Test Set On 1 myZone=3 -set myZone=3" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -258,7 +258,7 @@ beforeEach()
    # By now, there are 3 zones open: z05 (noSensor), z09 (with sensor) and z07 (myZone)
 }
 
-@test "AdvAir Test Set On 0 z07      -close z07 (myZone) case 2 step 4 of 4 {
+@test "AdvAir Test Set On 0 z07      -close z07 (myZone) case 2 step 4 of 4" {
    # By now, there are 3 zones open: z05 (noSensor), z09 (with sensor) and z07 (myZone)
    # Now close myZone
    run ../AdvAir.sh Set Blab On 0 z07 127.0.0.1 TEST_ON 
