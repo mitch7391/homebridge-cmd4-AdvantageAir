@@ -17,7 +17,6 @@ beforeEach()
 {
    _common_beforeEach  
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 bigSystem1()
@@ -96,14 +95,11 @@ bigSystem3()
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
    assert_equal "${lines[2]}" "Fetching myAirData from cached file" 
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.state"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[8]}" "0"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[5]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 9
+   assert_equal "${#lines[@]}" 6 
 }
 
 # test for the situation where the $lockFile is detected and earlier curl timed out
@@ -122,14 +118,11 @@ bigSystem3()
    assert_equal "${lines[2]}" "Earlier \"curl\" to getSystemData has timed out" 
    # no more time to retry, copy whatever in the cached file
    assert_equal "${lines[3]}" "Fetching myAirData from cached file" 
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.state"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[9]}" "0"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[6]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 10
+   assert_equal "${#lines[@]}" 7
 }
 
 # test for the situation where myAirData.txt is >180s old and $lockfile is detected and earlier curl timed out, revover and retry)
@@ -147,12 +140,9 @@ bigSystem3()
    # revover and retry
    assert_equal "${lines[2]}" "Try 1"
    assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.state"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[9]}" "0"
+   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[6]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 10
+   assert_equal "${#lines[@]}" 7
 }
