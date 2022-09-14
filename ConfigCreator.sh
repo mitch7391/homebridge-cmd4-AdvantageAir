@@ -426,49 +426,7 @@ function cmd4myZoneSwitch()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"myZone=${zone} ${ip}${ac_l}\","
-     echo "            \"linkedTypes\": ["
-   } >> "$1"
-}
-
-function cmd4myZoneLinkTypes()
-{
-   local myZoneName="$2"
-   local ac_l=" ${ac}"
- 
-   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
-
-   { echo "                {"
-     echo "                    \"type\": \"Switch\","
-     echo "                    \"displayName\": \"${myZoneName}\","
-     echo "                    \"on\": \"FALSE\","
-     echo "                    \"name\": \"${myZoneName}\","
-     echo "                    \"manufacturer\": \"Advantage Air Australia\","
-     echo "                    \"model\": \"${sysType}\","
-     echo "                    \"serialNumber\": \"${tspModel}\","
-     echo "                    \"queue\": \"$queue\","
-     echo "                    \"polling\": ["
-     echo "                        {"
-     echo "                            \"characteristic\": \"on\""
-     echo "                        }"
-     echo "                    ],"
-     echo "                    \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "                    \"state_cmd_suffix\": \"myZone=${zone} ${ip}${ac_l}\""
-     echo "                },"
-   } >> "$1"
-}
-
-function cmd4myZoneLinkTypesFooter()
-{
-   local myZoneName="$2"
-   local ac_l=" ${ac}"
-
-   cp "$1" "$1.temp"
-   sed '$ d' "$1.temp" > "$1" 
-   rm "$1.temp"
-
-   { echo "                }"
-     echo "            ]"
+     echo "            \"state_cmd_suffix\": \"myZone=${zone} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -1312,22 +1270,15 @@ for ((n=1; n<=noOfTablets; n++)); do
                fi
             done
             if [ "${myZoneValue}" != "0" ]; then
-               count=0
                for (( b=1;b<=nZones;b++ )); do
                   zone="${b}"
                   zoneStr=$( printf "z%02d" "${zone}" )
                   rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
                   if [ "${rssi}" != "0" ]; then
-                     count=$((count + 1))
                      name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
-                     if [ "${count}" = "1" ]; then
-                        cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
-                     else
-                        cmd4myZoneLinkTypes "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
-                     fi
+                     cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
                   fi   
                done
-               cmd4myZoneLinkTypesFooter "${cmd4ConfigAccessoriesAA}"
             fi
          fi
       done      
