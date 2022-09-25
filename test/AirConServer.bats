@@ -22,7 +22,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "StartServer Test /reInit" {
@@ -308,14 +307,11 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.state"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.mode"
-   assert_equal "${lines[6]}" "1"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info.state"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.mode"
+   assert_equal "${lines[3]}" "1"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 7
+   assert_equal "${#lines[@]}" 4
 
    # ReDo using state: off
    run ../AdvAir.sh Set Blah TargetHeatingCoolingState 0 127.0.0.1 TEST_ON

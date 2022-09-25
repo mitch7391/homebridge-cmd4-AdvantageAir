@@ -17,7 +17,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "AdvAir Test Get CurrentTemperature ( PassOn5 - Retry )" {
@@ -41,13 +40,10 @@ beforeEach()
    assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[9]}" "Try 4"
    assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[12]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[13]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[14]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[15]}" "25.4"
+   assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[12]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 16
+   assert_equal "${#lines[@]}" 13
 }
 
 @test "AdvAir Test Get CurrentTemperature ( PassOn1 - No Retry )" {
@@ -62,13 +58,10 @@ beforeEach()
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
    assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[7]}" "25.4"
+   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[4]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 5
 }
 
 @test "AdvAir Test Get CurrentTemperature ( PassOn3 - Retry )" {
@@ -88,13 +81,10 @@ beforeEach()
    assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[5]}" "Try 2"
    assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
-   assert_equal "${lines[11]}" "25.4"
+   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
+   assert_equal "${lines[8]}" "25.4"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 12
+   assert_equal "${#lines[@]}" 9
 }
 
 @test "AdvAir Test Get CurrentTemperature ( FailOn5 - Retry )" {

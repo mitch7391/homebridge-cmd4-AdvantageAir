@@ -238,7 +238,7 @@ function cmd4ZoneLightbulb()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -404,6 +404,33 @@ function cmd4FanLinkTypes()
    } >> "$1"
 }
 
+function cmd4myZoneSwitch()
+{
+   local myZoneName="$2"
+   local ac_l=" ${ac}"
+  
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Switch\","
+     echo "            \"displayName\": \"${myZoneName}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"name\": \"${myZoneName}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"on\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"myZone=${zone} ${ip}${ac_l}\""
+     echo "        },"
+   } >> "$1"
+}
+
 function cmd4ZoneTempSensor()
 {
    local name="$2"
@@ -431,7 +458,7 @@ function cmd4ZoneTempSensor()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -454,7 +481,7 @@ function cmd4ZoneSwitch()
      echo "            \"queue\": \"$queue\","
      echo "            \"polling\": true,"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"$zoneStr ${ip}${ac_l}\""
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -1188,6 +1215,7 @@ for ((n=1; n<=noOfTablets; n++)); do
    tspModel=$(echo "$myAirData" | jq -e ".system.tspModel" | sed 's/ /_/g' | sed 's/\"//g')
 
    hasAircons=$(echo "$myAirData"|jq -e ".system.hasAircons")
+   noOfAircons=$(echo "$myAirData"|jq -e ".system.noOfAircons")
    hasLights=$(echo "$myAirData"|jq -e ".system.hasLights")
    hasThings=$(echo "$myAirData"|jq -e ".system.hasThings")
 
@@ -1204,8 +1232,8 @@ for ((n=1; n<=noOfTablets; n++)); do
 
    # Create the $cmd4ConfigAccessories
    # Aircon systems
-   if [ "$hasAircons" ]; then
-      for (( a=1;a<=4;a++ )); do
+   if [ "$hasAircons" = true ]; then
+      for (( a=1;a<=noOfAircons;a++ )); do
          ac=$( printf "ac%1d" "$a" )
          aircon=$(echo "$myAirData" | jq -e ".aircons.${ac}.info")
          if [ "${aircon}" != "null" ]; then
@@ -1222,6 +1250,7 @@ for ((n=1; n<=noOfTablets; n++)); do
             cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer"
             #
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
+            myZoneValue=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.myZone")
             for (( b=1;b<=nZones;b++ )); do
                zoneStr=$( printf "z%02d" "$b" )
                name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
@@ -1240,12 +1269,23 @@ for ((n=1; n<=noOfTablets; n++)); do
                   cmd4ZoneTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
                fi
             done
+            if [ "${myZoneValue}" != "0" ]; then
+               for (( b=1;b<=nZones;b++ )); do
+                  zone="${b}"
+                  zoneStr=$( printf "z%02d" "${zone}" )
+                  rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                  if [ "${rssi}" != "0" ]; then
+                     name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                     cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
+                  fi   
+               done
+            fi
          fi
       done      
    fi
 
    # Lightings
-   if [ "$hasLights" ]; then
+   if [ "$hasLights" = true ]; then
       echo "$myAirData" | jq -e ".myLights.lights" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id; 
       do 
          name=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.name" | sed s/\"//g) 
@@ -1259,7 +1299,7 @@ for ((n=1; n<=noOfTablets; n++)); do
    fi
 
    # Things - Garage or Gate only for now 
-   if [ "$hasThings" ]; then
+   if [ "$hasThings" = true ]; then
       echo "$myAirData" | jq -e ".myThings.things" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id; 
       do 
          name=$(echo "$myAirData" | jq -e ".myThings.things.${id}.name" | sed s/\"//g) 
@@ -1297,7 +1337,7 @@ if [ "${rc}" = "0" ]; then
       getGlobalNodeModulesPathForFile "CheckConfig.sh"
       check1="${fullPath}"
       echo ""
-      echo "${TYEL}Please copy/paste and run the following two commands to check whether the Cmd4 configuration meets all the requirements${TNRM}"
+      echo "${TYEL}To run CheckConfig, please copy/paste and run the following two commands to check whether the Cmd4 configuration meets all the requirements${TNRM}"
       echo "check1=\"${check1}\""
       echo "\$check1"
    fi

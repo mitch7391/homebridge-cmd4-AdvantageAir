@@ -29,9 +29,6 @@
 # The results to stdout are usually just the result, but are expanded via TEST_ON:
 #  Try 0
 #  Parsing for jqPath: .aircons.ac1.info
-#  Parsing for jqPath: .aircons.ac1.info.noOfZones
-#  Parsing for jqPath: .aircons.ac1.zones.z01.rssi
-#  Parsing for jqPath: .aircons.ac1.info.constant1
 #  path: thing name: Garage ids=\"6801801\"
 #  Parsing for jqPath: .myThings.things.\"6801801\".value
 #  1
@@ -65,7 +62,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "Sample Test (How to Skip)" {
@@ -98,12 +94,9 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[5]}" "path: thing name: Garage ids=\"6801801\""
-   assert_equal "${lines[6]}" "Parsing for jqPath: .myThings.things.\"6801801\".value"
-   assert_equal "${lines[7]}" "1"
+   assert_equal "${lines[2]}" "path: thing name: Garage ids=\"6801801\""
+   assert_equal "${lines[3]}" "Parsing for jqPath: .myThings.things.\"6801801\".value"
+   assert_equal "${lines[4]}" "1"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 8
+   assert_equal "${#lines[@]}" 5 
 }

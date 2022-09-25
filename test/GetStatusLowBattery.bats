@@ -17,7 +17,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "AdvAir Test Get StatusLowBattery z01" {
@@ -30,11 +29,8 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info.constant1"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.zones.z01.error"
-   assert_equal "${lines[6]}" "0"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.error"
+   assert_equal "${lines[3]}" "0"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 7
+   assert_equal "${#lines[@]}" 4
 }

@@ -519,7 +519,8 @@ function checkInstallationButtonPressed( )
             else if ( accessory.type.match( /Switch/ ) )
             {
                 if ( ! ( accessory.displayName.match( / Fan$/ ) ||
-                 state_cmd_suffix.match( /z[0-9][0-9]/ ) 
+                 state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
+                 state_cmd_suffix.match( /myZone=[0-9]*/ )
                    )       
                 )
                 {

@@ -17,7 +17,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "AdvAir Test SetBrightness With Zone Specified damper 15" {

@@ -17,7 +17,6 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
-   rm -f "${TMPDIR}/AA-001/myAirConstants.txt"*
 }
 
 @test "AdvAir Test Set TargetTemperature 23.5" {
@@ -26,33 +25,39 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   # the first AdvAir.sh run is to create the myAirConstants.txt.ac1
-   run ../AdvAir.sh Get Blah TargetTemperature 127.0.0.1 TEST_ON
    run ../AdvAir.sh Set Blah TargetTemperature 23.5 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
-   assert_equal "${lines[0]}" "Getting myAirData.txt from cached file"
-   assert_equal "${lines[1]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{setTemp:23.5}}}"
-   assert_equal "${lines[2]}" "Try 0"
-   assert_equal "${lines[3]}" "Setting json: .aircons.ac1.info.setTemp=23.5"
-   assert_equal "${lines[4]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z01:{setTemp:23.5}}}}"
-   assert_equal "${lines[5]}" "Try 0"
-   assert_equal "${lines[6]}" "Setting json: .aircons.ac1.zones.z01.setTemp=23.5"
-   assert_equal "${lines[7]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z02:{setTemp:23.5}}}}"
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{setTemp:23.5}}}"
+   assert_equal "${lines[3]}" "Try 0"
+   assert_equal "${lines[4]}" "Setting json: .aircons.ac1.info.setTemp=23.5"
+   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info.noOfZones"
+   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
+   assert_equal "${lines[7]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z01:{setTemp:23.5}}}}"
    assert_equal "${lines[8]}" "Try 0"
-   assert_equal "${lines[9]}" "Setting json: .aircons.ac1.zones.z02.setTemp=23.5"
-   assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z03:{setTemp:23.5}}}}"
-   assert_equal "${lines[11]}" "Try 0"
-   assert_equal "${lines[12]}" "Setting json: .aircons.ac1.zones.z03.setTemp=23.5"
-   assert_equal "${lines[13]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z04:{setTemp:23.5}}}}"
-   assert_equal "${lines[14]}" "Try 0"
-   assert_equal "${lines[15]}" "Setting json: .aircons.ac1.zones.z04.setTemp=23.5"
-   assert_equal "${lines[16]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z05:{setTemp:23.5}}}}"
-   assert_equal "${lines[17]}" "Try 0"
-   assert_equal "${lines[18]}" "Setting json: .aircons.ac1.zones.z05.setTemp=23.5"
-   assert_equal "${lines[19]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z06:{setTemp:23.5}}}}"
+   assert_equal "${lines[9]}" "Setting json: .aircons.ac1.zones.z01.setTemp=23.5"
+   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[11]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z02:{setTemp:23.5}}}}"
+   assert_equal "${lines[12]}" "Try 0"
+   assert_equal "${lines[13]}" "Setting json: .aircons.ac1.zones.z02.setTemp=23.5"
+   assert_equal "${lines[14]}" "Parsing for jqPath: .aircons.ac1.zones.z03.rssi"
+   assert_equal "${lines[15]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z03:{setTemp:23.5}}}}"
+   assert_equal "${lines[16]}" "Try 0"
+   assert_equal "${lines[17]}" "Setting json: .aircons.ac1.zones.z03.setTemp=23.5"
+   assert_equal "${lines[18]}" "Parsing for jqPath: .aircons.ac1.zones.z04.rssi"
+   assert_equal "${lines[19]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z04:{setTemp:23.5}}}}"
    assert_equal "${lines[20]}" "Try 0"
-   assert_equal "${lines[21]}" "Setting json: .aircons.ac1.zones.z06.setTemp=23.5"
+   assert_equal "${lines[21]}" "Setting json: .aircons.ac1.zones.z04.setTemp=23.5"
+   assert_equal "${lines[22]}" "Parsing for jqPath: .aircons.ac1.zones.z05.rssi"
+   assert_equal "${lines[23]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z05:{setTemp:23.5}}}}"
+   assert_equal "${lines[24]}" "Try 0"
+   assert_equal "${lines[25]}" "Setting json: .aircons.ac1.zones.z05.setTemp=23.5"
+   assert_equal "${lines[26]}" "Parsing for jqPath: .aircons.ac1.zones.z06.rssi"
+   assert_equal "${lines[27]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z06:{setTemp:23.5}}}}"
+   assert_equal "${lines[28]}" "Try 0"
+   assert_equal "${lines[29]}" "Setting json: .aircons.ac1.zones.z06.setTemp=23.5"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 22
+   assert_equal "${#lines[@]}" 30
 }
