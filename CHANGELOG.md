@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.8.0 (2022-09-26)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for executing these new features!
+
+### Notable Changes
+
+* Support added for `myZone`. For users that have access to `myZone`, this will expose a series of switch accessories that will allow the user to set which room is currently being used as `myZone` for temperature feedback to the Advantage Air controller. 
+   * To add the `myZone` switches to you system, please run the ConfigCreator to add them to your config (Step 8 of the [README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir#readme)).
+   * More information on what `myZone` is can be found [here](https://www.manualslib.com/manual/1310157/Advantage-Air-Myair.html?page=17).
+
+### Other Changes
+
+* All defined `Constant Zones` are now used by `AdAvir.sh` when before it would only use the first defined `Constant Zone`.
+* Better handling of systems that are a mix of zones with and without temperature sensors.
+
+
 ## 3.7.0 (2022-09-04)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for executing this new feature! And happy birthday to my cat Pumpkin, the Red Menace!
