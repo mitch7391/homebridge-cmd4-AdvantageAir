@@ -162,7 +162,6 @@
                     "model": "e-zone",
                     "serialNumber": "Fujitsu e-zone2",
                     "queue": "A",
-                    "polling": true,
                     "polling": [
                         {
                             "characteristic": "on"
