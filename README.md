@@ -23,7 +23,7 @@ No affiliation with Advantage Air.
   * [MyAir](https://apps.apple.com/au/app/myair/id481563583)
   * [MyAir3](https://apps.apple.com/au/app/myair3/id645762642)
   * [MyAir4](https://apps.apple.com/au/app/myair4/id925994861)
-  * MyAir5 - Appears to not have its own app.
+  * MyAir5 - Appears to use the same app as MyPlace.
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
 
@@ -67,7 +67,6 @@ No affiliation with Advantage Air.
 
 ### MyPlace Extras - Garage Door / Gate: 
 <p align="left">
-<img src="Screenshots/GarageDoorOpen.png" width="295" height="640">
 <img src="Screenshots/GarageDoorControl.png" width="295" height="640">
 </p>
 <I><B> Note: </B> Garage Door / Gate will appear in Apple CarPlay. </I>
