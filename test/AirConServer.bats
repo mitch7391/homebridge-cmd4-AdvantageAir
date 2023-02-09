@@ -253,6 +253,48 @@ beforeEach()
    #assert_equal "${#lines[@]}" 1
 }
 
+@test "StartServer Test Load/Set (test curl feedbacks)" {
+   beforeEach
+   # clear the stack
+   run curl -s -g "http://localhost:$PORT/reInit"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # load stack repeat of 1
+   run curl -s -g "http://localhost:$PORT?repeat=1&load=testData/myPlaceFull.txt"
+   assert_equal "$status" 0
+   assert_equal "${#lines[@]}" 0
+   # ".aircons.ac1.info.state"
+   run curl -s -g "http://localhost:$PORT/setAircon?json={ac1:{info:{state:on}}}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":true,\"request\":\"setAircon\"}"
+   assert_equal "${#lines[@]}" 1
+   # ".aircons.ac3.info.state"
+   run curl -s -g "http://localhost:$PORT/setAircon?json={ac3:{info:{state:On}}}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":false,\"reason\":\".aircons.ac3 not found\",\"request\":\"setAircon\"}"
+   assert_equal "${#lines[@]}" 1
+   # ".Lights.\"420e004\".value"
+   run curl -s -g "http://localhost:$PORT/setLight?json={id:\"420e004\",value:80}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":true,\"request\":\"setLight\"}"
+   assert_equal "${#lines[@]}" 1
+   # ".Lights.\"420f004\".value"
+   run curl -s -g "http://localhost:$PORT/setLight?json={id:\"420f004\",value:80}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":false,\"reason\":\"id \"420f004\" not found\",\"request\":\"setLight\"}"
+   assert_equal "${#lines[@]}" 1
+   # ".Lights.\"6801801\".value"
+   run curl -s -g "http://localhost:$PORT/setThing?json={id:\"6801801\",value:100}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":true,\"request\":\"setThing\"}"
+   assert_equal "${#lines[@]}" 1
+   # ".Lights.\"6801803\".value"
+   run curl -s -g "http://localhost:$PORT/setThing?json={id:\"6801803\",value:100}"
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":false,\"reason\":\"id \"6801803\" not found\",\"request\":\"setThing\"}"
+   assert_equal "${#lines[@]}" 1
+}
+
 @test "StartServer Test Load/Set/Read new data" {
    beforeEach
    # clear the stack
@@ -267,7 +309,8 @@ beforeEach()
    # ".aircons.$ac.info.setTemp"
    run curl -s -g "http://localhost:$PORT/setAircon?json={ac1:{info:{setTemp:9}}}"
    assert_equal "$status" 0
-   assert_equal "${#lines[@]}" 0
+   assert_equal "${lines[0]}" "{\"ack\":true,\"request\":\"setAircon\"}"
+   assert_equal "${#lines[@]}" 1
    # getSystemData
    # Check the Temp change
    run curl -s -g "http://localhost:$PORT/getSystemData" -o "${TMPDIR}"/AA-001/out
@@ -279,11 +322,27 @@ beforeEach()
    # setAircon Temp = 22
    run curl -s -g "http://localhost:$PORT/setAircon?json={ac1:{info:{setTemp:22}}}"
    assert_equal "$status" 0
+   assert_equal "${lines[0]}" "{\"ack\":true,\"request\":\"setAircon\"}"
+   assert_equal "${#lines[@]}" 1
    # Check the Temp change
    run $( curl -s -g "http://localhost:$PORT/getSystemData" -o "${TMPDIR}"/AA-001/out )
    assert_equal "$status" 0
    jqResult=$( jq -e ".aircons.ac1.info.setTemp" < "${TMPDIR}"/AA-001/out )
    assert_equal "$jqResult" "22"
+}
+
+@test "StartServer Test AdvAir.sh fails appropriately when no data loaded" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   run ../AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
+   assert_equal "$status" 0
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Try 1"
+   assert_equal "${lines[2]}" "Try 2"
+   assert_equal "${lines[3]}" "Try 3"
+   assert_equal "${lines[4]}" "Try 4"
+   assert_equal "${#lines[@]}" 5
 }
 
 @test "StartServer Test Load/Set/Read new data using AdvAir.sh" {
@@ -330,5 +389,4 @@ beforeEach()
    assert_equal "${lines[2]}" "0"
    # No more lines than expected
    assert_equal "${#lines[@]}" 3
-
 }
