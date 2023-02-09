@@ -40,6 +40,13 @@
                      "format": "ipv4",
                      "required": true,
                      "placeholder": "192.168.0.1"
+                  },
+                  "debug": {
+                     "title": "Enable detailed debug log",
+                     "description": "Enables a detailed debug log. Useful when trying to figure out issues with the plugin.",
+                     "type": "boolean",
+                     "required": false,
+                     "default": false
                   }
                }
             }
@@ -61,7 +68,8 @@
       "description": "Note: only a maximum of 3 AdvantageAir devices can be processed by Config Creator.",
       "items": [
          "devices[].name",
-         "devices[].ipAddress"
+         "devices[].ipAddress",
+         "devices[].debug"
          ]
       }
    ]
