@@ -29,12 +29,16 @@ UIversion="customUI"
 
 AAIP="$1"
 AAname="$2"
-AAIP2="$3"
-AAname2="$4"
-AAIP3="$5"
-AAname3="$6"
-fanSetup="$7"
-ADVAIR_SH_PATH="$8"
+AAdebug="$3"
+AAIP2="$4"
+AAname2="$5"
+AAdebug2="$6"
+AAIP3="$7"
+AAname3="$8"
+AAdebug3="$9"
+fanSetup="${10}"
+timerSetup="${11}"
+ADVAIR_SH_PATH="${12}"
 
 # define the possible names for cmd4 platform
 cmd4Platform=""
@@ -75,10 +79,16 @@ TNRM=$(tput sgr0)
 
 function cmd4Header()
 {
+   local debugCmd4="false"
+
+   if [ "${debug}" = "true" ]; then
+      debugCmd4="true"
+   fi
+
    { echo "{"
      echo "    \"platform\": \"Cmd4\","
      echo "    \"name\": \"Cmd4\","
-     echo "    \"debug\": false,"
+     echo "    \"debug\": ${debugCmd4},"
      echo "    \"outputConstants\": false,"
      echo "    \"statusMsg\": true,"
      echo "    \"timeout\": 60000,"
@@ -94,9 +104,15 @@ function cmd4ConstantsHeader()
 
 function cmd4Constants()
 {
+   local debugA=""
+
+   if [ "${debug}" = "true" ]; then
+      debugA="-debug"
+   fi
+
    { echo "        {"
      echo "            \"key\": \"${ip}\","
-     echo "            \"value\": \"${IPA}\""
+     echo "            \"value\": \"${IPA}${debugA}\""
      echo "        },"
    } >> "$1"
 }
@@ -246,6 +262,7 @@ function cmd4ZoneLightbulb()
 function cmd4TimerLightbulb()
 {
    local name="$2"
+   local suffix="$3"
    local ac_l=" ${ac}"
    
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
@@ -269,7 +286,7 @@ function cmd4TimerLightbulb()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"timer ${ip}${ac_l}\""
+     echo "            \"state_cmd_suffix\": \"${suffix} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -1077,6 +1094,9 @@ case $UIversion in
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
             echo ""
          fi
+         AAdebug="false"
+         read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+         if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
       done
       until [ -n "${AAIP2}" ]; do
          echo ""
@@ -1093,6 +1113,9 @@ case $UIversion in
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
             echo ""
          fi
+         AAdebug2="false"
+         read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+         if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
       done
       if [ -n "${AAIP2}" ]; then
          until [ -n "${AAIP3}" ]; do
@@ -1110,18 +1133,30 @@ case $UIversion in
                echo "${TNRM}${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
                echo ""
             fi
+            AAdebug3="false"
+            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
          done
       fi
 
       echo ""
-      read -r -p "${TYEL}Do you want to set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
+      read -r -p "${TYEL}Set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          fanSetup="fanSwitch"
       else
          fanSetup="fan"
       fi
+
+      read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n):${TNRM} " INPUT
+      if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
+         timerSetup="includeFancyTimers"
+      else
+         timerSetup="noFancyTimers"
+      fi
       echo ""
       echo "${TLBL}INFO: fanSetup=${fanSetup}${TNRM}"
+      echo "${TLBL}INFO: timerSetup=${timerSetup}${TNRM}"
+      echo ""
 
       # get the full path to AdvAir.sh
       ADVAIR_SH_PATH=""
@@ -1167,18 +1202,21 @@ for ((n=1; n<=noOfTablets; n++)); do
       ip="\${AAIP}"
       IPA="${AAIP}"
       nameA="${AAname}"
+      debug="${AAdebug}"
       queue="AAA"
    fi
    if [ "${n}" = "2" ]; then 
       ip="\${AAIP2}"
       IPA="${AAIP2}"
       nameA="${AAname2}"
+      debug="${AAdebug2}"
       queue="AAB"
    fi
    if [ "${n}" = "3" ]; then 
       ip="\${AAIP3}"
       IPA="${AAIP3}"
       nameA="${AAname3}"
+      debug="${AAdebug3}"
       queue="AAC"
    fi
   
@@ -1247,7 +1285,12 @@ for ((n=1; n<=noOfTablets; n++)); do
                cmd4FanSwitch "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
                cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
             fi
-            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer"
+            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer" "timer"
+            if [ "${timerSetup}" = "includeFancyTimers" ]; then
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Fan Timer" "fanTimer"
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Cool Timer" "coolTimer"
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Heat Timer" "heatTimer"
+            fi
             #
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
             myZoneValue=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.myZone")
