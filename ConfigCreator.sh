@@ -896,38 +896,31 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
+   # determine whether this is a HOOBS installation
+   hoobs=$( echo $ADVAIR_SH_PATH | cut -d"/" -f4 )
+   if [ "${hoobs}" = "hoobs" ]; then
+      bridge=$( echo $ADVAIR_SH_PATH | cut -d"/" -f1,2,3,4,5 )
+      fullPath="${bridge}/config.json"
+      if [ -f "${fullPath}" ]; then
+         return
+      fi
+   fi
 
-   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+   for ((tryIndex = 1; tryIndex <= 5; tryIndex ++)); do
       case $tryIndex in
          1)
-            # HOOBS has multiple bridges and hence has multiple config.json files, need to scan all config.json file for the Cmd4 plugin
-            foundPath=$(find /var/lib/hoobs -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
-            noOfInstances=$(echo "${foundPath}"|wc -l)
-            for ((i = 1; i <= noOfInstances; i ++)); do
-               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
-               if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
-                     return
-                  else
-                     fullPath=""
-                  fi
-               fi
-            done
-         ;;
-         2)
             fullPath="/var/lib/homebridge/config.json"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         3)
+         2)
             fullPath="$HOME/.homebridge/config.json"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         4)
+         3)
             foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
@@ -942,7 +935,7 @@ function getHomebridgeConfigJsonPath()
                fi
             done
          ;;
-         5)
+         4)
             foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
@@ -957,7 +950,7 @@ function getHomebridgeConfigJsonPath()
                fi
             done
          ;;
-         6)
+         5)
             foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
@@ -1089,14 +1082,14 @@ case $UIversion in
          read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP="${INPUT}"
+            AAdebug="false"
+            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
          else
             echo ""
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
             echo ""
          fi
-         AAdebug="false"
-         read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
-         if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
       done
       until [ -n "${AAIP2}" ]; do
          echo ""
@@ -1108,14 +1101,14 @@ case $UIversion in
          read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP2="${INPUT}"
+            AAdebug2="false"
+            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
          else
             echo ""
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
             echo ""
          fi
-         AAdebug2="false"
-         read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
-         if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
       done
       if [ -n "${AAIP2}" ]; then
          until [ -n "${AAIP3}" ]; do
@@ -1128,14 +1121,14 @@ case $UIversion in
             read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
             if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
                AAIP3="${INPUT}"
+               AAdebug3="false"
+               read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+               if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
             else
                echo ""
                echo "${TNRM}${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
                echo ""
             fi
-            AAdebug3="false"
-            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
-            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
          done
       fi
 

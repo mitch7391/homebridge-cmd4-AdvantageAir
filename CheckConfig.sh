@@ -135,38 +135,31 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
+   # determine whether this is a HOOBS installation
+   hoobs=$( echo $ADVAIR_SH_PATH | cut -d"/" -f4 )
+   if [ "${hoobs}" = "hoobs" ]; then
+      bridge=$( echo $ADVAIR_SH_PATH | cut -d"/" -f1,2,3,4,5 )
+      fullPath="${bridge}/config.json"
+      if [ -f "${fullPath}" ]; then
+         return
+      fi
+   fi
 
-   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+   for ((tryIndex = 1; tryIndex <= 5; tryIndex ++)); do
       case $tryIndex in
          1)
-            # HOOBS has multiple bridges and hence has multiple config.json files, need to scan all config.json file for the Cmd4 plugin
-            foundPath=$(find /var/lib/hoobs -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
-            noOfInstances=$(echo "${foundPath}"|wc -l)
-            for ((i = 1; i <= noOfInstances; i ++)); do
-               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
-               if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
-                     return
-                  else
-                     fullPath=""
-                  fi
-               fi
-            done
-         ;;
-         2)
             fullPath="/var/lib/homebridge/config.json"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         3)
+         2)
             fullPath="$HOME/.homebridge/config.json"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         4)
+         3)
             foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
@@ -181,7 +174,7 @@ function getHomebridgeConfigJsonPath()
                fi
             done
          ;;
-         5)
+         4)
             foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
@@ -196,7 +189,7 @@ function getHomebridgeConfigJsonPath()
                fi
             done
          ;;
-         6)
+         5)
             foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
