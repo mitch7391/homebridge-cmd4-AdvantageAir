@@ -88,10 +88,10 @@ function getGlobalNodeModulesPathForFile()
    file="$1"
    fullPath=""    
 
-   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+   for ((tryIndex = 1; tryIndex <= 8; tryIndex ++)); do
       case $tryIndex in  
          1)
-            foundPath=$(find /var/lib/hoobs "${file}" 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "${file}") 
+            foundPath=$(find /var/lib/hoobs 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "/${file}$") 
             fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
@@ -105,25 +105,37 @@ function getGlobalNodeModulesPathForFile()
             fi
          ;;
          3)
-            fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            fullPath="/var/lib/homebridge/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
-               return   
+               return
             fi
          ;;
          4)
-            fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
          5)
-            fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
          6)
+            fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         7)
             fullPath="/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         8)
+            fullPath="/opt/homebridge/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
@@ -135,12 +147,17 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
-   # determine whether this is a HOOBS installation
-   hoobs=$( echo $ADVAIR_SH_PATH | cut -d"/" -f4 )
-   if [ "${hoobs}" = "hoobs" ]; then
-      bridge=$( echo $ADVAIR_SH_PATH | cut -d"/" -f1,2,3,4,5 )
-      fullPath="${bridge}/config.json"
+   # Typical HOOBS installation has the root path to config.json the same as that of AdvAir.sh
+   # First, determine whether this is a HOOBS installation
+   Hoobs=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f4 )
+   if [ "${Hoobs}" = "hoobs" ]; then
+      rootPath=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f1,2,3,4,5 )
+      fullPath="${rootPath}/config.json"
       if [ -f "${fullPath}" ]; then
+         checkForCmd4PlatformNameInFile
+         if [ -z "${cmd4PlatformNameFound}" ]; then
+            fullPath=""
+         fi 
          return
       fi
    fi
@@ -160,7 +177,7 @@ function getHomebridgeConfigJsonPath()
             fi
          ;;
          3)
-            foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /usr/local/lib 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -175,7 +192,7 @@ function getHomebridgeConfigJsonPath()
             done
          ;;
          4)
-            foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /usr/lib 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -190,7 +207,22 @@ function getHomebridgeConfigJsonPath()
             done
          ;;
          5)
-            foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /var/lib 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
+            noOfInstances=$(echo "${foundPath}"|wc -l)
+            for ((i = 1; i <= noOfInstances; i ++)); do
+               fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
+               if [ -f "${fullPath}" ]; then
+                  checkForCmd4PlatformNameInFile   
+                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                     return
+                  else
+                     fullPath=""
+                  fi
+               fi
+            done
+         ;;
+         6)
+            foundPath=$(find /opt 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -236,15 +268,15 @@ function checkForCmd4PlatformNameInFile()
    for ((Index = 1; Index <= 2; Index ++)); do
       case $Index in
          1)
-            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -c13-50)
-            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -d'"' -f4)
+            cmd4PlatformNameFound=$(grep -n "\"${cmd4PlatformName}\"" "${fullPath}"|cut -d":" -f1)
             if [ -n "${cmd4PlatformNameFound}" ]; then
                return
             fi
          ;;
          2)
-            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -c13-50)
-            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -d'"' -f4)
+            cmd4PlatformNameFound=$(grep -n "\"${cmd4PlatformName}\"" "${fullPath}"|cut -d":" -f1)
             if [ -n "${cmd4PlatformNameFound}" ]; then
                return
             fi
