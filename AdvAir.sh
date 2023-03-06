@@ -149,25 +149,6 @@ function logError()
       logQueryAirConDiagnostic "Unhandled $io $device $characteristic rc=$rc - this accessory is most likely offline!"
    fi
 }
- 
-function fakeDeviceOnline()
-{
-   # This function is only used for testing
-   # This is to fake a dummy device online
-   # Dummy device can be a "Switch", a "Fan", a "Lightbulb" with or without dimmer, or a "Thermostat".
-   acc="$1"
-   state="$2"
-   if [ "${device}" = "${acc}" ]; then
-      if [ "${characteristic}" = "On" ]; then echo "${state}"; fi
-      if [ "${characteristic}" = "Brightness" ]; then echo 80; fi
-      if [ "${characteristic}" = "RotationSpeed" ]; then echo 75; fi
-      if [ "${characteristic}" = "TargetTemperature" ]; then echo 22; fi
-      if [ "${characteristic}" = "TargetHeatingCoolingState" ]; then echo "${state}"; fi
-      rc=0
-      logQueryAirConDiagnostic "Fake $device to be online for testing: $io $device $characteristic rc=$rc"
-   fi
-}
-   
 
 function logQueryAirConDiagnostic()
 {
