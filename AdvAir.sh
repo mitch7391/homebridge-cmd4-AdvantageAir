@@ -143,25 +143,31 @@ function logError()
      echo "data2: $data2"
    } > "$fileName"
 
-   # If this error is from a "Set" request, it has already made 5 unsucessful attempts over 10 seconds within AdvAir.sh. 
-   # Let it pass, otherwise Cmd4 will get into an endless loop of sending the same "Set" request and hold back
-   # all other "Get" and other "Set" requests.
-   #
    if [ "${io}" = "Set" ]; then
-      logQueryAirConDiagnostic "Unhandled $t0 rc=$rc $io $device $characteristic $value - this accessory is most likely offline"
-      rc=0
-   fi
-
-   # If this error is from a "Get" request, the HomeApp should show "No Response" but CMD4 (v6.3.0) is unable to do so yet!
-   # For now, we just want to make sure that this accessory is off at all time.
-   # As such if the characteristic is "On", set it to off (echo 0, exit 0).
-   #
-   if [ "${io}" = "Get" ]; then
-      logQueryAirConDiagnostic "Unhandled $t0 rc=$rc $io $device $characteristic - this accessory is most likely offline!"
-      if [ "${characteristic}" = "On" ]; then echo 0; fi
-      rc=0
+      logQueryAirConDiagnostic "Unhandled $io $device $characteristic $value rc=$rc - this accessory is most likely offline"
+   elif [ "${io}" = "Get" ]; then
+      logQueryAirConDiagnostic "Unhandled $io $device $characteristic rc=$rc - this accessory is most likely offline!"
    fi
 }
+ 
+function fakeDeviceOnline()
+{
+   # This function is only used for testing
+   # This is to fake a dummy device online
+   # Dummy device can be a "Switch", a "Fan", a "Lightbulb" with or without dimmer, or a "Thermostat".
+   acc="$1"
+   state="$2"
+   if [ "${device}" = "${acc}" ]; then
+      if [ "${characteristic}" = "On" ]; then echo "${state}"; fi
+      if [ "${characteristic}" = "Brightness" ]; then echo 80; fi
+      if [ "${characteristic}" = "RotationSpeed" ]; then echo 75; fi
+      if [ "${characteristic}" = "TargetTemperature" ]; then echo 22; fi
+      if [ "${characteristic}" = "TargetHeatingCoolingState" ]; then echo "${state}"; fi
+      rc=0
+      logQueryAirConDiagnostic "Fake $device to be online for testing: $io $device $characteristic rc=$rc"
+   fi
+}
+   
 
 function logQueryAirConDiagnostic()
 {
@@ -406,7 +412,7 @@ function setAirConUsingIteration()
          exit $rc
       fi
 
-      sleep 2
+      sleep 1.0
    done
 }
 
