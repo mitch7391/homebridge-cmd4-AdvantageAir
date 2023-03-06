@@ -173,11 +173,10 @@ beforeEach()
    curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
    run ../AdvAir.sh Get Blab On 'light:Theatre' 127.0.0.1 TEST_ON
-   assert_equal "$status" "0"
+   assert_equal "$status" "4"
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
-   assert_equal "${lines[2]}" "0"
-   assert_equal "${lines[3]}" "Parsing id for \"light:Theatre\" failed"
+   assert_equal "${lines[2]}" "Parsing id for \"light:Theatre\" failed"
    # No more lines than expected
-   assert_equal "${#lines[@]}" 4
+   assert_equal "${#lines[@]}" 3
 }

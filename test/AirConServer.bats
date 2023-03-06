@@ -336,7 +336,7 @@ beforeEach()
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
    run ../AdvAir.sh Set Blah TargetHeatingCoolingState 1 127.0.0.1 TEST_ON
-   assert_equal "$status" 0
+   assert_equal "$status" 22 
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Try 1"
    assert_equal "${lines[2]}" "Try 2"

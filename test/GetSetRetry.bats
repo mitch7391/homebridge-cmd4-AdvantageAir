@@ -95,7 +95,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    # Bats "run" gobbles up all the stdout. Remove for debugging
    run ../AdvAir.sh Get Blah CurrentTemperature TEST_ON 127.0.0.1 z01
-   assert_equal "$status" 0
+   assert_equal "$status" 1
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
    assert_equal "${lines[2]}" "Parsing for jqPath failed: .aircons.ac1.info"
@@ -168,7 +168,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 10
 }
 
-@test "AdvAir Test Set On 1 Fan ( FaillOn5 - Retry )" {
+@test "AdvAir Test Set On 1 Fan ( FailOn5 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -176,7 +176,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT?load=testData/failedAirConRetrieveSystemData.txt"
    run ../AdvAir.sh Set Fan On 1 127.0.0.1 TEST_ON
    # The new air will fail after the first 5
-   assert_equal "$status" "0"
+   assert_equal "$status" "1"
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Try 1"
