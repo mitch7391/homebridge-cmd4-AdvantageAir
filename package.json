@@ -46,8 +46,8 @@
       "Config_Samples": "Config_Samples"
    },
    "engines": {
-      "homebridge": ">=1.2.5",
-      "node": "^14.18.2 || ^16.13.1"
+      "homebridge": ">=1.3.5",
+      "node": ">=14.18.1"
    },
    "keywords": [
       "Cmd4",

@@ -5,7 +5,7 @@ module.exports =
 {
    default: function ( api )
    {
-     api.registerPlatform( "cmd4-AdvantageAir", Cmd4AdvantageAir );
+     api.registerPlatform( "cmd4AdvantageAir", Cmd4AdvantageAir );
    }
 }
 
@@ -17,6 +17,6 @@ class Cmd4AdvantageAir
       this.log = log;
       this.api = api;
       this.config = config;
-      this.log.debug("cmd4-AdvantageAir this.config %s", this.config);
+      this.log.debug("cmd4AdvantageAir this.config %s", this.config);
    }
 }
