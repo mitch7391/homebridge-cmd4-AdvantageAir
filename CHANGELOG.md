@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.9.0 (2022-03-09)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
+
+### Notable Changes
+
+*  `myZone` - Will no longer blanket set the 'Target Temperature' from the Thermostat across all zones for myZone users. This functionality has been good for non-myZone users but should not be the case for myZone users; only the 'Target Temperature' of the zone defined as myZone is changed. This change will not affect non-myZone users.
+*  `Fancy Timers` - New 'switch to mode timers' can be added from the `ConfigCreator` (needs to be run again to added to your config). These timers will add the functionality to change from one mode to the next after the timer is complete.
+   * Cool: Switch to Cool mode once the timer is completed.
+   * Heat: Switch to Heat mode once the timer is completed.
+   * Vent (fan): Switch to Fan mode once the timer is completed.
+* `No Response` - Previously if the Advantage Air device could not be reached, it would show the status as `Off`, but with homebridge-cmd4 `v7.0.0` (currently available via beta version `v7.0.0-beta2`) it will now display as `No Response`. This particularly usefull for users with the MyPlace smart extra modules which can go offline seperate of the main control unit.
+
+### Other Changes
+
+* Various under the hood quality of life and error handling improvements.
+
+### Bug Fixes
+
+* Yellow log warning 'requires Node.js version' fixed. `Node.js` dependancy updated.
+* Red log error 'No plugin was found' fixed. If you still see this error, clear the area of your config that contains the following and run `ConfigCreator` again:
+
+```json
+        {
+            "name": "cmd4AdvantageAir",
+            "devices": [
+                {
+                    "name": "Aircon",
+                    "ipAddress": "192.168.0.159"
+                }
+            ],
+            "platform": "cmd4AdvantageAir"
+        }
+```
+
 ## 3.8.0 (2022-09-26)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for executing these new features!
