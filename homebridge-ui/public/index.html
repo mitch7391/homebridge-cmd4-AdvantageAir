@@ -9,8 +9,11 @@
   <div>
     <input type="checkbox" id="fanSetup"> "Fan" setup as "FanSwitch"
   </div>
+  <div>
+    <input type="checkbox" id="timerSetup"> Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent 
+  </div>
   <div class="form-group">
-    <label for="feedbackOutput">Feedback messages from ConfigCreator (read only)</label>
+    <label for="feedbackOutput">Feedback messages from ConfigCreator (read only):</label>
     <input type="text" class="form-control" id="feedbackOutput" readonly>
   </div>
 </div>
@@ -71,26 +74,33 @@
 
     AAIP = "";
     AAname = "";
+    AAdebug = "false";
     AAIP2 = "";
     AAname2 = "";
+    AAdebug2 = "false";
     AAIP3 = "";
     AAname3 = "";
+    AAdebug3 = "false";
     feedback = "";
     var fanSetup;
+    var timerSetup;
 
     // get the intial from the config and add it to the form
     if (pluginConfig.length) {
       if (pluginConfig[0].devices.length >= 1) {
         AAIP = pluginConfig[0].devices[0].ipAddress;
         AAname = pluginConfig[0].devices[0].name;
+        AAdebug = pluginConfig[0].devices[0].debug;
       }
       if (pluginConfig[0].devices.length >= 2) {
         AAIP2 = pluginConfig[0].devices[1].ipAddress;
         AAname2 = pluginConfig[0].devices[1].name;
+        AAdebug2 = pluginConfig[0].devices[1].debug;
       }
       if (pluginConfig[0].devices.length >= 3) {
         AAIP3 = pluginConfig[0].devices[2].ipAddress;
         AAname3 = pluginConfig[0].devices[2].name;
+        AAdebug3 = pluginConfig[0].devices[2].debug;
       }
     }
 
@@ -114,7 +124,14 @@
       } else {
          fanSetup = "fan";
       }
-      document.querySelector('#feedbackOutput').value = fanSetup;
+      if (document.getElementById("timerSetup").checked == true) {
+         timerSetup = "includeFancyTimers";
+         document.querySelector('#feedbackOutput').value = fanSetup + " and " + timerSetup;
+      } else {
+         timerSetup = "noFancyTimers";
+         document.querySelector('#feedbackOutput').value = fanSetup + " but " + timerSetup;
+      }
+
 
 
       // starting the request, show the loading spinner
@@ -135,11 +152,15 @@
         const response = await homebridge.request('/configcreator', {
           ip: AAIP,
           name: AAname,
+          debug: AAdebug,
           ip2: AAIP2,
           name2: AAname2,
+          debug2: AAdebug2,
           ip3: AAIP3,
           name3: AAname3,
+          debug3: AAdebug3,
           fanSetup: fanSetup,
+          timerSetup: timerSetup,
           feedback: feedback 
         });
 

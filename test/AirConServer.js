@@ -17,11 +17,14 @@ var TMPDIR = process.env.TMPDIR || "/tmp"
 var debug_g = true;
 var exists_fan = true;
 var exists_state = true;
+var keyMatch = true; 
 
 var pfan = /fan/;
 var pstate = /state/;
 var quotedValues;
 var curlRunTime=0;
+var setKey="setAircon";
+var keyNotFound;  
 
 var changingRecord = false;
 
@@ -145,6 +148,15 @@ function traverseAssign( obj1, obj2 )
    //console.log("checking obj1 %s", obj1 );
    for ( let key in obj1 )
    {
+      //console.log("checking obj2[%s]=%s", key, obj2[key]," (if undefined, abort!)");
+      if ( key == "aircons" ) { keyNotFound = ""; }
+      keyNotFound = keyNotFound + "." + key;
+      if ( obj2[key] == undefined )
+      {
+         keyMatch = false;
+         break;
+      }
+
       //console.log("checking obj1[%s] type %s", key, typeof obj1[key] );
       if ( typeof obj1[key] == "object" )
       {
@@ -292,6 +304,7 @@ const requestListener = function (req, res)
       case "/setAircon":
       {
          log( `SERVER: Doing setAircon` );
+         setKey="setAircon";
          setInProgress=true;
          ended = false;
          break;
@@ -299,6 +312,7 @@ const requestListener = function (req, res)
       case "/setLight":
       {
          log( `SERVER: Doing setLight` );
+         setKey="setLight";
          setLightInProgress=true;
          ended = false;
          break;
@@ -306,6 +320,7 @@ const requestListener = function (req, res)
       case "/setThing":
       {
          log( `SERVER: Doing setThing` );
+         setKey="setThing";
          setThingInProgress=true;
          ended = false;
          break;
@@ -607,9 +622,15 @@ const requestListener = function (req, res)
                            }
                            default:
                            {
-                              console.log( `unhandled setAircon zone: ${zone} key:  ${key}` );
-                             process.exit( 1 );
+                              console.log( `unhandled setAircon zone key: ${zone} key:  ${key}` );
+                              keyMatch = false;
+                              break;
+                              // process.exit( 1 );
                            }
+                        }
+                        if ( keyMatch == false ) 
+                        {
+                           log(`unhandled setAircon zone key: ${ac} zones ${zone} ${key}`)
                         }
                      }
                   }
@@ -712,8 +733,15 @@ const requestListener = function (req, res)
                         default:
                         {
                            console.log( `unhandled setAircon info key: ${key}` );
-                           process.exit( 1 );
+                           keyMatch = false;
+                           keyNotFound = `${key}`;
+                           break;
+                           // process.exit( 1 );
                         }
+                     }
+                     if ( keyMatch == false ) 
+                     {
+                        log(`unhandled setAircon info key: ${ac} info ${key}`)
                      }
                   }
                }
@@ -776,8 +804,10 @@ const requestListener = function (req, res)
                         }
                      } else
                      {
-                        console.log( `unhandled setLight key: ${id}` );
-                        process.exit( 1 );
+                        console.log( `unhandled setLight id: "${id}"` );
+                        keyMatch = false;
+                        keyNotFound = `id "${id}"`;
+                        // process.exit( 1 );
                      }
                   }
                }
@@ -821,8 +851,10 @@ const requestListener = function (req, res)
                         record.myAirData.myThings.things[ id ].value = newValue;
                      } else
                      {
-                        console.log( `unhandled setThing key: ${id}` );
-                        process.exit( 1 );
+                        log( `unhandled setThing id: "${id}"` );
+                        keyMatch = false;
+                        keyNotFound = `id "${id}"`;
+                        //process.exit( 1 );
                      }
                   }
                }
@@ -835,10 +867,16 @@ const requestListener = function (req, res)
             }
 
 
-            log( `SERVER: creating new getSystemData` );
-            record.getSystemData = JSON.stringify( record.myAirData );
-            log( `SERVER: end` );
-            return res.end();
+            if ( keyMatch == true )
+            {
+               log( `SERVER: creating new getSystemData` );
+               record.getSystemData = JSON.stringify( record.myAirData );
+               log( `SERVER: end` );
+               return res.end(`{"ack":true,"request":"${ setKey }"}`);
+            } else {
+               keyMatch = true;
+               return res.end(`{"ack":false,"reason":"${ keyNotFound } not found","request":"${ setKey }"}`);
+            } 
          }
          default:
          {

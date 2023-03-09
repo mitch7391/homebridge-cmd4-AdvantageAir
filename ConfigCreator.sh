@@ -29,12 +29,16 @@ UIversion="customUI"
 
 AAIP="$1"
 AAname="$2"
-AAIP2="$3"
-AAname2="$4"
-AAIP3="$5"
-AAname3="$6"
-fanSetup="$7"
-ADVAIR_SH_PATH="$8"
+AAdebug="$3"
+AAIP2="$4"
+AAname2="$5"
+AAdebug2="$6"
+AAIP3="$7"
+AAname3="$8"
+AAdebug3="$9"
+fanSetup="${10}"
+timerSetup="${11}"
+ADVAIR_SH_PATH="${12}"
 
 # define the possible names for cmd4 platform
 cmd4Platform=""
@@ -75,10 +79,16 @@ TNRM=$(tput sgr0)
 
 function cmd4Header()
 {
+   local debugCmd4="false"
+
+   if [ "${debug}" = "true" ]; then
+      debugCmd4="true"
+   fi
+
    { echo "{"
      echo "    \"platform\": \"Cmd4\","
      echo "    \"name\": \"Cmd4\","
-     echo "    \"debug\": false,"
+     echo "    \"debug\": ${debugCmd4},"
      echo "    \"outputConstants\": false,"
      echo "    \"statusMsg\": true,"
      echo "    \"timeout\": 60000,"
@@ -94,9 +104,15 @@ function cmd4ConstantsHeader()
 
 function cmd4Constants()
 {
+   local debugA=""
+
+   if [ "${debug}" = "true" ]; then
+      debugA="-debug"
+   fi
+
    { echo "        {"
      echo "            \"key\": \"${ip}\","
-     echo "            \"value\": \"${IPA}\""
+     echo "            \"value\": \"${IPA}${debugA}\""
      echo "        },"
    } >> "$1"
 }
@@ -246,6 +262,7 @@ function cmd4ZoneLightbulb()
 function cmd4TimerLightbulb()
 {
    local name="$2"
+   local suffix="$3"
    local ac_l=" ${ac}"
    
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
@@ -269,7 +286,7 @@ function cmd4TimerLightbulb()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"timer ${ip}${ac_l}\""
+     echo "            \"state_cmd_suffix\": \"${suffix} ${ip}${ac_l}\""
      echo "        },"
    } >> "$1"
 }
@@ -832,10 +849,10 @@ function getGlobalNodeModulesPathForFile()
    file="$1"
    fullPath=""    
 
-   for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
+   for ((tryIndex = 1; tryIndex <= 8; tryIndex ++)); do
       case $tryIndex in  
          1)
-            foundPath=$(find /var/lib/hoobs "${file}" 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "${file}") 
+            foundPath=$(find /var/lib/hoobs 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "/${file}$") 
             fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
@@ -849,25 +866,37 @@ function getGlobalNodeModulesPathForFile()
             fi
          ;;
          3)
-            fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            fullPath="/var/lib/homebridge/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return   
             fi
          ;;
          4)
+            fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return   
+            fi
+         ;;
+         5)
             fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         5)
+         6)
             fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
          ;;
-         6)
+         7)
             fullPath="/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/${file}"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         8)
+            fullPath="/opt/homebridge/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
             fi
@@ -879,12 +908,40 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
+   # Typicall HOOBS installation has its config.json root path same as the root path of AdvAir.sh
+   # The typical root path is /var/lib/hoobs/<bridge>/
+   # First, determine whether this is a HOOBS installation
+   Hoobs=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f4 )
+   if [ "${Hoobs}" = "hoobs" ]; then
+      rootPath=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f1,2,3,4,5 )
+      fullPath="${rootPath}/config.json"
+      if [ -f "${fullPath}" ]; then
+         checkForCmd4PlatformNameInFile
+         if [ -z "${cmd4PlatformNameFound}" ]; then
+            fullPath=""
+         fi
+         return
+      fi
+   fi
 
    for ((tryIndex = 1; tryIndex <= 6; tryIndex ++)); do
       case $tryIndex in
          1)
-            # HOOBS has multiple bridges and hence has multiple config.json files, need to scan all config.json file for the Cmd4 plugin
-            foundPath=$(find /var/lib/hoobs -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            # Typical RPi, Synology NAS installations have this path to config.json
+            fullPath="/var/lib/homebridge/config.json"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         2)
+            # Typical Mac installation has this path to config.json
+            fullPath="$HOME/.homebridge/config.json"
+            if [ -f "${fullPath}" ]; then
+               return
+            fi
+         ;;
+         3)
+            foundPath=$(find /usr/local/lib 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -898,20 +955,8 @@ function getHomebridgeConfigJsonPath()
                fi
             done
          ;;
-         2)
-            fullPath="/var/lib/homebridge/config.json"
-            if [ -f "${fullPath}" ]; then
-               return
-            fi
-         ;;
-         3)
-            fullPath="$HOME/.homebridge/config.json"
-            if [ -f "${fullPath}" ]; then
-               return
-            fi
-         ;;
          4)
-            foundPath=$(find /usr/local/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /usr/lib 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -926,7 +971,7 @@ function getHomebridgeConfigJsonPath()
             done
          ;;
          5)
-            foundPath=$(find /usr/lib -name config.json 2>&1|grep -v find|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /var/lib 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -941,7 +986,7 @@ function getHomebridgeConfigJsonPath()
             done
          ;;
          6)
-            foundPath=$(find /var/lib -name config.json 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep config.json)
+            foundPath=$(find /opt 2>&1|grep -v find|grep -v hoobs|grep -v System|grep -v cache|grep -v hassio|grep -v node_modules|grep "/config.json$")
             noOfInstances=$(echo "${foundPath}"|wc -l)
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
@@ -989,15 +1034,15 @@ function checkForCmd4PlatformNameInFile()
    for ((Index = 1; Index <= 2; Index ++)); do
       case $Index in
          1)
-            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -c13-50)
-            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            cmd4PlatformName=$(echo "${cmd4Platform1}"|cut -d'"' -f4)
+            cmd4PlatformNameFound=$(grep -n "\"${cmd4PlatformName}\"" "${fullPath}"|cut -d":" -f1)
             if [ -n "${cmd4PlatformNameFound}" ]; then
                return
             fi
          ;;
          2)
-            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -c13-50)
-            cmd4PlatformNameFound=$(grep -n "${cmd4PlatformName}" "${fullPath}"|cut -d":" -f1)
+            cmd4PlatformName=$(echo "${cmd4Platform2}"|cut -d'"' -f4)
+            cmd4PlatformNameFound=$(grep -n "\"${cmd4PlatformName}\"" "${fullPath}"|cut -d":" -f1)
             if [ -n "${cmd4PlatformNameFound}" ]; then
                return
             fi
@@ -1072,6 +1117,9 @@ case $UIversion in
          read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP="${INPUT}"
+            AAdebug="false"
+            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
          else
             echo ""
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
@@ -1088,6 +1136,9 @@ case $UIversion in
          read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP2="${INPUT}"
+            AAdebug2="false"
+            read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+            if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
          else
             echo ""
             echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
@@ -1105,6 +1156,9 @@ case $UIversion in
             read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
             if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
                AAIP3="${INPUT}"
+               AAdebug3="false"
+               read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+               if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
             else
                echo ""
                echo "${TNRM}${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
@@ -1114,14 +1168,23 @@ case $UIversion in
       fi
 
       echo ""
-      read -r -p "${TYEL}Do you want to set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
+      read -r -p "${TYEL}Set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          fanSetup="fanSwitch"
       else
          fanSetup="fan"
       fi
+
+      read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n):${TNRM} " INPUT
+      if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
+         timerSetup="includeFancyTimers"
+      else
+         timerSetup="noFancyTimers"
+      fi
       echo ""
       echo "${TLBL}INFO: fanSetup=${fanSetup}${TNRM}"
+      echo "${TLBL}INFO: timerSetup=${timerSetup}${TNRM}"
+      echo ""
 
       # get the full path to AdvAir.sh
       ADVAIR_SH_PATH=""
@@ -1167,18 +1230,21 @@ for ((n=1; n<=noOfTablets; n++)); do
       ip="\${AAIP}"
       IPA="${AAIP}"
       nameA="${AAname}"
+      debug="${AAdebug}"
       queue="AAA"
    fi
    if [ "${n}" = "2" ]; then 
       ip="\${AAIP2}"
       IPA="${AAIP2}"
       nameA="${AAname2}"
+      debug="${AAdebug2}"
       queue="AAB"
    fi
    if [ "${n}" = "3" ]; then 
       ip="\${AAIP3}"
       IPA="${AAIP3}"
       nameA="${AAname3}"
+      debug="${AAdebug3}"
       queue="AAC"
    fi
   
@@ -1247,7 +1313,12 @@ for ((n=1; n<=noOfTablets; n++)); do
                cmd4FanSwitch "${cmd4ConfigAccessoriesAA}" "${nameA} Fan"
                cmd4FanLinkTypes "${cmd4ConfigAccessoriesAA}" "${nameA} FanSpeed"
             fi
-            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer"
+            cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Timer" "timer"
+            if [ "${timerSetup}" = "includeFancyTimers" ]; then
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Fan Timer" "fanTimer"
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Cool Timer" "coolTimer"
+               cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Heat Timer" "heatTimer"
+            fi
             #
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
             myZoneValue=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.myZone")

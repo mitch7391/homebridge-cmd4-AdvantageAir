@@ -31,13 +31,13 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[7]}" "Try 3"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[9]}" "Try 4"
    assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[11]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
@@ -76,9 +76,9 @@ beforeEach()
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[5]}" "Try 2"
    assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.zones.z01.measuredTemp"
@@ -98,15 +98,15 @@ beforeEach()
    assert_equal "$status" 1
    assert_equal "${lines[0]}" "Using IP: 127.0.0.1"
    assert_equal "${lines[1]}" "Try 0"
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[3]}" "Try 1"
-   assert_equal "${lines[4]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[4]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[5]}" "Try 2"
-   assert_equal "${lines[6]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[6]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[7]}" "Try 3"
-   assert_equal "${lines[8]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[8]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[9]}" "Try 4"
-   assert_equal "${lines[10]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[10]}" "Parsing for jqPath failed: .aircons.ac1.info"
    # No more lines than expected
    assert_equal "${#lines[@]}" 11
 }
@@ -124,13 +124,13 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[1]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[5]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[6]}" "Try 3"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[7]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[8]}" "Try 4"
    assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
    assert_equal "${lines[10]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{info:{state:on,mode:vent}}}"
@@ -154,9 +154,9 @@ beforeEach()
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[1]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[4]}" "Try 2"
    assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
@@ -168,7 +168,7 @@ beforeEach()
    assert_equal "${#lines[@]}" 10
 }
 
-@test "AdvAir Test Set On 1 Fan ( FaillOn5 - Retry )" {
+@test "AdvAir Test Set On 1 Fan ( FailOn5 - Retry )" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -178,15 +178,15 @@ beforeEach()
    # The new air will fail after the first 5
    assert_equal "$status" "1"
    assert_equal "${lines[0]}" "Try 0"
-   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[1]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[2]}" "Try 1"
-   assert_equal "${lines[3]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[3]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[4]}" "Try 2"
-   assert_equal "${lines[5]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[5]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[6]}" "Try 3"
-   assert_equal "${lines[7]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[7]}" "Parsing for jqPath failed: .aircons.ac1.info"
    assert_equal "${lines[8]}" "Try 4"
-   assert_equal "${lines[9]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[9]}" "Parsing for jqPath failed: .aircons.ac1.info"
    # No more lines than expected
    assert_equal "${#lines[@]}" 10
 }

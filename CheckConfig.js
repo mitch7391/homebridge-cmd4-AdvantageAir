@@ -508,6 +508,9 @@ function checkInstallationButtonPressed( )
             {
                 if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
                  state_cmd_suffix.match( /timer/ ) ||
+                 state_cmd_suffix.match( /fanTimer/ ) ||
+                 state_cmd_suffix.match( /coolTimer/ ) ||
+                 state_cmd_suffix.match( /heatTimer/ ) ||
                  state_cmd_suffix.match( /'light:/ )
                    )
                 )

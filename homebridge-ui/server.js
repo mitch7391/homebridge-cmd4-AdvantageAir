@@ -46,10 +46,11 @@ class UiServer extends HomebridgePluginUiServer
    }
 
    async ConfigCreator(payload) {
-      if (payload.ip !== "") {console.log('Processing AA system:', payload.name,payload.ip)}
-      if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2)}
-      if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3)}
+      if (payload.ip !== "") {console.log('Processing AA system:', payload.name,payload.ip,payload.debug)}
+      if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2,payload.debug2)}
+      if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3,payload.debug3)}
       console.log('Fan setup instruction:', payload.fanSetup);
+      console.log('Timer setup instruction:', payload.timerSetup);
 
       try {
          const AdvAir_shPath = this.getGlobalNodeModulesPathForFile( this.ADVAIR_SH );
@@ -57,7 +58,7 @@ class UiServer extends HomebridgePluginUiServer
 
          //This spawns a child process which runs a bash script
          const spawnSync = require('child_process').spawnSync;
-         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip, payload.name, payload.ip2, payload.name2, payload.ip3, payload.name3,payload.fanSetup,  AdvAir_shPath], {encoding: 'utf8'});
+         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip,payload.name,payload.debug,payload.ip2,payload.name2,payload.debug2,payload.ip3,payload.name3,payload.debug3,payload.fanSetup,payload.timerSetup,AdvAir_shPath], {encoding: 'utf8'});
          let feedback = `${ FeedBack.stdout.replace(/\n*$/, "")}`
 
          // return data to the ui
@@ -649,6 +650,9 @@ class UiServer extends HomebridgePluginUiServer
                {
                    if ( ! ( state_cmd_suffix.match( /z[0-9][0-9]/ ) ||
                     state_cmd_suffix.match( /timer/ ) ||
+                    state_cmd_suffix.match( /fanTimer/ ) ||
+                    state_cmd_suffix.match( /coolTimer/ ) ||
+                    state_cmd_suffix.match( /heatTimer/ ) ||
                     state_cmd_suffix.match( /'light:/ )
                       )
                    )
