@@ -64,7 +64,7 @@ cmd4ConfigNonAA="cmd4Config.json.nonAA"
 cmd4ConfigConstantsNonAA="cmd4Config.json.nonAAconstants"
 cmd4ConfigQueueTypesNonAA="cmd4Config.json.nonAAqueueTypes"
 cmd4ConfigAccessoriesNonAA="cmd4Config.json.nonAAaccessories"
-cmd4ConfigMiscNonAA="cmd4Config.json.nonAAmisc"
+cmd4ConfigMiscKeys="cmd4Config.json.miscKeys"
 configJsonNew="${configJson}.new"     # new homebridge config.json
 
 # fun color stuff
@@ -613,164 +613,154 @@ function readHomebridgeConfigJson()
 
 function extractCmd4ConfigFromConfigJson()
 {
-   cmd4Line1=$(grep -n "${cmd4Platform}" "${configJson}" | cut -d":" -f1)
-   # for the case that the cmd4 platform is at the very top 
-   cmd4Line0=$(grep -n '"platforms":' "${configJson}" | cut -d":" -f1)
-   cmd4Line0=$((cmd4Line0 + 1))
-   grep -n '      }' "${configJson}" | grep -v '           }' | cut -d":" -f1 | while read -r line;
-   do
-      if [ "${line}" -gt "${cmd4Line1}" ]; then
-         cmd4Line2="${line}"
-         # extract those lines pertaining to cmd4
-         sed -n "${cmd4Line0},${cmd4Line2}p" "${configJson}" | sed 's/^        //g' > "${cmd4ConfigJson}"
-         # remove those lines pertaining to cmd4 for later use
-         sed "${cmd4Line0},${cmd4Line2}d" "${configJson}" > "${configJson}.Cmd4less"
-         return
-      else
-         cmd4Line0=$((line + 1))
+   noOfPlatforms=$(( $( jq ".platforms|keys" "${configJson}" | wc -w) - 2 ))
+   cmd4PlatformName=$(echo "${cmd4Platform}"|cut -d'"' -f4)
+   for ((i=0; i<noOfPlatforms; i++)); do
+      plaftorm=$( jq ".platforms[${i}].platform" "${configJson}" )
+      if [ "${plaftorm}" = "\"${cmd4PlatformName}\"" ]; then
+         jq --indent 4 ".platforms[${i}]" "${configJson}" > "${cmd4ConfigJson}"
+         jq --indent 4 "del(.platforms[${i}])" "${configJson}" > "${configJson}.Cmd4less"
+         break
       fi
    done
 }
 
-function extractNonAAdevices()
+function extractCmd4ConfigNonAAandAccessoriesNonAA()
 {
-   cp "${cmd4ConfigJson}" "${cmd4ConfigNonAA}"
-   AAline=$(grep -n 'state_cmd' "${cmd4ConfigNonAA}"|grep 'cmd4-advantageair'|cut -d":" -f1|head -n 1)
-
-   until [ -z "${AAline}" ]; do
-      grep -n '"type":' "${cmd4ConfigNonAA}"|grep -v '                    "type":'|cut -d":" -f1|sort -nr|while read -r line;
-      do
-         line1=$((line - 1)) 
-         if [ "${line1}" -lt "${AAline}" ]; then
-            AAline1="${line1}" 
-            grep -n '        }' "${cmd4ConfigNonAA}"|grep -v '           }'|cut -d":" -f1|while read -r AAline2;
-            do
-               if [ "${AAline2}" -gt "${AAline1}" ]; then 
-
-                  # log the deletion
-                  #deviceType=$(sed -n "${line}p" "${cmd4ConfigNonAA}")
-                  #AAline3=$((AAline+1))
-                  #deviceSuffix=$(sed -n "${AAline3}p" "${cmd4ConfigNonAA}"|cut -d":" -f2)
-                  #echo "Deleted AA device:${deviceType}${deviceSuffix}"
-
-                  sed "${AAline1},${AAline2}d" "${cmd4ConfigNonAA}" > "${cmd4ConfigNonAA}.tmp"
-                  mv "${cmd4ConfigNonAA}.tmp"  "${cmd4ConfigNonAA}"
-
-                  break 
-               fi
-            done
-            break
+   AAaccessories=""
+   count=0
+   noOfAccessories=$(( $( jq ".accessories|keys" "${cmd4ConfigJson}" | wc -w) - 2 ))
+   for (( i=0; i<noOfAccessories; i++ )); do
+      cmd4StateCmd=$( jq ".accessories[${i}].state_cmd" "${cmd4ConfigJson}" | grep -n "homebridge-cmd4-advantageair" )
+      # save the ${i} n a string for use to delete the AA accessories from ${cmd4ConfigJson}
+      if [ "${cmd4StateCmd}" != "" ]; then
+         if [ "${AAaccessories}" = "" ]; then
+            AAaccessories="${i}"
+         else
+            AAaccessories="${AAaccessories},${i}"
          fi
-      done
-      AAline=$(grep -n 'state_cmd' "${cmd4ConfigNonAA}"|grep 'cmd4-advantageair'|cut -d ":" -f1|head -n 1)
+      else   # create the non-AA accessories
+         count=$(( count + 1 ))
+         if [ "${count}" -eq 1 ]; then
+            jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" > "${cmd4ConfigAccessoriesNonAA}"
+         else
+            sed '$d' "${cmd4ConfigAccessoriesNonAA}" > "${cmd4ConfigAccessoriesNonAA}.tmp"
+            mv "${cmd4ConfigAccessoriesNonAA}.tmp" "${cmd4ConfigAccessoriesNonAA}"
+            echo "}," >> "${cmd4ConfigAccessoriesNonAA}"
+            jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" >> "${cmd4ConfigAccessoriesNonAA}"
+         fi
+      fi
    done
+
+   # delete the AA accessories to create ${cmd4ConfigNonAA} for use later
+   if [ "${AAaccessories}" = "" ]; then
+      cp "${cmd4ConfigJson}" "${cmd4ConfigNonAA}"
+   else
+      jq --indent 4 "del(.accessories[${AAaccessories}])" "${cmd4ConfigJson}" > "${cmd4ConfigNonAA}"
+   fi
+
+   # check that there are non-AA accessories, if not, remove the file
+   if [ -f "${cmd4ConfigAccessoriesNonAA}" ]; then
+      validFile=$(head -n 1 "${cmd4ConfigAccessoriesNonAA}")
+      if [ "${validFile}" = "" ]; then rm "${cmd4ConfigAccessoriesNonAA}"; fi
+   fi
 }
 
 function extractNonAAconstants()
 {
-   constantsLine=$(grep -n '    "constants":' "${cmd4ConfigNonAA}"|cut -d":" -f1)
-   grep -n '],' "${cmd4ConfigNonAA}"|grep -v '     ]'|cut -d":" -f1|while read -r line;
-   do
-      if [ "${line}" -gt "${constantsLine}" ]; then
-         line1=$((constantsLine + 1))
-         line2=$((line - 1))
-         sed -n "${line1},${line2}p" "${cmd4ConfigNonAA}" > "${cmd4ConfigConstantsNonAA}"
-         break
+   count=0
+   noOfConstans=$(( $( jq ".constants|keys" "${cmd4ConfigNonAA}" | wc -w) - 2 ))
+   for ((i=0; i<noOfConstans; i++)); do
+      key=$( jq ".constants[${i}].key" "${cmd4ConfigNonAA}" )
+      key=${key//\"/}
+      keyUsed=$(grep -n "${key}" "${cmd4ConfigAccessoriesNonAA}"|grep -v 'key'|head -n 1|cut -d":" -f1)
+      if [ -n "${keyUsed}" ]; then
+         count=$(( count + 1 ))
+         if [ "${count}" -eq 1 ]; then
+            jq --indent 4 ".constants[${i}]" "${cmd4ConfigNonAA}" > "${cmd4ConfigConstantsNonAA}"
+         else
+            sed '$d' "${cmd4ConfigConstantsNonAA}" > "${cmd4ConfigConstantsNonAA}.tmp"
+            mv "${cmd4ConfigConstantsNonAA}.tmp" "${cmd4ConfigConstantsNonAA}"
+            echo "}," >> "${cmd4ConfigConstantsNonAA}"
+            jq --indent 4 ".constants[${i}]" "${cmd4ConfigNonAA}" >> "${cmd4ConfigConstantsNonAA}"
+         fi
       fi
    done
-
    if [ -f "${cmd4ConfigConstantsNonAA}" ]; then
-      grep -n 'key' "${cmd4ConfigConstantsNonAA}"|cut -d":" -f3|cut -d "\"" -f2|while read -r key;
-      do
-         keyUsed=$(grep -n "$key" "${cmd4ConfigNonAA}"|grep -v 'key'|head -n 1|cut -d":" -f1)
-         if [ -z "${keyUsed}" ]; then
-            line=$(grep -n "${key}" "${cmd4ConfigConstantsNonAA}"|cut -d":" -f1)
-            line1=$((line - 1))
-            line2=$((line + 2))
-            sed "${line1},${line2}d" "${cmd4ConfigConstantsNonAA}" > "${cmd4ConfigConstantsNonAA}.tmp"
-            mv "${cmd4ConfigConstantsNonAA}.tmp" "${cmd4ConfigConstantsNonAA}"
-            line=$(head -n 1 "${cmd4ConfigConstantsNonAA}")
-            if [ "${line}" = "" ]; then rm -f "${cmd4ConfigConstantsNonAA}"; fi
-         fi
-      done
+      validFile=$(head -n 1 "${cmd4ConfigConstantsNonAA}")
+      if [ "${validFile}" = "" ]; then rm "${cmd4ConfigConstantsNonAA}"; fi
    fi
 }
 
 function extractNonAAqueueTypes()
 {
-   queueTypesLine=$(grep -n '    "queueTypes":' "${cmd4ConfigNonAA}"|cut -d":" -f1)
-   grep -n '],' "${cmd4ConfigNonAA}"|grep -v '     ]'|cut -d":" -f1|while read -r line;
-   do
-      if [ "${line}" -gt "${queueTypesLine}" ]; then
-         line1=$((queueTypesLine + 1))
-         line2=$((line - 1))
-         sed -n "${line1},${line2}p" "${cmd4ConfigNonAA}" > "${cmd4ConfigQueueTypesNonAA}"
-         break
+   count=0
+   noOfQueues=$(( $( jq ".queueTypes|keys" "${cmd4ConfigNonAA}" | wc -w) - 2 ))
+   for ((i=0; i<noOfQueues; i++)); do
+      queue=$( jq ".queueTypes[${i}].queue" "${cmd4ConfigNonAA}" )
+      queueUsed=$(grep -n "${queue}" "${cmd4ConfigAccessoriesNonAA}"|head -n 1)
+      if [ -n "${queueUsed}" ]; then
+         count=$(( count + 1 ))
+         if [ "${count}" -eq 1 ]; then
+            jq --indent 4 ".queueTypes[${i}]" "${cmd4ConfigNonAA}" > "${cmd4ConfigQueueTypesNonAA}"
+         else
+            sed '$d'  "${cmd4ConfigQueueTypesNonAA}" > "${cmd4ConfigQueueTypesNonAA}.tmp"
+            mv "${cmd4ConfigQueueTypesNonAA}.tmp" "${cmd4ConfigQueueTypesNonAA}"
+            echo "}," >> "${cmd4ConfigQueueTypesNonAA}"
+            jq --indent 4 ".queueTypes[${i}]" "${cmd4ConfigNonAA}" >> "${cmd4ConfigQueueTypesNonAA}"
+         fi
       fi
    done
-
    if [ -f "${cmd4ConfigQueueTypesNonAA}" ]; then
-      accessoriesLine=$(grep -n '"accessories":' "${cmd4ConfigNonAA}"|grep -v '     "accessories":'|cut -d":" -f1)
-      grep 'queue' "${cmd4ConfigQueueTypesNonAA}"|grep -v 'queueType'|cut -d":" -f1,2|while read -r queue;
-      do
-         queueLine=$(grep -n "${queue}" "${cmd4ConfigNonAA}"|cut -d":" -f1|sort -nr|head -n 1)
-         if [ "${queueLine}" -lt "${accessoriesLine}" ]; then
-            line=$(grep -n "${queue}" "${cmd4ConfigQueueTypesNonAA}"|cut -d":" -f1)
-            line1=$((line - 1))
-            line2=$((line + 2))
-            sed "${line1},${line2}d" "${cmd4ConfigQueueTypesNonAA}" > "${cmd4ConfigQueueTypesNonAA}.tmp"
-            mv "${cmd4ConfigQueueTypesNonAA}.tmp" "${cmd4ConfigQueueTypesNonAA}"
-            line=$(head -n 1 "${cmd4ConfigQueueTypesNonAA}")
-            if [ "${line}" = "" ]; then rm -f "${cmd4ConfigQueueTypesNonAA}"; fi
-         fi
-      done
+      validFile=$(head -n 1 "${cmd4ConfigQueueTypesNonAA}")
+      if [ "${validFile}" = "" ]; then rm "${cmd4ConfigQueueTypesNonAA}"; fi
    fi
 }
 
-function extractNonAAaccessoriesMisc()
+function extractCmd4MiscKeys()
 {
-   lastLine=$(wc -l "${cmd4ConfigNonAA}"|cut -d" " -f1)
-   accessoriesLine=$(grep -n '"accessories":' "${cmd4ConfigNonAA}"|grep -v '     "accessories":'|cut -d":" -f1)
-   grep -n ']' "${cmd4ConfigNonAA}"|grep -v '      ]'|cut -d":" -f1|while read -r endLine;
-   do
-      if [ "${endLine}" -gt "${accessoriesLine}" ]; then
-         line1=$((accessoriesLine + 1))
-         line2=$((endLine - 1))
-         nLines=$((line2 - line1))
-         if [ "${nLines}" -gt 0 ]; then
-            sed -n "${line1},${line2}p" "${cmd4ConfigNonAA}" > "${cmd4ConfigAccessoriesNonAA}"
-         fi
-         # extract whatever between the end of the last accessory and the end of the file as "Misc non-AA" if any
-         line1=$((endLine + 1))
-         line2=$((lastLine - 1))
-         nLines=$((line2 - line1))
-         if [ "${nLines}" -gt 0 ]; then
-            sed -n "${line1},${line2}p" "${cmd4ConfigNonAA}" > "${cmd4ConfigMiscNonAA}"
-            platformLine=$(grep -n "${cmd4Platform}" "${cmd4ConfigMiscNonAA}"|cut -d":" -f1)
-            if [ -n "${platformLine}" ]; then
-               sed -i "${platformLine}d" "${cmd4ConfigMiscNonAA}" 
-               validFile=$(head -n 1 "${cmd4ConfigMiscNonAA}")
-               if [ -z "${validFile}" ]; then rm -f "${cmd4ConfigMiscNonAA}";fi
-            fi
-         fi
-         break
+   # Extract any misc Cmd4 Keys used for non-AA accessories
+   count=0
+   keys=$( jq ".|keys" "${cmd4ConfigNonAA}" )
+   noOfKeys=$(( $(echo "${keys}" | wc -w) - 2 ))
+   for ((i=0; i<noOfKeys; i++)); do
+      key=$( echo "${keys}" | jq ".[${i}]" )
+      key=${key//\"/}
+      if [[ "${key}" != "platform" && "${key}" != "name" && "${key}" != "debug" && "${key}" != "outputConstants" && "${key}" != "statusMsg" && "${key}" != "timeout" && "${key}" != "stateChangeResponseTime" && "${key}" != "constants" && "${key}" != "queueTypes" && "${key}" != "accessories" ]]; then
+         count=$(( count + 1 ))
+         miscKey=$( echo "${keys}" | jq ".[${i}]" )
+         if [ "${count}" -eq 1 ]; then echo "{" >> "${cmd4ConfigMiscKeys}"; fi
+         if [ "${count}" -gt 1 ]; then echo "," >> "${cmd4ConfigMiscKeys}"; fi
+         echo "${miscKey}:" >> "${cmd4ConfigMiscKeys}"
+         jq --indent 4 ".${miscKey}" "${cmd4ConfigNonAA}" >> "${cmd4ConfigMiscKeys}"
       fi
    done
+   if [ -f "${cmd4ConfigMiscKeys}" ]; then
+      validFile=$(head -n 1 "${cmd4ConfigMiscKeys}")
+      if [ -z "${validFile}" ]; then
+         rm -f "${cmd4ConfigMiscKeys}"
+      else
+         # reformat it to proper json and then remove the "{" and "}" at the begining and the end of the file
+         echo "}" >> "${cmd4ConfigMiscKeys}"
+         jq --indent 4 '.' "${cmd4ConfigMiscKeys}" | sed '1d;$d' > "${cmd4ConfigMiscKeys}".tmp
+         mv "${cmd4ConfigMiscKeys}".tmp "${cmd4ConfigMiscKeys}"
+      fi
+   fi
 }
 
-function extractNonAAconstantsQueueTypesAccessoriesMisc()
+function extractNonAAaccessoriesrConstantsQueueTypesMisc()
 {
-   # extract non-AA devices by removing all the AA devices in cmd4${configJson}
-   extractNonAAdevices
+   # extract non-AA config and non-AA accessories from ${cmd4ConfigJson}
+   extractCmd4ConfigNonAAandAccessoriesNonAA
 
-   # extract non-AA constants                                           
-   extractNonAAconstants
+   # extract non-AA constants and non-AA queueTypes                            
+   if [ -f "${cmd4ConfigAccessoriesNonAA}" ]; then
+      extractNonAAconstants
+      extractNonAAqueueTypes
+   fi
 
-   # extract non-AA quueTypes
-   extractNonAAqueueTypes
-
-   # extract non-AA accessories and some misc. stuff existing in Cmd4
-   extractNonAAaccessoriesMisc
+   # extract some misc. keys existing in Cmd4
+   extractCmd4MiscKeys
 }
 
 function assembleCmd4ConfigJson()
@@ -797,7 +787,7 @@ function assembleCmd4ConfigJsonAAwithNonAA()
    cat "${cmd4ConfigAccessoriesAA}" >> "${cmd4ConfigJsonAAwithNonAA}"
    if [ -f "${cmd4ConfigAccessoriesNonAA}" ]; then cat "${cmd4ConfigAccessoriesNonAA}" >> "${cmd4ConfigJsonAAwithNonAA}"; fi
    cmd4ConstantsQueueTypesAccessoriesMiscFooter "${cmd4ConfigJsonAAwithNonAA}"
-   if [ -f "${cmd4ConfigMiscNonAA}" ]; then cat "${cmd4ConfigMiscNonAA}" >> "${cmd4ConfigJsonAAwithNonAA}"; fi
+   if [ -f "${cmd4ConfigMiscKeys}" ]; then cat "${cmd4ConfigMiscKeys}" >> "${cmd4ConfigJsonAAwithNonAA}"; fi
    cmd4Footer "${cmd4ConfigJsonAAwithNonAA}"
 }
 
@@ -805,31 +795,20 @@ function writeToHomebridgeConfigJson()
 {
    # Writing the created "${cmd4ConfigJsonAAwithNonAA}" to "${configJson}.Cmd4less" to create "${configJsonNew}"
    # before copying to Homebridge config.json
-   
-   # Save the last few lines including the portion with "disabledPlugins" if presence then remove those lines + 1
-   nLine=$(wc -l < "${configJson}.Cmd4less")
-   disabledPluginsLine=$(grep -n '"disabledPlugins":' "${configJson}.Cmd4less" | cut -d":" -f1)
-   if [ "${disabledPluginsLine}" = "" ]; then disabledPluginsLine=nLine; fi
-   tail -n $((nLine - disabledPluginsLine + 2)) "${configJson}.Cmd4less" > "${configJson}.tail"
-   head -n $((disabledPluginsLine - 3)) "${configJson}.Cmd4less" > "${configJsonNew}"
 
-   # Append a line with a curly closing bracket and a comma, getting ready to accept next set of config  
-   echo "        }," >> "${configJsonNew}"
-
-   # Put 8 spaces at the beginning of the ${cmd4ConfigJsonAAwithNonAA} file created earlier before merging with
-   # Homebridge config.json
-   sed -e 's/^/        /' "${cmd4ConfigJsonAAwithNonAA}" > "${cmd4ConfigJsonAAwithNonAA}.tmp"
-
-   # Append the modified Cmd4 config.json to "${configJsonNew}"    
-   cat "${cmd4ConfigJsonAAwithNonAA}.tmp" >> "${configJsonNew}"
-
-   # Append the saved last few lines including the portion with "disabledPlugins" if presence
-   cat "${configJson}.tail" >> "${configJsonNew}"
+   jq --argjson cmd4Config "$(<"${cmd4ConfigJsonAAwithNonAA}")" --indent 4 '.platforms += [$cmd4Config]' "${configJson}.Cmd4less" > "${configJsonNew}"
+   rc=$?
+   if [ "${rc}" != "0" ]; then
+      echo "${TRED}${BOLD}ERROR: Writing of created Cmd4 config to config.json.new failed!${TNRM}"
+      echo "${TLBL}${BOLD}INFO: Instead you can copy/paste the content of \"${cmd4ConfigJsonAA}\" into Cmd4 JASON Config editor.${TNRM}"
+      cleanUp
+      exit 1
+   fi
 
    # Copy the "${configJsonNew}" to Homebridge config.json
-   case $UIversion in 
+   case $UIversion in
       customUI )
-         cp "${configJsonNew}" "${homebridgeConfigJson}" 
+         cp "${configJsonNew}" "${homebridgeConfigJson}"
          rc=$?
       ;;
       nonUI )
@@ -837,11 +816,6 @@ function writeToHomebridgeConfigJson()
          rc=$?
       ;;
    esac
-
-   # cleaning up
-   rm -f "${configJson}.Cmd4less"
-   rm -f "${configJson}.tail"
-   rm -f "${cmd4ConfigJsonAAwithNonAA}.tmp"
 }
 
 function getGlobalNodeModulesPathForFile()
@@ -1054,17 +1028,19 @@ function checkForCmd4PlatformNameInFile()
  
 function cleanUp()
 {
-   rm -f "${cmd4ConfigConstantsAA}"
-   rm -f "${cmd4ConfigConstantsNonAA}"
-   rm -f "${cmd4ConfigQueueTypesAA}"
-   rm -f "${cmd4ConfigQueueTypesNonAA}"
-   rm -f "${cmd4ConfigAccessoriesAA}"
-   rm -f "${cmd4ConfigAccessoriesNonAA}"
-   rm -f "${cmd4ConfigMiscNonAA}"
-   rm -f "${cmd4ConfigJsonAAwithNonAA}"
-   rm -f "${cmd4ConfigNonAA}"
-   rm -f "${cmd4ConfigJson}"
+   # cleaning up
    rm -f "${configJson}"
+   rm -f "${configJson}.Cmd4less"
+   rm -f "${cmd4ConfigJson}"
+   rm -f "${cmd4ConfigConstantsAA}"
+   rm -f "${cmd4ConfigQueueTypesAA}"
+   rm -f "${cmd4ConfigAccessoriesAA}"
+   rm -f "${cmd4ConfigNonAA}"
+   rm -f "${cmd4ConfigConstantsNonAA}"
+   rm -f "${cmd4ConfigQueueTypesNonAA}"
+   rm -f "${cmd4ConfigAccessoriesNonAA}"
+   rm -f "${cmd4ConfigMiscKeys}"
+   rm -f "${cmd4ConfigJsonAAwithNonAA}"
    rm -f "${configJsonNew}"
 }
 
@@ -1168,14 +1144,14 @@ case $UIversion in
       fi
 
       echo ""
-      read -r -p "${TYEL}Set up your \"Fan\" as \"FanSwitch\"? (y/n):${TNRM} " INPUT
+      read -r -p "${TYEL}Set up your \"Fan\" as \"FanSwitch\"? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          fanSetup="fanSwitch"
       else
          fanSetup="fan"
       fi
 
-      read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n):${TNRM} " INPUT
+      read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          timerSetup="includeFancyTimers"
       else
@@ -1250,9 +1226,9 @@ for ((n=1; n<=noOfTablets; n++)); do
   
    if [[ "${n}" = "1" && "${UIversion}" = "nonUI" ]]; then
       echo ""
-      if [ "${noOfTablets}" = "1" ]; then echo "${TLBL}INFO: This process may take up to 1 minute!${TNRM}"; fi
-      if [ "${noOfTablets}" = "2" ]; then echo "${TLBL}INFO: This process may take up to 2 minutes!${TNRM}"; fi
-      if [ "${noOfTablets}" = "3" ]; then echo "${TLBL}INFO: This process may take up to 3 minutes!${TNRM}"; fi
+      if [ "${noOfTablets}" = "1" ]; then echo "${TLBL}${BOLD}INFO: This process may take up to 1 minute!${TNRM}"; fi
+      if [ "${noOfTablets}" = "2" ]; then echo "${TLBL}${BOLD}INFO: This process may take up to 2 minutes!${TNRM}"; fi
+      if [ "${noOfTablets}" = "3" ]; then echo "${TLBL}${BOLD}INFO: This process may take up to 3 minutes!${TNRM}"; fi
    fi
 
    if [ "${UIversion}" = "nonUI" ]; then
@@ -1391,7 +1367,7 @@ readHomebridgeConfigJson
 
 # Extract all non-AA related Cmd4 devices
 extractCmd4ConfigFromConfigJson
-extractNonAAconstantsQueueTypesAccessoriesMisc
+extractNonAAaccessoriesrConstantsQueueTypesMisc
 
 # Assemble a complete Cmd4 configuration file for the specified AA devices(s) with the extracted 
 # non-AA related Cmd4 devices
@@ -1403,7 +1379,6 @@ writeToHomebridgeConfigJson
 if [ "${rc}" = "0" ]; then
    echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}" 
    rm -f "${cmd4ConfigJsonAA}"
-   cleanUp
    if [ "${UIversion}" = "nonUI" ]; then
       getGlobalNodeModulesPathForFile "CheckConfig.sh"
       check1="${fullPath}"
@@ -1413,7 +1388,15 @@ if [ "${rc}" = "0" ]; then
       echo "\$check1"
    fi
 else
-   echo "${TRED}${BOLD}ERROR: Copying of \"${cmd4ConfigJsonAA}\" to Homebridge config.json failed!${TNRM}"
+   # Copying of the new config.json to homebridge config.json failed so restore the homebridge config.json from backup
+   if [ "${UIversion}" = "nonUI" ]; then
+     sudo cp "${configJson}" "${homebridgeConfigJson}"
+   else
+     cp "${configJson}" "${homebridgeConfigJson}"
+   fi
+   echo "${TRED}${BOLD}ERROR: Copying of \"${cmd4ConfigJsonAA}\" to Homebridge config.json failed! Original config.json restored.${TNRM}"
    echo "${TLBL}${BOLD}INFO: Instead you can copy/paste the content of \"${cmd4ConfigJsonAA}\" into Cmd4 JASON Config editor.${TNRM}"
-   cleanUp
 fi
+
+cleanUp
+exit 0
