@@ -814,6 +814,8 @@ function writeToHomebridgeConfigJson()
       nonUI )
          sudo cp "${configJsonNew}" "${homebridgeConfigJson}"
          rc=$?
+         # copy and use the enhanced version of Cmd4PriorityPollingQueue.js if available and Cmd4 version is v7.0.0
+         copyEnhancedCmd4PriorityPollingQueueJs
       ;;
    esac
 }
@@ -830,6 +832,8 @@ function getGlobalNodeModulesPathForFile()
             fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          2)
@@ -837,42 +841,56 @@ function getGlobalNodeModulesPathForFile()
             fullPath="${foundPath}/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return    
+            else
+               fullPath=""
             fi
          ;;
          3)
             fullPath="/var/lib/homebridge/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return   
+            else
+               fullPath=""
             fi
          ;;
          4)
             fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return   
+            else
+               fullPath=""
             fi
          ;;
          5)
             fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          6)
             fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          7)
             fullPath="/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          8)
             fullPath="/opt/homebridge/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
       esac
@@ -882,13 +900,12 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
-   # Typicall HOOBS installation has its config.json root path same as the root path of AdvAir.sh
-   # The typical root path is /var/lib/hoobs/<bridge>/
+   # Typicall HOOBS installation has its config.json root path same as the root path of "AdvAir.sh"
+   # The typical full path to the "AdvAir.sh" script is .../hoobs/<bridge>/node_modules/homebridge-cmd4-advantageair/AdvAir.sh
    # First, determine whether this is a HOOBS installation
-   Hoobs=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f4 )
-   if [ "${Hoobs}" = "hoobs" ]; then
-      rootPath=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f1,2,3,4,5 )
-      fullPath="${rootPath}/config.json"
+   Hoobs=$( echo "$ADVAIR_SH_PATH" | grep "/hoobs/" )
+   if [ -n "${Hoobs}" ]; then
+      fullPath="${ADVAIR_SH_PATH%/*/*/*}/config.json"
       if [ -f "${fullPath}" ]; then
          checkForCmd4PlatformNameInFile
          if [ -z "${cmd4PlatformNameFound}" ]; then
@@ -904,14 +921,24 @@ function getHomebridgeConfigJsonPath()
             # Typical RPi, Synology NAS installations have this path to config.json
             fullPath="/var/lib/homebridge/config.json"
             if [ -f "${fullPath}" ]; then
-               return
+               checkForCmd4PlatformNameInFile
+               if [ -n "${cmd4PlatformNameFound}" ]; then
+                  return
+               else
+                  fullPath=""
+               fi
             fi
          ;;
          2)
             # Typical Mac installation has this path to config.json
             fullPath="$HOME/.homebridge/config.json"
             if [ -f "${fullPath}" ]; then
-               return
+               checkForCmd4PlatformNameInFile
+               if [ -n "${cmd4PlatformNameFound}" ]; then
+                  return
+               else
+                  fullPath=""
+               fi
             fi
          ;;
          3)
@@ -1025,6 +1052,24 @@ function checkForCmd4PlatformNameInFile()
    done
 }
 
+function copyEnhancedCmd4PriorityPollingQueueJs()
+{
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is 7.0.0, then use this enhanced verison.
+   getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
+   if [ -n "${fullPath}" ]; then
+      fullPath_txt="${fullPath}"
+      fullPath_package="${fullPath%/*/*}/homebridge-cmd4/package.json"
+      # check the Cmd4 version
+      Cmd4_version="$(jq '.version' "${fullPath_package}")"
+      if expr "${Cmd4_version}" : '"7.0.0[-a-z0-9]*"' >/dev/null; then
+         fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
+         if sudo cp "${fullPath_txt}" "${fullPath_js}"; then
+            echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
+            echo ""
+         fi
+      fi
+  fi
+}
  
 function cleanUp()
 {

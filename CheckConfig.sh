@@ -24,62 +24,62 @@ TNRM=$(tput sgr0)
 
 function readHomebridgeConfigJson()
 {
-         INPUT=""
-         homebridgeConfigJson=""
-         getHomebridgeConfigJsonPath
-         if [ "${fullPath}" != "" ]; then homebridgeConfigJson="${fullPath}"; fi 
+   INPUT=""
+   homebridgeConfigJson=""
+   getHomebridgeConfigJsonPath
+   if [ "${fullPath}" != "" ]; then homebridgeConfigJson="${fullPath}"; fi 
  
-         # if no config.json file found, ask user to input the full path
-         if [ -z "${homebridgeConfigJson}" ]; then
-            homebridgeConfigJson=""
-            echo ""
-            echo "${TPUR}WARNING: No Homebridge config.json file located by the script!${TNRM}"
-            echo ""
-            until [ -n "${INPUT}" ]; do
-               echo "${TYEL}Please enter the full path of your Homebridge config.json file,"
-               echo "The config.json path should be in the form of /*/*/*/config.json ${TNRM}"
-               read -r -p "${BOLD}> ${TNRM}" INPUT
-               if [ -z "${INPUT}" ]; then
-                  echo "${TPUR}WARNING: No Homebridge config.json file specified"
-                  cleanUp
-                  exit 1
-               elif expr "${INPUT}" : '[./a-zA-Z0-9]*/config.json$' >/dev/null; then
-                  if [ -f "${INPUT}" ]; then
-                     homebridgeConfigJson="${INPUT}"
-                     break
-                  else
-                     echo ""
-                     echo "${TPUR}WARNING: No such file exits!${TNRM}"
-                     echo ""
-                     INPUT=""
-                  fi
-               else
-                  echo ""
-                  echo "${TPUR}WARNING: Wrong format for file path for Homebridge config.json!${TNRM}"
-                  echo ""
-                  INPUT=""
-               fi
-           done
-         fi
-         if [ -f "${homebridgeConfigJson}" ]; then
-            if [ -z "${INPUT}" ]; then
-               echo "${TLBL}INFO: The Homebridge config.json found: ${homebridgeConfigJson}${TNRM}"
-               echo ""
+   # if no config.json file found, ask user to input the full path
+   if [ -z "${homebridgeConfigJson}" ]; then
+      homebridgeConfigJson=""
+      echo ""
+      echo "${TPUR}WARNING: No valid Homebridge config.json file located by the script!${TNRM}"
+      echo ""
+      until [ -n "${INPUT}" ]; do
+         echo "${TYEL}Please enter the full path of your Homebridge config.json file,"
+         echo "The config.json path should be in the form of /*/*/*/config.json ${TNRM}"
+         read -r -p "${BOLD}> ${TNRM}" INPUT
+         if [ -z "${INPUT}" ]; then
+            echo "${TPUR}WARNING: No Homebridge config.json file specified"
+            cleanUp
+            exit 1
+         elif expr "${INPUT}" : '[./a-zA-Z0-9]*/config.json$' >/dev/null; then
+            if [ -f "${INPUT}" ]; then
+                homebridgeConfigJson="${INPUT}"
+                break
             else
                echo ""
-               echo "${TLBL}INFO: The Homebridge config.json specified: ${homebridgeConfigJson}${TNRM}"
+               echo "${TPUR}WARNING: No such file exits!${TNRM}"
                echo ""
+               INPUT=""
             fi
-            # expand the json just in case it is in compact form
-            jq --indent 4 '.' "${homebridgeConfigJson}" > "${configJson}"
-            checkForPlatformCmd4InHomebridgeConfigJson
-            if [ -z "${validFile}" ]; then
-               echo ""
-               echo "${TRED}ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed${TNRM}"
-               cleanUp
-               exit 1
-            fi
+         else
+            echo ""
+            echo "${TPUR}WARNING: Wrong format for file path for Homebridge config.json!${TNRM}"
+            echo ""
+            INPUT=""
          fi
+      done
+   fi
+   if [ -f "${homebridgeConfigJson}" ]; then
+      if [ -z "${INPUT}" ]; then
+         echo "${TLBL}INFO: The Homebridge config.json found: ${homebridgeConfigJson}${TNRM}"
+         echo ""
+      else
+         echo ""
+         echo "${TLBL}INFO: The Homebridge config.json specified: ${homebridgeConfigJson}${TNRM}"
+         echo ""
+      fi
+      # expand the json just in case it is in compact form
+      jq --indent 4 '.' "${homebridgeConfigJson}" > "${configJson}"
+      checkForPlatformCmd4InHomebridgeConfigJson
+      if [ -z "${validFile}" ]; then
+         echo ""
+         echo "${TRED}ERROR: no Cmd4 Config found in \"${homebridgeConfigJson}\"! Please ensure that Homebridge-Cmd4 plugin is installed${TNRM}"
+         cleanUp
+         exit 1
+      fi
+   fi
 }
 
 
@@ -95,6 +95,8 @@ function getGlobalNodeModulesPathForFile()
             fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          2)
@@ -102,42 +104,56 @@ function getGlobalNodeModulesPathForFile()
             fullPath="${foundPath}/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return    
+            else
+               fullPath=""
             fi
          ;;
          3)
             fullPath="/var/lib/homebridge/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          4)
             fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          5)
             fullPath="/usr/local/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          6)
             fullPath="/usr/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          7)
             fullPath="/opt/homebrew/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
          8)
             fullPath="/opt/homebridge/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
                return
+            else
+               fullPath=""
             fi
          ;;
       esac
@@ -147,12 +163,12 @@ function getGlobalNodeModulesPathForFile()
 function getHomebridgeConfigJsonPath()
 {
    fullPath=""
-   # Typical HOOBS installation has the root path to config.json the same as that of AdvAir.sh
+   # Typicall HOOBS installation has its config.json root path same as the root path of "AdvAir.sh"
+   # The typical full path to the "AdvAir.sh" script is .../hoobs/<bridge>/node_modules/hoebridge-cmd4-advantageaiadvantageairr/AdvAir.sh
    # First, determine whether this is a HOOBS installation
-   Hoobs=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f4 )
-   if [ "${Hoobs}" = "hoobs" ]; then
-      rootPath=$( echo "$ADVAIR_SH_PATH" | cut -d"/" -f1,2,3,4,5 )
-      fullPath="${rootPath}/config.json"
+   Hoobs=$( echo "$ADVAIR_SH_PATH" | grep "/hoobs/" )
+   if [ -n "${Hoobs}" ]; then
+      fullPath="${ADVAIR_SH_PATH%/*/*/*}/config.json"
       if [ -f "${fullPath}" ]; then
          checkForCmd4PlatformNameInFile
          if [ -z "${cmd4PlatformNameFound}" ]; then
@@ -167,13 +183,23 @@ function getHomebridgeConfigJsonPath()
          1)
             fullPath="/var/lib/homebridge/config.json"
             if [ -f "${fullPath}" ]; then
-               return
+               checkForCmd4PlatformNameInFile
+               if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  return
+               else
+                  fullPath=""
+               fi
             fi
          ;;
          2)
             fullPath="$HOME/.homebridge/config.json"
             if [ -f "${fullPath}" ]; then
-               return
+               checkForCmd4PlatformNameInFile
+               if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  return
+               else
+                  fullPath=""
+               fi
             fi
          ;;
          3)
