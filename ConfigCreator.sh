@@ -629,28 +629,32 @@ function extractCmd4ConfigNonAAandAccessoriesNonAA()
 {
    AAaccessories=""
    count=0
-   noOfAccessories=$(( $( jq ".accessories|keys" "${cmd4ConfigJson}" | wc -w) - 2 ))
-   for (( i=0; i<noOfAccessories; i++ )); do
-      cmd4StateCmd=$( jq ".accessories[${i}].state_cmd" "${cmd4ConfigJson}" | grep -n "homebridge-cmd4-advantageair" )
-      # save the ${i} n a string for use to delete the AA accessories from ${cmd4ConfigJson}
-      if [ "${cmd4StateCmd}" != "" ]; then
-         if [ "${AAaccessories}" = "" ]; then
-            AAaccessories="${i}"
-         else
-            AAaccessories="${AAaccessories},${i}"
+   presenceOfAccessories=$(jq ".accessories" "${cmd4ConfigJson}")
+   if [ "${presenceOfAccessories}" != "null" ]; then
+      noOfAccessories=$(( $( jq ".accessories|keys" "${cmd4ConfigJson}" | wc -w) - 2 ))
+      for (( i=0; i<noOfAccessories; i++ )); do
+         cmd4StateCmd=$( jq ".accessories[${i}].state_cmd" "${cmd4ConfigJson}" | grep -n "homebridge-cmd4-advantageair" )
+
+         # save the ${i} n a string for use to delete the AA accessories from ${cmd4ConfigJson}
+         if [ "${cmd4StateCmd}" != "" ]; then
+            if [ "${AAaccessories}" = "" ]; then
+               AAaccessories="${i}" 
+            else
+               AAaccessories="${AAaccessories},${i}"
+            fi
+         else   # create the non-AA accessories
+            count=$(( count + 1 ))
+            if [ "${count}" -eq 1 ]; then
+               jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" > "${cmd4ConfigAccessoriesNonAA}"
+            else
+               sed '$d' "${cmd4ConfigAccessoriesNonAA}" > "${cmd4ConfigAccessoriesNonAA}.tmp"
+               mv "${cmd4ConfigAccessoriesNonAA}.tmp" "${cmd4ConfigAccessoriesNonAA}"
+               echo "}," >> "${cmd4ConfigAccessoriesNonAA}"
+               jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" >> "${cmd4ConfigAccessoriesNonAA}"
+            fi
          fi
-      else   # create the non-AA accessories
-         count=$(( count + 1 ))
-         if [ "${count}" -eq 1 ]; then
-            jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" > "${cmd4ConfigAccessoriesNonAA}"
-         else
-            sed '$d' "${cmd4ConfigAccessoriesNonAA}" > "${cmd4ConfigAccessoriesNonAA}.tmp"
-            mv "${cmd4ConfigAccessoriesNonAA}.tmp" "${cmd4ConfigAccessoriesNonAA}"
-            echo "}," >> "${cmd4ConfigAccessoriesNonAA}"
-            jq --indent 4 ".accessories[${i}]" "${cmd4ConfigJson}" >> "${cmd4ConfigAccessoriesNonAA}"
-         fi
-      fi
-   done
+      done
+   fi
 
    # delete the AA accessories to create ${cmd4ConfigNonAA} for use later
    if [ "${AAaccessories}" = "" ]; then
