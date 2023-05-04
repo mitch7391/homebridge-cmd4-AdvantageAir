@@ -1429,12 +1429,9 @@ if [ "${rc}" = "0" ]; then
    echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}" 
    rm -f "${cmd4ConfigJsonAA}"
    if [ "${UIversion}" = "nonUI" ]; then
-      getGlobalNodeModulesPathForFile "CheckConfig.sh"
-      check1="${fullPath}"
       echo ""
-      echo "${TYEL}To run CheckConfig, please copy/paste and run the following two commands to check whether the Cmd4 configuration meets all the requirements${TNRM}"
-      echo "check1=\"${check1}\""
-      echo "\$check1"
+      echo "${TYEL}To run CheckConfig, please copy/paste and run the following command to check whether the Cmd4 configuration meets all the requirements${TNRM}"
+      echo "${ADVAIR_SH_PATH%/*}/CheckConfig.sh"
    fi
 else
    # Copying of the new config.json to homebridge config.json failed so restore the homebridge config.json from backup
