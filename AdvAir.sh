@@ -1660,9 +1660,13 @@ if [ "$io" = "Set" ]; then
       #Light Bulb service for used controlling damper % open and timer
       Brightness )
          if [ $zoneSpecified = true ]; then
-            # Round the $value to its nearst 5%
-            damper=$(($(($((value + 2)) / 5)) * 5))
-            setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}"
+            parseMyAirDataWithJq ".aircons.$ac.zones.$zone.rssi" "1"
+            rssi="${jqResult}"
+            if [ "${rssi}" = "0" ]; then
+               # Round the $value to its nearest 5%
+               damper=$(($(($((value + 2)) / 5)) * 5))
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{value:$damper}}}}"
+            fi
             exit 0
          # settting the fan timer - 10% = 1 hr
          elif [ $fanTimerSpecified = true ]; then
