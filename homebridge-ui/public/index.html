@@ -10,6 +10,9 @@
     <input type="checkbox" id="fanSetup"> "Fan" setup as "FanSwitch"
   </div>
   <div>
+    <input type="checkbox" id="zoneSetup"> Use "Lightbulb" as proxy for zone control 
+  </div>
+  <div>
     <input type="checkbox" id="timerSetup"> Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent 
   </div>
   <div class="form-group">
@@ -83,6 +86,7 @@
     AAdebug3 = "false";
     feedback = "";
     var fanSetup;
+    var zoneSetup;
     var timerSetup;
 
     // get the intial from the config and add it to the form
@@ -124,12 +128,17 @@
       } else {
          fanSetup = "fan";
       }
+      if (document.getElementById("zoneSetup").checked == true) {
+         zoneSetup = "Lightbulb";
+      } else {
+         zoneSetup = "Switch";
+      }
       if (document.getElementById("timerSetup").checked == true) {
          timerSetup = "includeFancyTimers";
-         document.querySelector('#feedbackOutput').value = fanSetup + " and " + timerSetup;
+         document.querySelector('#feedbackOutput').value = fanSetup + ", " + "zone" + zoneSetup + " and " + timerSetup;
       } else {
          timerSetup = "noFancyTimers";
-         document.querySelector('#feedbackOutput').value = fanSetup + " but " + timerSetup;
+         document.querySelector('#feedbackOutput').value = fanSetup + ", " + "zone" + zoneSetup + " but " + timerSetup;
       }
 
 
@@ -160,6 +169,7 @@
           name3: AAname3,
           debug3: AAdebug3,
           fanSetup: fanSetup,
+          zoneSetup: zoneSetup,
           timerSetup: timerSetup,
           feedback: feedback 
         });
