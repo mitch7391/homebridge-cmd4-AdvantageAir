@@ -126,6 +126,13 @@ class Cmd4PriorityPollingQueue
                value = Math.round( value / 5 ) * 5;
                this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( value );
             }
+            if ( this.displayName.match ( / Zone-T$/ ) && characteristicString == 'Brightness' )
+            {
+               let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
+               this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( storedValue );
+               // Do not allow the setting of % zone open so abort the Set request
+               return;
+            }
             // set the value to 25% if value <= 33% else 50% if value <=67% else 90% if value <=99% for Aircon RotationSpeed
             if ( this.displayName.match( / FanSpeed$/ ) && characteristicString == 'RotationSpeed' && value < 100 )
             {
