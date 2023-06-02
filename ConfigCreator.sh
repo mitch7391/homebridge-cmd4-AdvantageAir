@@ -37,8 +37,9 @@ AAIP3="$7"
 AAname3="$8"
 AAdebug3="$9"
 fanSetup="${10}"
-timerSetup="${11}"
-ADVAIR_SH_PATH="${12}"
+zoneSetup="${11}"
+timerSetup="${12}"
+ADVAIR_SH_PATH="${13}"
 
 # define the possible names for cmd4 platform
 cmd4Platform=""
@@ -1200,6 +1201,13 @@ case $UIversion in
          fanSetup="fan"
       fi
 
+      read -r -p "${TYEL}Set up your Zone Control using \"Lightbulb\" as proxy? (y/n, default=n):${TNRM} " INPUT
+      if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
+         zoneSetup="Lightbulb"
+      else
+         zoneSetup="Switch"
+      fi
+
       read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          timerSetup="includeFancyTimers"
@@ -1208,6 +1216,7 @@ case $UIversion in
       fi
       echo ""
       echo "${TLBL}INFO: fanSetup=${fanSetup}${TNRM}"
+      echo "${TLBL}INFO: zoneSetup=${zoneSetup}${TNRM}"
       echo "${TLBL}INFO: timerSetup=${timerSetup}${TNRM}"
       echo ""
 
@@ -1353,6 +1362,8 @@ for ((n=1; n<=noOfTablets; n++)); do
                rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
                if [ "${rssi}" = "0" ]; then
                   cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
+               elif [ "${zoneSetup}" = "Lightbulb" ]; then
+                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone-T"
                else
                   cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name Zone"
                fi
