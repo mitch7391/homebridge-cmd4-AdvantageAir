@@ -50,6 +50,7 @@ class UiServer extends HomebridgePluginUiServer
       if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2,payload.debug2)}
       if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3,payload.debug3)}
       console.log('Fan setup instruction:', payload.fanSetup);
+      console.log('Zone setup instruction:', payload.zoneSetup);
       console.log('Timer setup instruction:', payload.timerSetup);
 
       try {
@@ -58,7 +59,7 @@ class UiServer extends HomebridgePluginUiServer
 
          //This spawns a child process which runs a bash script
          const spawnSync = require('child_process').spawnSync;
-         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip,payload.name,payload.debug,payload.ip2,payload.name2,payload.debug2,payload.ip3,payload.name3,payload.debug3,payload.fanSetup,payload.timerSetup,AdvAir_shPath], {encoding: 'utf8'});
+         let FeedBack = spawnSync(ConfigCreator_shPath, [payload.ip,payload.name,payload.debug,payload.ip2,payload.name2,payload.debug2,payload.ip3,payload.name3,payload.debug3,payload.fanSetup,payload.zoneSetup,payload.timerSetup,AdvAir_shPath], {encoding: 'utf8'});
          let feedback = `${ FeedBack.stdout.replace(/\n*$/, "")}`
 
          // return data to the ui
