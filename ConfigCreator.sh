@@ -1066,7 +1066,7 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
       fullPath_package="${fullPath%/*/*}/homebridge-cmd4/package.json"
       # check the Cmd4 version
       Cmd4_version="$(jq '.version' "${fullPath_package}")"
-      if expr "${Cmd4_version}" : '"7.0.1"' >/dev/null; then
+      if expr "${Cmd4_version}" : '"7.0.[0-1][-a-z0-9]*"' >/dev/null; then
          fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
          if sudo cp "${fullPath_txt}" "${fullPath_js}"; then
             echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
