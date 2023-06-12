@@ -1059,14 +1059,14 @@ function checkForCmd4PlatformNameInFile()
 
 function copyEnhancedCmd4PriorityPollingQueueJs()
 {
-   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is 7.0.0, then use this enhanced verison.
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is 7.0.1, then use this enhanced verison.
    getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
    if [ -n "${fullPath}" ]; then
       fullPath_txt="${fullPath}"
       fullPath_package="${fullPath%/*/*}/homebridge-cmd4/package.json"
       # check the Cmd4 version
       Cmd4_version="$(jq '.version' "${fullPath_package}")"
-      if expr "${Cmd4_version}" : '"7.0.0[-a-z0-9]*"' >/dev/null; then
+      if expr "${Cmd4_version}" : '"7.0.1"' >/dev/null; then
          fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
          if sudo cp "${fullPath_txt}" "${fullPath_js}"; then
             echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
