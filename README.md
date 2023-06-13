@@ -124,9 +124,13 @@ apk add curl
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
 10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
+
     a. `"Fan" setup as "FanSwitch"`
+    
     b. `Use "Lightbulb" as proxy as all Zone Control`
+    
     c. `Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent`
+    
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
 <p align="center">
