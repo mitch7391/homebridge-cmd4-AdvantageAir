@@ -42,7 +42,7 @@
                "motionConfig":0,
                "name":"FAMILY",
                "number":1,
-               "rssi":57,
+               "rssi":0,
                "setTemp":23.0,
                "state":"open",
                "value":100,
