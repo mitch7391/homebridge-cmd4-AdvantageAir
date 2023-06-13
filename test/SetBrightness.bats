@@ -25,16 +25,16 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Set Blah Brightness 85 z01 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Set Blah Brightness 85 z02 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
-   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z01:{value:85}}}}"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[3]}" "Setting url: http://127.0.0.1:2025/setAircon?json={ac1:{zones:{z02:{value:85}}}}"
    assert_equal "${lines[4]}" "Try 0"
-   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.zones.z01.value=85"
+   assert_equal "${lines[5]}" "Setting json: .aircons.ac1.zones.z02.value=85"
    # No more lines than expected
    assert_equal "${#lines[@]}" 6
 }
@@ -45,13 +45,13 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/basicPassingSystemData.txt"
-   run ../AdvAir.sh Set Blah Brightness 85 z02 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Set Blah Brightness 85 z01 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    # AdvAir.sh does a get first
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
    # No longer the same
-   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z02.rssi"
+   assert_equal "${lines[2]}" "Parsing for jqPath: .aircons.ac1.zones.z01.rssi"
    # No more lines than expected
    assert_equal "${#lines[@]}" 3
 }
