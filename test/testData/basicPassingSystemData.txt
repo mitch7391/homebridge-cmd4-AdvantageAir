@@ -58,7 +58,7 @@
                "motionConfig":0,
                "name":"THEATRE",
                "number":2,
-               "rssi":0,
+               "rssi":42,
                "setTemp":23.0,
                "state":"close",
                "value":100,
