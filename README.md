@@ -127,7 +127,7 @@ apk add curl
 
     a. `"Fan" setup as "FanSwitch"`
     
-    b. `Use "Lightbulb" as proxy as all Zone Control`
+    b. `Use "Lightbulb" as proxy for all Zone Controls`
     
     c. `Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent`
     
