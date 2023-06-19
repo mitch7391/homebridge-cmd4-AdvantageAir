@@ -139,11 +139,11 @@ apk add curl
 
 ![Advantage Air Shell Check Error](Screenshots/AdvAirShellCheckError.png)
 
-12. Optioinally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could run the following command to get some enhancement in performance:
+12. Optionally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could run the following command to get some enhancement in performance:
 
-`<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJS.sh`
+     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJS.sh`
 
-`<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
+     `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
