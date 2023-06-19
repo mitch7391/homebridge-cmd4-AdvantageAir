@@ -814,15 +814,19 @@ function writeToHomebridgeConfigJson()
    case $UIversion in
       customUI )
          cp "${configJsonNew}" "${homebridgeConfigJson}"
+         rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
          rc=$?
       ;;
       nonUI )
          sudo cp "${configJsonNew}" "${homebridgeConfigJson}"
+         sudo rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
          rc=$?
-         # copy and use the enhanced version of Cmd4PriorityPollingQueue.js if available and Cmd4 version is v7.0.0
-         copyEnhancedCmd4PriorityPollingQueueJs
       ;;
    esac
+   if [ "${rc}" = "0" ]; then
+      # copy and use the enhanced version of Cmd4PriorityPollingQueue.js if available and Cmd4 version is v7.0.0-beta2 or v7.0.1
+      copyEnhancedCmd4PriorityPollingQueueJs
+   fi
 }
 
 function getGlobalNodeModulesPathForFile()
@@ -1059,7 +1063,8 @@ function checkForCmd4PlatformNameInFile()
 
 function copyEnhancedCmd4PriorityPollingQueueJs()
 {
-   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is 7.0.1, then use this enhanced verison.
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0-beta2 or v7.0.1, 
+   # then use this enhanced verison.
    getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
    if [ -n "${fullPath}" ]; then
       fullPath_txt="${fullPath}"
@@ -1068,9 +1073,18 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
       Cmd4_version="$(jq '.version' "${fullPath_package}")"
       if expr "${Cmd4_version}" : '"7.0.[0-1][-a-z0-9]*"' >/dev/null; then
          fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
-         if sudo cp "${fullPath_txt}" "${fullPath_js}"; then
+         sudo cp "${fullPath_txt}" "${fullPath_js}"
+         rc1=$?
+         if [ "${rc1}" = "0" ]; then
             echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
             echo ""
+         else
+            { echo "#!/bin/bash" 
+              echo ""
+              echo "sudo cp ${fullPath_txt} ${fullPath_js}"
+              echo "exit 0"
+            } > "copyEnhancedCmd4PriorityPollingQueueJs.sh"
+            chmod +x "copyEnhancedCmd4PriorityPollingQueueJs.sh"
          fi
       fi
   fi
