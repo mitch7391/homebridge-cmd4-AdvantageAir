@@ -42,7 +42,7 @@ No affiliation with Advantage Air.
 ## How It Looks:
 ### Air Conditioning - Thermostat Mode (with Fan Speed) and Fan Mode:
 <p align="left">
-<img src="Screenshots/Aircon.png" width="295" height="640">
+<img src="Screenshots/Aircon.png" width="250" height="544">
 <img src="Screenshots/Fan.png" width="295" height="640">
 </p>
 
