@@ -75,11 +75,15 @@ No affiliation with Advantage Air.
 1. Install Homebridge via these instructions for [Raspbian](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian), [HOOBS](https://support.hoobs.org/docs) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function. Once installed, a pop-up box with a small config in it will appear. Do not edit anything and make sure you click `SAVE`.
 
-![Install Cmd4](Screenshots/cmd4Install.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/cmd4Install.png">
+     </p>
 
 3. Install `homebridge-cmd4-AdvantageAir` plug-in via the Homebridge UI 'plugins' tab search function.
 
-![Install Cmd4 Advantage Air](Screenshots/cmd4AdvAirInstall.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/cmd4AdvAirInstall.png">
+     </p>
 
 4. Install <B>jq</B> via your Homebridge UI terminal or through ssh: 
 ```shell
