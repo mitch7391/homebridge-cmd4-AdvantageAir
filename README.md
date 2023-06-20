@@ -125,8 +125,7 @@ apk add curl
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
 10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
     <p align="left">
-    <img width="584px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
-    </p>
+    <img width="584px" src="Screenshots/Checkbox_fan-as-fanswitch.png"></p>
     "FanSwitch" setup allows the fanSpeed to be displayed on Homekit tile when the Aircon is turned on and is in Cool, Heat or Dry (Auto) mode.
 
     <p align="left">
