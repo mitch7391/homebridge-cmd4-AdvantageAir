@@ -126,9 +126,9 @@ apk add curl
 10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
 
     a. `"Fan" setup as "FanSwitch"`
-  <p align="left">
-  <img width="512px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
-  </p>
+    <p align="left">
+    <img width="512px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
+    </p>
     
     b. `Use "Lightbulb" as proxy for all Zone Controls`
     
