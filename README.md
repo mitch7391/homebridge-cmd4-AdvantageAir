@@ -127,7 +127,7 @@ apk add curl
 
     a. `"Fan" setup as "FanSwitch"`
     <p align="left">
-    <img width="384px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
+    <img width="512px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
     </p>
     
     b. `Use "Lightbulb" as proxy for all Zone Controls`
