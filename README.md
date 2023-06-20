@@ -44,6 +44,7 @@ No affiliation with Advantage Air.
 <p align="left">
 <img src="Screenshots/Aircon.png" width="295" height="640">
 <img src="Screenshots/Fan.png" width="295" height="640">
+<img src="Screenshots/Aircon_fanSwitch.png" width="295" height="640">
 </p>
 
 ### Air Conditioning - Zone Control and Temperature Sensors:
