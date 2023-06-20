@@ -40,7 +40,7 @@ No affiliation with Advantage Air.
 
 
 ## How It Looks:
-### Air Conditioning - Thermostat Mode (with Fan Speed), Fan Mode and FanSwitch Mode:
+### Air Conditioning - Thermostat Mode (with Fan Speed) and Fan or FanSwitch Mode:
 <p align="left">
 <img src="Screenshots/Aircon.png" width="295" height="640">
 <img src="Screenshots/Fan.png" width="295" height="640">
