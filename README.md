@@ -131,9 +131,14 @@ apk add curl
     </p>
     
      - [x] `Use "Lightbulb" as proxy for all Zone Controls`
+    <p align="left">
+    <img width="512px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
+    </p>
     
      - [x] `Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent`
-    
+    <p align="left">
+    <img width="512px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
+    </p>    
 12. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
 <p align="center">
