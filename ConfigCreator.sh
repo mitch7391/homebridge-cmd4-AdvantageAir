@@ -814,13 +814,13 @@ function writeToHomebridgeConfigJson()
    case $UIversion in
       customUI )
          cp "${configJsonNew}" "${homebridgeConfigJson}"
-         rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
          rc=$?
+         rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
       ;;
       nonUI )
          sudo cp "${configJsonNew}" "${homebridgeConfigJson}"
-         sudo rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
          rc=$?
+         sudo rm -f "${homebridgeConfigJson%/*}/copyEnhancedCmd4PriorityPollingQueueJs.sh"
       ;;
    esac
    if [ "${rc}" = "0" ]; then
