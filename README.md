@@ -119,8 +119,9 @@ apk add curl
 * HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#hoobs-terminal-instructions).
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
-
-![Advantage Air Shell Check](Screenshots/AdvAirConfigCreator.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
+     </p>
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
 10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
@@ -144,13 +145,13 @@ apk add curl
     
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
-<p align="left">
-  <img width="256px" src="Screenshots/AdvAirShellCheckPassed.png">
-</p>
+     <p align="left">
+     <img width="256px" src="Screenshots/AdvAirShellCheckPassed.png">
+     </p>
 
-<p align="left">
-  <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
-</p>
+     <p align="left">
+     <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
+     </p>
 
 12. Optionally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could make use of the optimised version of Cmd4PriorityPollingQueue.js module by running the following script to get some improvement in performance:
 
