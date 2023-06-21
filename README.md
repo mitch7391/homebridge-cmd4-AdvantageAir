@@ -83,7 +83,7 @@ No affiliation with Advantage Air.
 3. Install `homebridge-cmd4-AdvantageAir` plug-in via the Homebridge UI 'plugins' tab search function.
 
      <p align="left">
-     <img width="900px" src="Screenshots/cmd4AdvAirInstall.png">
+     <img width="800px" src="Screenshots/cmd4AdvAirInstall.png">
      </p>
 
 4. Install <B>jq</B> via your Homebridge UI terminal or through ssh: 
@@ -125,7 +125,7 @@ apk add curl
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
      <p align="left">
-     <img width="900px" src="Screenshots/AdvAirConfigCreator.png">
+     <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
      </p>
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
@@ -157,7 +157,7 @@ apk add curl
      </p>
 
      <p align="left">
-     <img width="900px" src="Screenshots/AdvAirShellCheckError.png">
+     <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
      </p>
 
 12. Optionally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could make use of the optimised version of Cmd4PriorityPollingQueue.js module by running the following script to get some improvement in performance:
