@@ -135,7 +135,7 @@ apk add curl
     </p>
        "FanSwitch" setup allows the fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
     <p align="left">
-    <img width="480px" src="Screenshots/FanSwitch_setup.png">
+    <img width="360px" src="Screenshots/FanSwitch_setup.png">
     </p>
 
     <p align="left">
