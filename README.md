@@ -153,7 +153,7 @@ apk add curl
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
      <p align="left">
-     <img width="295px" src="Screenshots/AdvAirShellCheckPassed.png">
+     <img width="360px" src="Screenshots/AdvAirShellCheckPassed.png">
      </p>
 
      <p align="left">
