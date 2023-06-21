@@ -143,11 +143,11 @@ apk add curl
     </p>
     This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors. The advantage of using "Lightbulb" accessory as proxy is to have the zone % open shown on the Homekit tile eventhough it is not users controllable.
     <p align="left">
-    <img width="584px" src="Screenshots/Lightbulb_as_proxy.png">
+    <img width="480px" src="Screenshots/Lightbulb_as_proxy.png">
     </p>
 
     <p align="left">
-    <img width="480px" src="Screenshots/Checkbox_fancy-timers.png">
+    <img width="584px" src="Screenshots/Checkbox_fancy-timers.png">
     </p>    
             This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
 
