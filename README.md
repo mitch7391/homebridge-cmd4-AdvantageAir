@@ -143,7 +143,7 @@ apk add curl
     </p>
     This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors. The advantage of using "Lightbulb" accessory as proxy is to have the zone % open shown on the Homekit tile eventhough it is not users controllable.
     <p align="left">
-    <img width="480px" src="Screenshots/Lightbulb_as_proxy.png">
+    <img width="450px" src="Screenshots/Lightbulb-as-proxy.png">
     </p>
 
     <p align="left">
