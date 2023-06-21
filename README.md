@@ -147,7 +147,7 @@ apk add curl
     </p>
 
     <p align="left">
-    <img width="584px" src="Screenshots/Checkbox_fancy-timers.png">
+    <img width="480px" src="Screenshots/Checkbox_fancy-timers.png">
     </p>    
             This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
 
