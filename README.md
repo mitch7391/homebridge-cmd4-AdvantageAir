@@ -133,16 +133,18 @@ apk add curl
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
     </p>
-            "FanSwitch" setup allows the current fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
-         <p align="left">
-         <img width="420px" src="Screenshots/FanSwitch_setup.png">
-         </p>
+    "FanSwitch" setup allows the current fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
+    <p align="left">
+    <img width="420px" src="Screenshots/FanSwitch_setup.png">
+    </p>
 
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_lightbulb-as-proxy.png">
     </p>
-            This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors.
-
+    This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors. The advantage of using "Lightbulb" accessory as proxy is to have the zone % open shown on the Homekit tile eventhough it is not users controllable.
+    <p align="left">
+    <img width="584px" src="Screenshots/Lightbulb_as_proxy.png">
+    </p>
 
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_fancy-timers.png">
