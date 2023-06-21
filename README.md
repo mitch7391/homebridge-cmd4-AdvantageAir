@@ -133,21 +133,21 @@ apk add curl
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
     </p>
-       "FanSwitch" setup allows the fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
-    <p align="left">
-    <img width="360px" src="Screenshots/FanSwitch_setup.png">
-    </p>
+            "FanSwitch" setup allows the fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
+         <p align="left">
+         <img width="360px" src="Screenshots/FanSwitch_setup.png">
+         </p>
 
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_lightbulb-as-proxy.png">
     </p>
-       This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors.
+            This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors.
 
 
     <p align="left">
     <img width="584px" src="Screenshots/Checkbox_fancy-timers.png">
     </p>    
-       This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
+            This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
 
     
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
