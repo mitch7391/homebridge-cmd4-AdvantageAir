@@ -295,12 +295,17 @@ function queryCachedAirCon()
             dt=$((t2 - t0))  # time-taken for curl command to complete
             logQueryAirConDiagnostic "queryCachedAirCon_curl  $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
          else
+            echo "{}" > "$MY_AIRDATA_FILE"
+            echo "$t2" > "$dateFile" 
+            logQueryAirConDiagnostic "queryCachedAirCon_curl_invalid $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
             # just in case
             unset myAirData
          fi
       else
-         unset myAirData
+         echo "{}" > "$MY_AIRDATA_FILE"
+         echo "$t2" > "$dateFile" 
          logQueryAirConDiagnostic "queryCachedAirCon_curl_failed $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
+         unset myAirData
       fi
       rm "$lockFile"
 
