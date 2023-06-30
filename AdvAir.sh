@@ -295,15 +295,15 @@ function queryCachedAirCon()
             dt=$((t2 - t0))  # time-taken for curl command to complete
             logQueryAirConDiagnostic "queryCachedAirCon_curl  $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
          else
-            rm -f "$MY_AIRDATA_FILE"
-            rm -f "$dateFile" 
+            echo "{}" > "$MY_AIRDATA_FILE"
+            echo "$t2" > "$dateFile" 
             logQueryAirConDiagnostic "queryCachedAirCon_curl_invalid $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
             # just in case
             unset myAirData
          fi
       else
-         rm -f "$MY_AIRDATA_FILE"
-         rm -f "$dateFile" 
+         echo "{}" > "$MY_AIRDATA_FILE"
+         echo "$t2" > "$dateFile" 
          logQueryAirConDiagnostic "queryCachedAirCon_curl_failed $t0 $t2 $dt $useFileCache rc=$rc itr=$iteration $io $device $characteristic $url"
          unset myAirData
       fi
@@ -335,7 +335,7 @@ function isMyAirDataSameAsCached()
 
    myAirData_cached=$(cat "$MY_AIRDATA_FILE")
 
-   if [ "$myAirData" = "$myAirData_cached" ]; then
+   if [[ "$myAirData_cached" = "$myAirData" || "$myAirData_cached" = "{}" ]]; then
       sameAsCached=true
       return
    fi
