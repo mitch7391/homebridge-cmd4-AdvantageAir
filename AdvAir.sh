@@ -335,8 +335,10 @@ function isMyAirDataSameAsCached()
 
    myAirData_cached=$(cat "$MY_AIRDATA_FILE")
 
-   if [[ "$myAirData_cached" = "$myAirData" || "$myAirData_cached" = "{}" ]]; then
+   if [ "$myAirData_cached" = "$myAirData" ]; then
       sameAsCached=true
+      return
+   elif [ "$myAirData_cached" = "{}" ]; then
       return
    fi
    # For aircon system with temperature sensors, "rssi" and "measuredTemp" are changing all the time
