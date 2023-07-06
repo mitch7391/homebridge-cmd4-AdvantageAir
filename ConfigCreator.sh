@@ -1063,15 +1063,15 @@ function checkForCmd4PlatformNameInFile()
 
 function copyEnhancedCmd4PriorityPollingQueueJs()
 {
-   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0-beta2 or v7.0.1, 
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0 or v7.0.1, 
    # then use this enhanced verison.
    getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
-   if [ -n "${fullPath}" ]; then
+   if [ -f "${fullPath}" ]; then
       fullPath_txt="${fullPath}"
       fullPath_package="${fullPath%/*/*}/homebridge-cmd4/package.json"
       # check the Cmd4 version
       Cmd4_version="$(jq '.version' "${fullPath_package}")"
-      if expr "${Cmd4_version}" : '"7.0.[0-1][-a-z0-9]*"' >/dev/null; then
+      if expr "${Cmd4_version}" : '"7.0.[0-1]"' >/dev/null; then
          fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
          sudo cp "${fullPath_txt}" "${fullPath_js}"
          rc1=$?
@@ -1081,7 +1081,31 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
          else
             { echo "#!/bin/bash" 
               echo ""
-              echo "sudo cp ${fullPath_txt} ${fullPath_js}"
+              echo "# This script will copy the enhanced version of Cmd4PriorityPollingQueue.js module to Cmd4 plugin."      
+              echo "# This will improve the performance of \"Cmd4-AdvantageAir\" plugin."
+              echo ""
+              echo "# fun color stuff"
+              echo "BOLD=\$(tput bold)"
+              echo "TRED=\$(tput setaf 1)"
+              echo "TLBL=\$(tput setaf 6)"
+              echo "TNRM=\$(tput sgr0)"
+              echo ""
+              echo "if [ -f ${fullPath} ]; then"
+              echo "   # check the Cmd4 version whether it is v7.0.0 or v7.0.1"
+              echo "   Cmd4_version=$(jq '.version' ${fullPath_package})"
+              echo "   if expr \${Cmd4_version} : '7.0.[0-1]' >/dev/null; then"
+              echo "      sudo cp ${fullPath_txt} ${fullPath_js}"
+              echo "      rc1=$?"
+              echo "      if [ \"\${rc1}\" = \"0\" ]; then"
+              echo "         echo \"\${TLBL}INFO: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TLBL} was located and copied to Cmd4 plugin.\${TNRM}\""
+              echo "      else"
+              echo "         echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin,\${TNRM}\""
+              echo "         echo \"\${TRED}ERROR: because the Cmd4 version is \${Cmd4_version}. It has to be v7.0.0 or v7.0.1.\${TNRM}\""
+              echo "      fi"
+              echo "   fi"
+              echo "else"
+              echo "   echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT located.\${TNRM}\""
+              echo "fi"
               echo "exit 0"
             } > "copyEnhancedCmd4PriorityPollingQueueJs.sh"
             chmod +x "copyEnhancedCmd4PriorityPollingQueueJs.sh"
