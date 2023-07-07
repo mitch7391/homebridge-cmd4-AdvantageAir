@@ -1093,7 +1093,7 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
               echo "if [ -f ${fullPath} ]; then"
               echo "   # check the Cmd4 version whether it is v7.0.0 or v7.0.1"
               echo "   Cmd4_version=\$(jq '.version' ${fullPath_package})"
-              echo "   if expr \${Cmd4_version} : '\"7.0.[0-1]\"' >/dev/null; then"
+              echo "   if expr \"\${Cmd4_version}\" : '\"7.0.[0-1]\"' >/dev/null; then"
               echo "      sudo cp ${fullPath_txt} ${fullPath_js}"
               echo "      rc1=$?"
               echo "      if [ \"\${rc1}\" = \"0\" ]; then"
