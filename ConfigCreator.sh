@@ -1095,7 +1095,7 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
               echo "   Cmd4_version=\$(jq '.version' ${fullPath_package})"
               echo "   if expr \"\${Cmd4_version}\" : '\"7.0.[0-1]\"' >/dev/null; then"
               echo "      sudo cp ${fullPath_txt} ${fullPath_js}"
-              echo "      rc1=$?"
+              echo "      rc1=\$?"
               echo "      if [ \"\${rc1}\" = \"0\" ]; then"
               echo "         echo \"\${TLBL}INFO: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TLBL} was located and copied to Cmd4 plugin.\${TNRM}\""
               echo "      else"
