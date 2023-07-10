@@ -167,7 +167,8 @@ apk add curl
      `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJS.sh`
 
      `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
-     Restart homebridge for the change to take effect.
+
+    Restart homebridge for the change to take effect.
 
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
