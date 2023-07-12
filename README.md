@@ -164,7 +164,7 @@ apk add curl
 
 12. Optionally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could make use of the optimised version of Cmd4PriorityPollingQueue.js module by running the following script to get some improvement in performance:
 
-     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJS.sh`
+     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJs.sh`
 
      `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
