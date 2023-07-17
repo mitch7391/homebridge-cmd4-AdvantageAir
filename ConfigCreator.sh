@@ -1439,7 +1439,7 @@ for ((n=1; n<=noOfTablets; n++)); do
                if [ "${rssi}" = "0" ]; then
                   cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
                elif [ "${zoneSetup}" = "Lightbulb" ]; then
-                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone-T"
+                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
                else
                   cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name Zone"
                fi
