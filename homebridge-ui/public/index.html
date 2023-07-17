@@ -77,12 +77,15 @@
 
     AAIP = "";
     AAname = "";
+    AAport = "2025"
     AAdebug = "false";
     AAIP2 = "";
     AAname2 = "";
+    AAport2 = "2025"
     AAdebug2 = "false";
     AAIP3 = "";
     AAname3 = "";
+    AAport3 = "2025"
     AAdebug3 = "false";
     feedback = "";
     var fanSetup;
@@ -94,16 +97,19 @@
       if (pluginConfig[0].devices.length >= 1) {
         AAIP = pluginConfig[0].devices[0].ipAddress;
         AAname = pluginConfig[0].devices[0].name;
+        AAport = pluginConfig[0].devices[0].port;
         AAdebug = pluginConfig[0].devices[0].debug;
       }
       if (pluginConfig[0].devices.length >= 2) {
         AAIP2 = pluginConfig[0].devices[1].ipAddress;
         AAname2 = pluginConfig[0].devices[1].name;
+        AAport2 = pluginConfig[0].devices[1].port;
         AAdebug2 = pluginConfig[0].devices[1].debug;
       }
       if (pluginConfig[0].devices.length >= 3) {
         AAIP3 = pluginConfig[0].devices[2].ipAddress;
         AAname3 = pluginConfig[0].devices[2].name;
+        AAport3 = pluginConfig[0].devices[2].port;
         AAdebug3 = pluginConfig[0].devices[2].debug;
       }
     }
@@ -161,12 +167,15 @@
         const response = await homebridge.request('/configcreator', {
           ip: AAIP,
           name: AAname,
+          port: AAport,
           debug: AAdebug,
           ip2: AAIP2,
           name2: AAname2,
+          port2: AAport2,
           debug2: AAdebug2,
           ip3: AAIP3,
           name3: AAname3,
+          port3: AAport3,
           debug3: AAdebug3,
           fanSetup: fanSetup,
           zoneSetup: zoneSetup,
