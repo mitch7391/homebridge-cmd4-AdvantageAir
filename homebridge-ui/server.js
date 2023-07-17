@@ -46,9 +46,21 @@ class UiServer extends HomebridgePluginUiServer
    }
 
    async ConfigCreator(payload) {
-      if (payload.ip !== "") {console.log('Processing AA system:', payload.name,payload.ip,payload.debug)}
-      if (payload.ip2 !== "") {console.log('Processing AA system:', payload.name2,payload.ip2,payload.debug2)}
-      if (payload.ip3 !== "") {console.log('Processing AA system:', payload.name3,payload.ip3,payload.debug3)}
+      if (payload.ip !== "") {
+         payload.ip += ':';
+         payload.ip += payload.port;
+         console.log('Processing AA system:', payload.name,payload.ip,payload.debug);
+      }
+      if (payload.ip2 !== "") {
+         payload.ip2 += ':';
+         payload.ip2 += payload.port2;
+         console.log('Processing AA system:', payload.name2,payload.ip2,payload.debug2);
+      }
+      if (payload.ip3 !== "") {
+         payload.ip3 += ':';
+         payload.ip3 += payload.port3;
+         console.log('Processing AA system:', payload.name3,payload.ip3,payload.debug3);
+      }
       console.log('Fan setup instruction:', payload.fanSetup);
       console.log('Zone setup instruction:', payload.zoneSetup);
       console.log('Timer setup instruction:', payload.timerSetup);
