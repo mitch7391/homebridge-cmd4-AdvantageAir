@@ -1141,18 +1141,26 @@ if [ -z "${ADVAIR_SH_PATH}" ]; then UIversion="nonUI"; fi
 case $UIversion in
    customUI )
       if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-         echo ""
+         AAIP="${AAIP}:2025"
       else
-         echo "WARNING: the specified IP address ${AAIP} is in wrong format"
-         exit 1
+         if expr "${AAIP}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+            echo ""
+         else
+            echo "ERROR: the specified IP address ${AAIP} is in wrong format"
+            exit 1
+         fi
       fi
 
       if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
          if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-           echo "" 
+            AAIP2="${AAIP2}:2025"
          else
-            echo "WARNING: the specified IP address ${AAIP2} is in wrong format"
-            exit 1
+            if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+               echo ""
+            else
+               echo "ERROR: the specified IP address ${AAIP2} is in wrong format"
+               exit 1
+            fi
          fi
       else
          AAIP2=""
@@ -1160,11 +1168,15 @@ case $UIversion in
       fi
 
       if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
-         if expr "$5" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-            echo ""
+         if expr "${AAIP3}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
+            AAIP3="${AAIP3}:2025"
          else
-            echo "WARNING: the specified IP address ${AAIP3} is in wrong format"
-            exit 1
+            if expr "${AAIP3}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+               echo ""
+            else
+               echo "ERROR: the specified IP address ${AAIP3} is in wrong format"
+               exit 1
+            fi
          fi
       else
          AAIP3=""
@@ -1180,16 +1192,24 @@ case $UIversion in
          echo "${TYEL}Please enter the name (default: Aircon) and IP address of your AdvanatageAir system:"
          read -r -p "Name: ${TNRM}" AAname
          if [ -z "${AAname}" ]; then AAname="Aircon"; fi
-         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx or xxx.xxx.xxx.xxx:xxxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-            AAIP="${INPUT}"
+            AAIP="${INPUT}:2025"
             AAdebug="false"
             read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
             if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
          else
-            echo ""
-            echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
-            echo ""
+            if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+               PORT=$(echo "${INPUT}" | cut -d':' -f2)
+               if [ -n "${PORT}" ]; then AAIP="${INPUT}"; else AAIP="${INPUT}2025"; fi
+               AAdebug="false"
+               read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+               if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug="true"; fi
+            else
+               echo ""
+               echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+               echo ""
+            fi
          fi
       done
       until [ -n "${AAIP2}" ]; do
@@ -1199,16 +1219,24 @@ case $UIversion in
          if [ -z "${AAname2}" ]; then
             break
          fi
-         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+         read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx or xxx.xxx.xxx.xxx:xxxx): ${TNRM}" INPUT
          if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-            AAIP2="${INPUT}"
+            AAIP2="${INPUT}:2025"
             AAdebug2="false"
             read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
             if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
          else
-            echo ""
-            echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
-            echo ""
+            if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+               PORT=$(echo "${INPUT}" | cut -d':' -f2)
+               if [ -n "${PORT}" ]; then AAIP2="${INPUT}"; else AAIP2="${INPUT}2025"; fi
+               AAdebug2="false"
+               read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+               if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug2="true"; fi
+            else
+               echo ""
+               echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+               echo ""
+            fi
          fi
       done
       if [ -n "${AAIP2}" ]; then
@@ -1219,16 +1247,24 @@ case $UIversion in
             if [ -z "${AAname3}" ]; then
                break
             fi
-            read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx): ${TNRM}" INPUT
+            read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx or xxx.xxx.xxx.xxx:xxxx): ${TNRM}" INPUT
             if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
-               AAIP3="${INPUT}"
+               AAIP3="${INPUT}:2025"
                AAdebug3="false"
                read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
                if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
             else
-               echo ""
-               echo "${TNRM}${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
-               echo ""
+               if expr "${INPUT}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*:[0-9]*$' >/dev/null; then
+                  PORT=$(echo "${INPUT}" | cut -d':' -f2)
+                  if [ -n "${PORT}" ]; then AAIP3="${INPUT}"; else AAIP3="${INPUT}2025"; fi
+                  AAdebug3="false"
+                  read -r -p "${TYEL}Enable debug? (y/n, default=n): ${TNRM}" INPUT
+                  if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" || "${INPUT}" = "true" ]]; then AAdebug3="true"; fi
+               else
+                  echo ""
+                  echo "${TPUR}WARNING: Wrong format for an IP address! Please enter again!${TNRM}"
+                  echo ""
+               fi
             fi
          done
       fi
@@ -1333,7 +1369,7 @@ for ((n=1; n<=noOfTablets; n++)); do
       echo "${TLBL}INFO: Fetching and processing data from your AdvantageAir system (${nameA} ${IPA}).... ${TNRM}"
    fi
 
-   myAirData=$(curl -s -g --max-time 45 --fail --connect-timeout 45 "http://${IPA}:2025/getSystemData")
+   myAirData=$(curl -s -g --max-time 45 --fail --connect-timeout 45 "http://${IPA}/getSystemData")
    #
    if [ -z "$myAirData" ]; then
       echo "${TRED}ERROR: AdvantageAir system is inaccessible or your IP address ${IPA} is invalid!${TNRM}"
