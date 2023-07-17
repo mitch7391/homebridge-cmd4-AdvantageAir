@@ -21,7 +21,7 @@ typeset -i a argSTART argEND
 #
 argEND=$#
 IP=""
-PORT="2025"
+PORT=""
 device=""
 io=""
 characteristic=""
@@ -994,8 +994,12 @@ if [ $argEND -ge $argSTART ]; then
             #
             # See if the option is in the format of an IP
             #
-            if expr "$v" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*[-a-z]*$' >/dev/null; then
-               IP=$(echo "$v"|cut -d"-" -f1)
+            if expr "$v" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*[:0-9]*[-a-z]*$' >/dev/null; then
+               IP=$(echo "$v"|cut -d":" -f1|cut -d"-" -f1)
+               PORT=$(echo "$v"|cut -d":" -f2)
+               if ! expr "$PORT" : '[0-9]*$' > /dev/null; then
+                  PORT=2025
+               fi
                debug=$(echo "$v"|cut -d"-" -f2)
                if [ "$debug" = "debug" ]; then debugSpecified=true; fi
 
