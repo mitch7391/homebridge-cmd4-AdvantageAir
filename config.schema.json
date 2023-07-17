@@ -28,10 +28,10 @@
                "properties": {
                   "name": {
                      "title": "Name",
-                     "description": "The name of the AdvantageAir device.",
+                     "description": "The name of the AdvantageAir device, default=Aircon",
                      "type": "string",
                      "required": true,
-                     "placeholder": "Aircon"
+                     "default": "Aircon"
                   },
                   "ipAddress": {
                      "title": "IP Address",
@@ -40,6 +40,13 @@
                      "format": "ipv4",
                      "required": true,
                      "placeholder": "192.168.0.1"
+                  },
+                  "port": {
+                     "title": "PORT used",
+                     "description": "The PORT number used for this device, default=2025.",
+                     "type": "number",
+                     "required": true,
+                     "default": "2025"
                   },
                   "debug": {
                      "title": "Enable detailed debug log",
@@ -69,6 +76,7 @@
       "items": [
          "devices[].name",
          "devices[].ipAddress",
+         "devices[].port",
          "devices[].debug"
          ]
       }
