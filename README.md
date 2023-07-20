@@ -128,8 +128,8 @@ apk add curl
      <img width="800px" src="Screenshots/AdvAirConfigCreator2.png">
      </p>
 
-9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
-10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
+9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
+10. Tick/untick the the following checkboxes and select your preferred setup option for Zone Control, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
     <p align="left">
     <img width="600px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
     </p>
@@ -176,7 +176,7 @@ apk add curl
     <img width="700px" src="Screenshots/FanFanv2_as_proxy.png">
     </p>
     
-    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control and integrate both `TemperatureSensor` for the temperature info and myZone switch for the zone. The advantage of this option is able to see the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone. Please note that the `Speed` which is a prozy for "zone % open" is not user controllable and you cannot unset this zone as myZone.
+    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control and integrate both `TemperatureSensor` for the temperature info and myZone switch for the zone. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone. Please note that the `Speed` which is a proxy for "zone % open" is not user controllable and you cannot unset this zone as myZone.
     
     <p align="left">
     <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
