@@ -260,6 +260,36 @@ function cmd4ZoneLightbulb()
    } >> "$1"
 }
 
+function cmd4ZoneLightbulb2()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Lightbulb\","
+     echo "            \"displayName\": \"${name}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"brightness\": 50,"
+     echo "            \"name\": \"${name}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"on\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"brightness\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\","
+   } >> "$1"
+}
+
 function cmd4TimerLightbulb()
 {
    local name="$2"
@@ -328,6 +358,101 @@ function cmd4Thermostat()
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"${ip}${ac_l}\","
+   } >> "$1"
+}
+
+function cmd4ZoneFanv2()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Fanv2\","
+     echo "            \"displayName\": \"${name}\","
+     echo "            \"active\": 0,"
+     echo "            \"rotationSpeed\": 100,"
+     echo "            \"swingMode\": 0,"
+     echo "            \"name\": \"${name}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"active\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"rotationSpeed\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"swingMode\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\","
+   } >> "$1"
+}
+
+function cmd4ZoneFanv2noSwingMode()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Fanv2\","
+     echo "            \"displayName\": \"${name}\","
+     echo "            \"active\": 0,"
+     echo "            \"rotationSpeed\": 100,"
+     echo "            \"name\": \"${name}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"active\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"rotationSpeed\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\","
+   } >> "$1"
+}
+
+function cmd4ZoneFan()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Fan\","
+     echo "            \"displayName\": \"${name}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"rotationSpeed\": 100,"
+     echo "            \"name\": \"${name}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": ["
+     echo "                {"
+     echo "                    \"characteristic\": \"on\""
+     echo "                },"
+     echo "                {"
+     echo "                    \"characteristic\": \"rotationSpeed\""
+     echo "                }"
+     echo "            ],"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
+     echo "        },"
    } >> "$1"
 }
 
@@ -481,6 +606,40 @@ function cmd4ZoneTempSensor()
    } >> "$1"
 }
 
+function cmd4ZoneLinkedTypesTempSensor()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "            \"linkedTypes\": ["
+     echo "                {"
+     echo "                    \"type\": \"TemperatureSensor\","
+     echo "                    \"displayName\": \"${name}\","
+     echo "                    \"currentTemperature\": 25,"
+     echo "                    \"statusLowBattery\": \"BATTERY_LEVEL_LOW\","
+     echo "                    \"name\": \"${name}\","
+     echo "                    \"manufacturer\": \"Advantage Air Australia\","
+     echo "                    \"model\": \"${sysType}\","
+     echo "                    \"serialNumber\": \"${tspModel}\","
+     echo "                    \"queue\": \"$queue\","
+     echo "                    \"polling\": ["
+     echo "                        {"
+     echo "                            \"characteristic\": \"currentTemperature\""
+     echo "                        },"
+     echo "                        {"
+     echo "                            \"characteristic\": \"statusLowBattery\""
+     echo "                        }"
+     echo "                    ],"
+     echo "                    \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "                    \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
+     echo "                }"
+     echo "            ]"
+     echo "        },"
+   } >> "$1"
+}
+
 function cmd4ZoneSwitch()
 {
    local name="$2"
@@ -501,6 +660,28 @@ function cmd4ZoneSwitch()
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
      echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\""
      echo "        },"
+   } >> "$1"
+}
+
+function cmd4ZoneSwitch2()
+{
+   local name="$2"
+   local ac_l=" ${ac}"
+   
+   if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
+
+   { echo "        {"
+     echo "            \"type\": \"Switch\","
+     echo "            \"displayName\": \"${name}\","
+     echo "            \"on\": \"FALSE\","
+     echo "            \"name\": \"${name}\","
+     echo "            \"manufacturer\": \"Advantage Air Australia\","
+     echo "            \"model\": \"${sysType}\","
+     echo "            \"serialNumber\": \"${tspModel}\","
+     echo "            \"queue\": \"$queue\","
+     echo "            \"polling\": true,"
+     echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
+     echo "            \"state_cmd_suffix\": \"${zoneStr} ${ip}${ac_l}\","
    } >> "$1"
 }
 
@@ -1279,7 +1460,7 @@ case $UIversion in
 
       read -r -p "${TYEL}Set up your Zone Control using \"Lightbulb\" as proxy? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
-         zoneSetup="Lightbulb"
+         zoneSetup="Fan"
       else
          zoneSetup="Switch"
       fi
@@ -1429,40 +1610,116 @@ for ((n=1; n<=noOfTablets; n++)); do
                cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Cool Timer" "coolTimer"
                cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Heat Timer" "heatTimer"
             fi
-            #
+            
+            # Creating Zones config
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
             myZoneValue=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.myZone")
-            for (( b=1;b<=nZones;b++ )); do
-               zoneStr=$( printf "z%02d" "$b" )
-               name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
-               rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
-               if [ "${rssi}" = "0" ]; then
-                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
-               elif [ "${zoneSetup}" = "Lightbulb" ]; then
-                  cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "$name Zone"
-               else
-                  cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "$name Zone"
-               fi
-            done
-            for (( b=1;b<=nZones;b++ )); do
-               zoneStr=$( printf "z%02d" "$b" )
-               name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
-               rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
-               if [ "${rssi}" != "0" ]; then
-                  cmd4ZoneTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
-               fi
-            done
-            if [ "${myZoneValue}" != "0" ]; then
-               for (( b=1;b<=nZones;b++ )); do
-                  zone="${b}"
-                  zoneStr=$( printf "z%02d" "${zone}" )
-                  rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
-                  if [ "${rssi}" != "0" ]; then
+            case ${zoneSetup} in
+               LightbulbSwitch1 )
+                  for (( b=1;b<=nZones;b++ )); do
+                     zone="${b}"
+                     zoneStr=$( printf "z%02d" "${zone}" )
                      name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
-                     cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
-                  fi   
-               done
-            fi
+                     rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                     if [ "${rssi}" = "0" ]; then
+                        cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                     else
+                        cmd4ZoneSwitch "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                     fi
+                  done
+                  # Standalone temperature sensor accessory
+                  for (( b=1;b<=nZones;b++ )); do
+                     zoneStr=$( printf "z%02d" "$b" )
+                     name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                     rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                     if [ "${rssi}" != "0" ]; then
+                        cmd4ZoneTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
+                     fi
+                  done
+                  # Standalone myZone switch
+                  if [ "${myZoneValue}" != "0" ]; then
+                     for (( b=1;b<=nZones;b++ )); do
+                        zone="${b}"
+                        zoneStr=$( printf "z%02d" "${zone}" )
+                        rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                        if [ "${rssi}" != "0" ]; then
+                           name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                           cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
+                        fi
+                     done
+                  fi
+               ;;
+               LightbulbSwitch2 )
+                  for (( b=1;b<=nZones;b++ )); do
+                     zone="${b}"
+                     zoneStr=$( printf "z%02d" "${zone}" )
+                     name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                     rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                     if [ "${rssi}" = "0" ]; then
+                        cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                     else
+                        cmd4ZoneSwitch2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
+                     fi
+                  done
+                  # Standalone myZone switch
+                  if [ "${myZoneValue}" != "0" ]; then
+                     for (( b=1;b<=nZones;b++ )); do
+                        zone="${b}"
+                        zoneStr=$( printf "z%02d" "${zone}" )
+                        rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                        if [ "${rssi}" != "0" ]; then
+                           name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                           cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
+                        fi
+                     done
+                  fi
+               ;;
+               Lightbulb )
+                  for (( b=1;b<=nZones;b++ )); do
+                     zone="${b}"
+                     zoneStr=$( printf "z%02d" "${zone}" )
+                     name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                     rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                     if [ "${rssi}" = "0" ]; then
+                        cmd4ZoneLightbulb "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                     else
+                        cmd4ZoneLightbulb2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
+                     fi
+                  done
+
+                  # Standalone myZone switch
+                  if [ "${myZoneValue}" != "0" ]; then
+                     for (( b=1;b<=nZones;b++ )); do
+                        zone="${b}"
+                        zoneStr=$( printf "z%02d" "${zone}" )
+                        rssi=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                        if [ "${rssi}" != "0" ]; then
+                           name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                           cmd4myZoneSwitch "${cmd4ConfigAccessoriesAA}" "myZone ${name}"
+                        fi
+                     done
+                  fi
+               ;;
+               Fan )
+                  for (( b=1;b<=nZones;b++ )); do
+                     zone="${b}"
+                     zoneStr=$( printf "z%02d" "${zone}" )
+                     name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
+                     rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
+                     if [ "${rssi}" = "0" ]; then 
+                        cmd4ZoneFan "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                     elif [ "${myZoneValue}" != "0" ]; then
+                        cmd4ZoneFanv2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
+                     else
+                        cmd4ZoneFanv2noSwingMode "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
+                     fi
+                  done
+               ;;
+            esac
          fi
       done      
    fi
