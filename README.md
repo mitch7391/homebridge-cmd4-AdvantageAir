@@ -125,13 +125,13 @@ apk add curl
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
      <p align="left">
-     <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
+     <img width="800px" src="Screenshots/AdvAirConfigCreator2.png">
      </p>
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
 10. Tick/untick the the following checkboxes, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
     <p align="left">
-    <img width="584px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
+    <img width="600px" src="Screenshots/Checkbox_fan-as-fanswitch.png">
     </p>
     "FanSwitch" setup allows the current fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
     <p align="left">
@@ -139,17 +139,46 @@ apk add curl
     </p>
 
     <p align="left">
-    <img width="584px" src="Screenshots/Checkbox_lightbulb-as-proxy.png">
+    <img width="600px" src="Screenshots/Checkbox_fancy-timers.png">
+    </p>    
+            This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
+
+
+    <br><p align="left">
+    <img width="700px" src="Screenshots/LightbulbSwitch1_as_proxy.png">
     </p>
-    This will use "Lightbulb" instead of "Switch" accessory as proxy for Zone Control.  This only affects Aircon system with temperature sensors. The advantage of using "Lightbulb" accessory as proxy is to have the zone % open shown on the Homekit tile eventhough it is not users controllable.
+    
+    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control, separate `TemperatureSensor` for the temperature info.  If myZone is defined, standalone myZone switches will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+    
+    <p align="left">
+    <img width="700px" src="Screenshots/LightbulbSwitch2_as_proxy.png">
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control and integrate `TemperatureSensor` for the temperature info. The advantage of this option is to be able to see the zone temperature displayed on the zone itself. If myZone is defined, standalone myZone switches will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+
+    <p align="left">
+    <img width="700px" src="Screenshots/Lightbulb_only_as_proxy.png">
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and integrate `TemperatureSensor` for the temperature info. The advantage of this option to have the temperature info and the zone % open shown. Please note that the zone % open is not users controllable. If myZone is defined, standalone myZone switches will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+    
     <p align="left">
     <img width="450px" src="Screenshots/Lightbulb-as-proxy.png">
     </p>
 
     <p align="left">
-    <img width="584px" src="Screenshots/Checkbox_fancy-timers.png">
-    </p>    
-            This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
+    <img width="700px" src="Screenshots/FanFanv2_as_proxy.png">
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control and integrate both `TemperatureSensor` for the temperature info and myZone switches. This option to have the temperature info and the zone % open shown and able to set this zone as myZone. Please note that the zone % open is not users controllable and you cannot unset this zone as myZone.
+    
+    For systems with no Temperature Sensors, this option will use `Fan` as proxy for Zone Control.
 
     
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
