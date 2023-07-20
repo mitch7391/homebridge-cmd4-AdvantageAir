@@ -164,9 +164,9 @@ apk add curl
     <img width="700px" src="Screenshots/Lightbulb_only_as_proxy.png">
     </p>
     
-    For systems with Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and integrate `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the zone % open displayed on the zone itself. Please note that the zone % open is not users controllable. If myZone is defined, standalone myZone switches will also be configured.
+    For systems with Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and integrate `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the "zone % open" displayed on the zone itself. Please note that the `Brightness` which is a proxy for "zone % open" is not user controllable. If myZone is defined, standalone myZone switches will also be configured.
     
-    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and the `Brightness` which is a proxy for "zone % open" is user controllable.
     
     <p align="left">
     <img width="450px" src="Screenshots/Lightbulb-as-proxy.png">
@@ -176,13 +176,13 @@ apk add curl
     <img width="700px" src="Screenshots/FanFanv2_as_proxy.png">
     </p>
     
-    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control and integrate both `TemperatureSensor` for the temperature info and myZone switches. This option to have the temperature info & the zone % open displayed on the zone itself and able to set this zone as myZone. Please note that the zone % open is not users controllable and you cannot unset this zone as myZone.
+    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control and integrate both `TemperatureSensor` for the temperature info and myZone switch for the zone. The advantage of this option is able to see the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone. Please note that the `Speed` which is a prozy for "zone % open" is not user controllable and you cannot unset this zone as myZone.
     
-    For systems with no Temperature Sensors, this option will use `Fan` as proxy for Zone Control.
-
     <p align="left">
-    <img width="500px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
+    <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
     </p>
+
+    For systems with no Temperature Sensors, this option will use `Fan` as proxy for Zone Control and the `Speed` which is a proxy for "zone % open" is user controllable.
 
 
     
