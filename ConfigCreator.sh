@@ -1458,23 +1458,38 @@ case $UIversion in
          fanSetup="fan"
       fi
 
-      read -r -p "${TYEL}Set up your Zone Control using \"Lightbulb\" as proxy? (y/n, default=n):${TNRM} " INPUT
-      if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
-         zoneSetup="Fan"
-      else
-         zoneSetup="Switch"
-      fi
-
       read -r -p "${TYEL}Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          timerSetup="includeFancyTimers"
       else
          timerSetup="noFancyTimers"
       fi
+
+      echo "${TYEL}"
+      echo "${BOLD}Zone Control setup options:${TNRM}"
+      echo "${TYEL}1. Use \"Lightbulb/Switch\" as proxy with standalone temperature and myZone switch (legacy)"
+      echo "2. Use \"Lightbulb/Switch\" as proxy with integrated temperature but standalone myZone switch"
+      echo "3. Use \"Lightbulb\" only as proxy with integrated temperature but standalone myZone switch"
+      echo "4. Use \"Fan/Fanv2\" as proxy with integrated temperature and myZone switch (recommended)"
+      echo ""
+
+     until [ -n "${zoneSetup}" ]; do
+         read -r -p "${TYEL}Select Zone Control setup options (1, 2, 3 or 4, default=4):${TNRM} " INPUT
+         if [ "${INPUT}" = "1" ]; then zoneSetup="LightbulbSwitch1"
+         elif [ "${INPUT}" = "2" ]; then zoneSetup="LightbulbSwitch2"
+         elif [ "${INPUT}" = "3" ]; then zoneSetup="Lightbulb"
+         elif [[ "${INPUT}" = "4" || "${INPUT}" = "" ]]; then zoneSetup="Fan"
+         else
+            echo ""
+            echo "${TPUR}WARNING: Invalid option selected. Try again!${TNRM}"
+            echo ""
+         fi
+      done
+
       echo ""
       echo "${TLBL}INFO: fanSetup=${fanSetup}${TNRM}"
-      echo "${TLBL}INFO: zoneSetup=${zoneSetup}${TNRM}"
       echo "${TLBL}INFO: timerSetup=${timerSetup}${TNRM}"
+      echo "${TLBL}INFO: zoneSetup=${zoneSetup}${TNRM}"
       echo ""
 
       # get the full path to AdvAir.sh
