@@ -116,25 +116,32 @@ class Cmd4PriorityPollingQueue
          if ( settings.cmd4Dbg ) this.log.debug(`prioritySetValue for ${ this.displayName }, homebridgeCallback returning default success 0`);
          homebridgeCallback( 0 );
 
-         // For AdvantageAir users only- do some rounding on Zone Brightness and
+         // For AdvantageAir users only- reject Set requests from zone with temperature sensors and do some rounding on Zone Brightness and
          // set FanSpeed to 4 tiers: 25% (low), 50% (medium), 90% (high) and 100% (Auto/ezFan)
          if ( this.state_cmd.match( /AdvAir.sh'$/ ) )
          {
-            // round the value to nearest 5% for Aircon Zone Brightness
-            if ( this.displayName.match ( / Zone$/ ) && characteristicString == 'Brightness' )
+            if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) && ( characteristicString == 'RotationSpeed' || ( characteristicString == 'SwingMode' && value == 0) ) )
             {
-               value = Math.round( value / 5 ) * 5;
-               this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( value );
+               let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
+               this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( storedValue );
+               // Do not allow the setting of % zone open or turning off of myZone, so abort this Set request
+               return;
             }
-            if ( this.displayName.match ( / Zone-T$/ ) && characteristicString == 'Brightness' )
+            else if ( this.displayName.match ( / Zone-T$/ ) && characteristicString == 'Brightness' )
             {
                let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
                this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( storedValue );
                // Do not allow the setting of % zone open so abort the Set request
                return;
             }
+            // round the value to nearest 5% for Aircon Zone Brightness
+            else if ( this.typeIndex !== 20 && this.displayName.match ( / Zone$/ ) && ( characteristicString == 'Brightness' || characteristicString == 'RotationSpeed' ) )
+            {
+               value = Math.round( value / 5 ) * 5;
+               this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( value );
+            }
             // set the value to 25% if value <= 33% else 50% if value <=67% else 90% if value <=99% for Aircon RotationSpeed
-            if ( this.displayName.match( / FanSpeed$/ ) && characteristicString == 'RotationSpeed' && value < 100 )
+            else if ( this.displayName.match( / FanSpeed$/ ) && characteristicString == 'RotationSpeed' && value < 100 )
             {
                value = Math.ceil( value / 33.8 ) * 25;
                value = value >= 75 ? 90 : value;
