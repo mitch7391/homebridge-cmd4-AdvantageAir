@@ -186,7 +186,7 @@ apk add curl
 
 
     
-12. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
+11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
      <p align="left">
      <img width="360px" src="Screenshots/AdvAirShellCheckPassed.png">
@@ -196,7 +196,11 @@ apk add curl
      <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
      </p>
 
-13. Optionally, if you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, you could make use of the optimised version of Cmd4PriorityPollingQueue.js module by running the following script to get some improvement in performance:
+12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvement in performance.
+
+     If for some reasons it was not copied, a script will be created and you can run it manually to get it copied.
+
+     You can find the script in:
 
      `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJs.sh`
 
