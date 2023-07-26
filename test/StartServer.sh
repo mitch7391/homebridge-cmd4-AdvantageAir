@@ -3,7 +3,7 @@
 if [ -z "$TMPDIR" ]; then TMPDIR="/tmp"; fi
 sudo rm -rf "${TMPDIR}/AA-001"
 mkdir "${TMPDIR}/AA-001"
-chmod +666 "${TMPDIR}/AA-001"
+chmod +xxx "${TMPDIR}/AA-001"
 touch "${TMPDIR}/AA-001/AirConServer.out"
 echo  "In startServer" >> "${TMPDIR}"/AA-001/AirConServer.out
 
