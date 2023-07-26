@@ -1474,11 +1474,11 @@ case $UIversion in
       echo ""
 
      until [ -n "${zoneSetup}" ]; do
-         read -r -p "${TYEL}Select Zone Control setup options (1, 2, 3 or 4, default=4):${TNRM} " INPUT
-         if [ "${INPUT}" = "1" ]; then zoneSetup="LightbulbSwitch1"
+         read -r -p "${TYEL}Select Zone Control setup options (1, 2, 3 or 4, default=1):${TNRM} " INPUT
+         if [[ "${INPUT}" = "1" || "${INPUT}" = "" ]]; then zoneSetup="LightbulbSwitch1"
          elif [ "${INPUT}" = "2" ]; then zoneSetup="LightbulbSwitch2"
          elif [ "${INPUT}" = "3" ]; then zoneSetup="Lightbulb"
-         elif [[ "${INPUT}" = "4" || "${INPUT}" = "" ]]; then zoneSetup="Fan"
+         elif [ "${INPUT}" = "4" ]; then zoneSetup="Fan"
          else
             echo ""
             echo "${TPUR}WARNING: Invalid option selected. Try again!${TNRM}"
