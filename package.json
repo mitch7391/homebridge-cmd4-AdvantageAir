@@ -21,7 +21,7 @@
       "which": "^2.0.2"
    },
    "devDependencies": {
-      "@commitlint/cli": "^16.1.0",
+      "@commitlint/cli": "^17.6.7",
       "@commitlint/config-conventional": "^16.0.0",
       "background-eslint-hook": "^1.0.0",
       "bats": "^1.5.0",
