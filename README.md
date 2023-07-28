@@ -25,6 +25,7 @@ No affiliation with Advantage Air.
   * MyAir5 - Appears to use the same app as MyPlace.
   * [MyPlace](https://apps.apple.com/au/app/myplace/id996398299)
   * [zone10e](https://apps.apple.com/au/app/zone10e/id1076850364)
+  * [Fujitsu anywAIR](https://apps.apple.com/au/app/anywair/id1509639853)
 
 <I><B> Note: </B> [zone10](https://apps.apple.com/au/app/zone10/id510581478) and [MyAir3](https://apps.apple.com/au/app/myair3/id645762642) do not appear to work with this plug-in. </I>
 
@@ -125,7 +126,7 @@ apk add curl
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
      <p align="left">
-     <img width="800px" src="Screenshots/AdvAirConfigCreator2.png">
+     <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
      </p>
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
