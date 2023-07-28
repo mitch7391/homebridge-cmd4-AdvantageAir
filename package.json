@@ -3,7 +3,7 @@
    "displayName": "Homebridge Cmd4 Advantage Air",
    "description": "Catered shell script to integrate air conditioner control units by Advantage Air",
    "license": "MIT",
-   "version": "3.9.0",
+   "version": "3.10.0",
    "author": {
       "name": "Mitch Williams"
    },
@@ -54,10 +54,11 @@
       "AdvantageAir",
       "e-zone",
       "MyAir",
-      "MyAir3",
       "MyAir4",
       "MyPlace",
       "zone10e",
+      "Fujitsu",
+      "anywAIR",
       "bash",
       "shell",
       "homebridge",
