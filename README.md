@@ -172,7 +172,7 @@ apk add curl
     <img width="25px" src="Screenshots/Radio_button.png">Use "Fan/Fanv2" as proxy with integrated temperature and myZone switch (recommended)
     </p>
     
-    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control with `Fanv2` `SwingMode` charateristic as myZone switch and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. Please note that the `Speed` which is a proxy for "zone % open" is not user controllable.  Please also note that once myZone is set, you cannot unset it. To unset it you will have to set another zone as myZone.
+    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control with `Fanv2` `SwingMode` charateristic as myZone switch and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. Please note that the `Speed` which is a proxy for "zone % open" is not user controllable.  Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it.
     
     <p align="left">
     <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
