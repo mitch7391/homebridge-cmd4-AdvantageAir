@@ -3,28 +3,28 @@
 # This script is to generate a complete Cmd4 configuration file needed for the cmd4-advantageair plugin
 # This script can handle up to 3 independent AdvantageAir (AA) systems
 #
-# This script can be invoked in two ways:  
+# This script can be invoked in two ways:
 # 1. from homebridge customUI
-#    a. click "SETTING" on cmd4-advantageair plugin and 
+#    a. click "SETTING" on cmd4-advantageair plugin and
 #    b. at the bottom of the SETTING page, define your AdvantageAir Device(s), then clikc SAVE
-#    c. click "SETTING" again and 
+#    c. click "SETTING" again and
 #    d. check the checkbox if you want the fan to be setup as fanSwitch
-#    e. click "CONFIG CREATOR" button 
+#    e. click "CONFIG CREATOR" button
 #
 # 2. from a terminal
-#    a. find out where the bash script "ConfigCreator.sh" is installed (please see plugin wiki for details)  
-#    b. run the bash script ConfigCreator.sh 
+#    a. find out where the bash script "ConfigCreator.sh" is installed (please see plugin wiki for details)
+#    b. run the bash script ConfigCreator.sh
 #    c. Enter the name and IP address of your AdvantageAir system(s) - up to 3 systems can be processed
 #    d. you can choose whether you want the fan to be setup as fanSwitch or not
-#    e. you might need to enter the path to AdvAir.sh if it is not found by the script. 
+#    e. you might need to enter the path to AdvAir.sh if it is not found by the script.
 #    f. you might also need to enter the path to the Homebridge config.json file if it is not found by the script.
-#      
+#
 # Once the Cmd4 configuration file is generated and copied to Homebridge config.json and if you know
 # what you are doing you can do some edits on the Cmd4 configuration file in Cmd4 Config Editor
 # Click SAVE when you are done.
 #
 # NOTE:  If you need to 'flip' the GarageDoorOpener, you have to add that in yourself.
-# 
+#
 UIversion="customUI"
 
 AAIP="$1"
@@ -142,15 +142,15 @@ function cmd4AccessoriesHeader()
 function cmd4ConstantsQueueTypesAccessoriesMiscFooter()
 {
    cp "$1" "$1.temp"
-   sed '$ d' "$1.temp" > "$1" 
+   sed '$ d' "$1.temp" > "$1"
    rm "$1.temp"
-   
+
    { echo "        }"
      echo "    ],"
    } >> "$1"
 }
 
- 
+
 function cmd4LightbulbNoDimmer()
 {
    local name="$2"
@@ -233,7 +233,7 @@ function cmd4ZoneLightbulb()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -264,7 +264,7 @@ function cmd4ZoneLightbulb2()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -295,7 +295,7 @@ function cmd4TimerLightbulb()
    local name="$2"
    local suffix="$3"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -326,7 +326,7 @@ function cmd4Thermostat()
 {
    local airconName="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -460,7 +460,7 @@ function cmd4Fan()
 {
    local fanName="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -491,7 +491,7 @@ function cmd4FanSwitch()
 {
    local fanName="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -517,7 +517,7 @@ function cmd4FanLinkTypes()
 {
    local fanSpeedName="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "            \"linkedTypes\": ["
@@ -551,7 +551,7 @@ function cmd4myZoneSwitch()
 {
    local myZoneName="$2"
    local ac_l=" ${ac}"
-  
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -578,7 +578,7 @@ function cmd4ZoneTempSensor()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -610,7 +610,7 @@ function cmd4ZoneLinkedTypesTempSensor()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "            \"linkedTypes\": ["
@@ -644,7 +644,7 @@ function cmd4ZoneSwitch()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -667,7 +667,7 @@ function cmd4ZoneSwitch2()
 {
    local name="$2"
    local ac_l=" ${ac}"
-   
+
    if [ "${ac_l}" = " ac1" ]; then ac_l=""; fi
 
    { echo "        {"
@@ -688,18 +688,18 @@ function cmd4ZoneSwitch2()
 function cmd4Footer()
 {
    lastLine=$(tail -n 1 "$1")
-   squareBracket=$(echo "${lastLine}"|grep "]") 
+   squareBracket=$(echo "${lastLine}"|grep "]")
 
    cp "$1" "$1.temp"
-   sed '$ d' "$1.temp" > "$1" 
+   sed '$ d' "$1.temp" > "$1"
    rm "$1.temp"
-   #                               
+   #
    if [ -n "${squareBracket}" ]; then
-      { echo "    ]"                      
+      { echo "    ]"
         echo "}"
       } >> "$1"
    else
-      { echo "    }"                      
+      { echo "    }"
         echo "}"
       } >> "$1"
    fi
@@ -709,7 +709,7 @@ function readHomebridgeConfigJson()
 {
    case  $UIversion in
       customUI )
-         DIR=$(pwd) 
+         DIR=$(pwd)
          homebridgeConfigJson="${DIR}/config.json"
          if [ -f "${homebridgeConfigJson}" ]; then
             # expand the json just in case it is in compact form
@@ -729,8 +729,8 @@ function readHomebridgeConfigJson()
          INPUT=""
          homebridgeConfigJson=""
          getHomebridgeConfigJsonPath
-         if [ "${fullPath}" != "" ]; then homebridgeConfigJson="${fullPath}"; fi 
- 
+         if [ "${fullPath}" != "" ]; then homebridgeConfigJson="${fullPath}"; fi
+
          # if no config.json file found, ask user to input the full path
          if [ -z "${homebridgeConfigJson}" ]; then
             homebridgeConfigJson=""
@@ -820,7 +820,7 @@ function extractCmd4ConfigNonAAandAccessoriesNonAA()
          # save the ${i} n a string for use to delete the AA accessories from ${cmd4ConfigJson}
          if [ "${cmd4StateCmd}" != "" ]; then
             if [ "${AAaccessories}" = "" ]; then
-               AAaccessories="${i}" 
+               AAaccessories="${i}"
             else
                AAaccessories="${AAaccessories},${i}"
             fi
@@ -939,7 +939,7 @@ function extractNonAAaccessoriesrConstantsQueueTypesMisc()
    # extract non-AA config and non-AA accessories from ${cmd4ConfigJson}
    extractCmd4ConfigNonAAandAccessoriesNonAA
 
-   # extract non-AA constants and non-AA queueTypes                            
+   # extract non-AA constants and non-AA queueTypes
    if [ -f "${cmd4ConfigAccessoriesNonAA}" ]; then
       extractNonAAconstants
       extractNonAAqueueTypes
@@ -1013,12 +1013,12 @@ function writeToHomebridgeConfigJson()
 function getGlobalNodeModulesPathForFile()
 {
    file="$1"
-   fullPath=""    
+   fullPath=""
 
    for ((tryIndex = 1; tryIndex <= 8; tryIndex ++)); do
-      case $tryIndex in  
+      case $tryIndex in
          1)
-            foundPath=$(find /var/lib/hoobs 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "/${file}$") 
+            foundPath=$(find /var/lib/hoobs 2>&1|grep -v find|grep -v System|grep -v cache|grep node_modules|grep cmd4-advantageair|grep "/${file}$")
             fullPath=$(echo "${foundPath}"|head -n 1)
             if [ -f "${fullPath}" ]; then
                return
@@ -1030,7 +1030,7 @@ function getGlobalNodeModulesPathForFile()
             foundPath=$(npm root -g)
             fullPath="${foundPath}/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
-               return    
+               return
             else
                fullPath=""
             fi
@@ -1038,7 +1038,7 @@ function getGlobalNodeModulesPathForFile()
          3)
             fullPath="/var/lib/homebridge/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
-               return   
+               return
             else
                fullPath=""
             fi
@@ -1046,7 +1046,7 @@ function getGlobalNodeModulesPathForFile()
          4)
             fullPath="/var/lib/node_modules/homebridge-cmd4-advantageair/${file}"
             if [ -f "${fullPath}" ]; then
-               return   
+               return
             else
                fullPath=""
             fi
@@ -1137,8 +1137,8 @@ function getHomebridgeConfigJsonPath()
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
                if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  checkForCmd4PlatformNameInFile
+                  if [ -n "${cmd4PlatformNameFound}" ]; then
                      return
                   else
                      fullPath=""
@@ -1152,8 +1152,8 @@ function getHomebridgeConfigJsonPath()
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
                if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  checkForCmd4PlatformNameInFile
+                  if [ -n "${cmd4PlatformNameFound}" ]; then
                      return
                   else
                      fullPath=""
@@ -1167,8 +1167,8 @@ function getHomebridgeConfigJsonPath()
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
                if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  checkForCmd4PlatformNameInFile
+                  if [ -n "${cmd4PlatformNameFound}" ]; then
                      return
                   else
                      fullPath=""
@@ -1182,8 +1182,8 @@ function getHomebridgeConfigJsonPath()
             for ((i = 1; i <= noOfInstances; i ++)); do
                fullPath=$(echo "${foundPath}"|sed -n "${i}"p)
                if [ -f "${fullPath}" ]; then
-                  checkForCmd4PlatformNameInFile   
-                  if [ -n "${cmd4PlatformNameFound}" ]; then 
+                  checkForCmd4PlatformNameInFile
+                  if [ -n "${cmd4PlatformNameFound}" ]; then
                      return
                   else
                      fullPath=""
@@ -1244,7 +1244,7 @@ function checkForCmd4PlatformNameInFile()
 
 function copyEnhancedCmd4PriorityPollingQueueJs()
 {
-   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0 or v7.0.1, 
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0 or v7.0.1,
    # then use this enhanced verison.
    getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
    if [ -f "${fullPath}" ]; then
@@ -1260,9 +1260,9 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
             echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
             echo ""
          else
-            { echo "#!/bin/bash" 
+            { echo "#!/bin/bash"
               echo ""
-              echo "# This script will copy the enhanced version of Cmd4PriorityPollingQueue.js module to Cmd4 plugin."      
+              echo "# This script will copy the enhanced version of Cmd4PriorityPollingQueue.js module to Cmd4 plugin."
               echo "# This will improve the performance of \"Cmd4-AdvantageAir\" plugin."
               echo ""
               echo "# fun color stuff"
@@ -1296,7 +1296,7 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
       fi
   fi
 }
- 
+
 function cleanUp()
 {
    # cleaning up
@@ -1332,7 +1332,7 @@ case $UIversion in
          fi
       fi
 
-      if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then 
+      if [[ -n "${AAIP2}" && "${AAIP2}" != "undefined" ]]; then
          if expr "${AAIP2}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP2="${AAIP2}:2025"
          else
@@ -1348,7 +1348,7 @@ case $UIversion in
          AAname2=""
       fi
 
-      if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then 
+      if [[ -n "${AAIP3}" && "${AAIP3}" != "undefined" ]]; then
          if expr "${AAIP3}" : '[0-9]*\.[0-9]*\.[0-9]*\.[0-9]*$' >/dev/null; then
             AAIP3="${AAIP3}:2025"
          else
@@ -1370,7 +1370,7 @@ case $UIversion in
       AAIP3=""
 
       until [ -n "${AAIP}" ]; do
-         echo "${TYEL}Please enter the name (default: Aircon) and IP address of your AdvanatageAir system:"
+         echo "${TYEL}Please enter the name (default: Aircon) and IP address of your AdvantageAir system:"
          read -r -p "Name: ${TNRM}" AAname
          if [ -z "${AAname}" ]; then AAname="Aircon"; fi
          read -r -p "${TYEL}IP address (xxx.xxx.xxx.xxx or xxx.xxx.xxx.xxx:xxxx): ${TNRM}" INPUT
@@ -1451,7 +1451,7 @@ case $UIversion in
       fi
 
       echo ""
-      read -r -p "${TYEL}Set up your \"Fan\" as \"FanSwitch\"? (y/n, default=n):${TNRM} " INPUT
+      read -r -p "${TYEL}Display \"Fan\" as a \"Switch\" accessory? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          fanSetup="fanSwitch"
       else
@@ -1466,11 +1466,13 @@ case $UIversion in
       fi
 
       echo "${TYEL}"
-      echo "${BOLD}Zone Control setup options:${TNRM}"
-      echo "${TYEL}1. Use \"Lightbulb/Switch\" as proxy with standalone temperature and myZone switch (legacy)"
-      echo "2. Use \"Lightbulb/Switch\" as proxy with integrated temperature but standalone myZone switch"
-      echo "3. Use \"Lightbulb\" only as proxy with integrated temperature but standalone myZone switch"
-      echo "4. Use \"Fan/Fanv2\" as proxy with integrated temperature and myZone switch (recommended)"
+      echo "${BOLD}Zone Control Setup Options:${TNRM}"
+      echo "${TYEL}1. Use \"Lightbulb/Switch\" * accessory with standalone temperature and myZone switch (legacy)."
+      echo "2. Use \"Lightbulb/Switch\" * accessory with integrated temperature but standalone myZone switch."
+      echo "3. Use \"Lightbulb\" accessory with integrated temperature but standalone myZone switch."
+      echo "4. Use \"Fan\" accessory with integrated temperature and myZone switch (recommended)."
+      echo ""
+      echo "* will use a Switch for temperature sensor zones and a Lightbulb for those without."
       echo ""
 
      until [ -n "${zoneSetup}" ]; do
@@ -1532,28 +1534,28 @@ if [ -n "${AAIP3}" ]; then noOfTablets=3; fi
 
 for ((n=1; n<=noOfTablets; n++)); do
 
-   if [ "${n}" = "1" ]; then 
+   if [ "${n}" = "1" ]; then
       ip="\${AAIP}"
       IPA="${AAIP}"
       nameA="${AAname}"
       debug="${AAdebug}"
       queue="AAA"
    fi
-   if [ "${n}" = "2" ]; then 
+   if [ "${n}" = "2" ]; then
       ip="\${AAIP2}"
       IPA="${AAIP2}"
       nameA="${AAname2}"
       debug="${AAdebug2}"
       queue="AAB"
    fi
-   if [ "${n}" = "3" ]; then 
+   if [ "${n}" = "3" ]; then
       ip="\${AAIP3}"
       IPA="${AAIP3}"
       nameA="${AAname3}"
       debug="${AAdebug3}"
       queue="AAC"
    fi
-  
+
    if [[ "${n}" = "1" && "${UIversion}" = "nonUI" ]]; then
       echo ""
       if [ "${noOfTablets}" = "1" ]; then echo "${TLBL}${BOLD}INFO: This process may take up to 1 minute!${TNRM}"; fi
@@ -1573,7 +1575,7 @@ for ((n=1; n<=noOfTablets; n++)); do
    fi
 
 
-   if [ "${n}" = "1" ]; then 
+   if [ "${n}" = "1" ]; then
       #nameA=$(echo "$myAirData"|jq -e ".system.name" | sed 's/ /_/g' | sed s/[\'\"]//g)
       cmd4ConfigJsonAA="cmd4Config_AA_${nameA}.json"
       cmd4ConfigJsonAAwithNonAA="${cmd4ConfigJsonAA}.withNonAA"
@@ -1597,7 +1599,7 @@ for ((n=1; n<=noOfTablets; n++)); do
       cmd4QueueTypesHeader "${cmd4ConfigQueueTypesAA}"
       cmd4AccessoriesHeader "${cmd4ConfigAccessoriesAA}"
    fi
-   
+
    # Append the body of AA constants and queueTypes
    cmd4Constants "${cmd4ConfigConstantsAA}"
    cmd4QueueTypes "${cmd4ConfigQueueTypesAA}"
@@ -1625,7 +1627,7 @@ for ((n=1; n<=noOfTablets; n++)); do
                cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Cool Timer" "coolTimer"
                cmd4TimerLightbulb "${cmd4ConfigAccessoriesAA}" "${nameA} Heat Timer" "heatTimer"
             fi
-            
+
             # Creating Zones config
             nZones=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.noOfZones")
             myZoneValue=$(echo "$myAirData" | jq -e ".aircons.${ac}.info.myZone")
@@ -1723,7 +1725,7 @@ for ((n=1; n<=noOfTablets; n++)); do
                      zoneStr=$( printf "z%02d" "${zone}" )
                      name=$(echo "$myAirData" |jq -e ".aircons.${ac}.zones.${zoneStr}.name" | sed 's/\"//g')
                      rssi=$(echo "$myAirData" | jq -e ".aircons.${ac}.zones.${zoneStr}.rssi")
-                     if [ "${rssi}" = "0" ]; then 
+                     if [ "${rssi}" = "0" ]; then
                         cmd4ZoneFan "${cmd4ConfigAccessoriesAA}" "${name} Zone"
                      elif [ "${myZoneValue}" != "0" ]; then
                         cmd4ZoneFanv2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
@@ -1736,14 +1738,14 @@ for ((n=1; n<=noOfTablets; n++)); do
                ;;
             esac
          fi
-      done      
+      done
    fi
 
    # Lightings
    if [ "$hasLights" = true ]; then
-      echo "$myAirData" | jq -e ".myLights.lights" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id; 
-      do 
-         name=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.name" | sed s/\"//g) 
+      echo "$myAirData" | jq -e ".myLights.lights" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id;
+      do
+         name=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.name" | sed s/\"//g)
          value=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.value ")
          if [ "${value}" = "null" ]; then
             cmd4LightbulbNoDimmer "${cmd4ConfigAccessoriesAA}" "${name}"
@@ -1753,19 +1755,19 @@ for ((n=1; n<=noOfTablets; n++)); do
       done
    fi
 
-   # Things - Garage or Gate only for now 
+   # Things - Garage or Gate only for now
    if [ "$hasThings" = true ]; then
-      echo "$myAirData" | jq -e ".myThings.things" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id; 
-      do 
-         name=$(echo "$myAirData" | jq -e ".myThings.things.${id}.name" | sed s/\"//g) 
+      echo "$myAirData" | jq -e ".myThings.things" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id;
+      do
+         name=$(echo "$myAirData" | jq -e ".myThings.things.${id}.name" | sed s/\"//g)
          cmd4GarageDoorOpener "${cmd4ConfigAccessoriesAA}" "${name}"
       done
    fi
 
 done
 
-# Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} replacing all 
-# existing AA-related configuration 
+# Now write the created ${cmd4ConfigJsonAA} to ${HomebridgeConfigJson} replacing all
+# existing AA-related configuration
 
 # Assemble a complete Cmd4 configuration file for the specified AA device(s)
 assembleCmd4ConfigJson
@@ -1777,7 +1779,7 @@ readHomebridgeConfigJson
 extractCmd4ConfigFromConfigJson
 extractNonAAaccessoriesrConstantsQueueTypesMisc
 
-# Assemble a complete Cmd4 configuration file for the specified AA devices(s) with the extracted 
+# Assemble a complete Cmd4 configuration file for the specified AA devices(s) with the extracted
 # non-AA related Cmd4 devices
 assembleCmd4ConfigJsonAAwithNonAA
 
@@ -1785,7 +1787,7 @@ assembleCmd4ConfigJsonAAwithNonAA
 writeToHomebridgeConfigJson
 
 if [ "${rc}" = "0" ]; then
-   echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}" 
+   echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}"
    rm -f "${cmd4ConfigJsonAA}"
    if [ "${UIversion}" = "nonUI" ]; then
       echo ""
