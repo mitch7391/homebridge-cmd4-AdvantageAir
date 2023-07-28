@@ -1451,7 +1451,7 @@ case $UIversion in
       fi
 
       echo ""
-      read -r -p "${TYEL}Display \"Fan\" as a \"Switch\" accessory? (y/n, default=n):${TNRM} " INPUT
+      read -r -p "${TYEL}Use a \"Switch\" accessory as \"On/Off\" control for \"Fan\" state? (y/n, default=n):${TNRM} " INPUT
       if [[ "${INPUT}" = "y" || "${INPUT}" = "Y" ]]; then
          fanSetup="fanSwitch"
       else
