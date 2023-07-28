@@ -129,7 +129,7 @@ apk add curl
      <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
      </p>
 
-9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
+9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (default PORT is `2025` for most users, Fujitsu anywAIR users set this to `10211` ). If you have more than one Advantage Air tablet, you can click `Add new device` to setup the others. Click `SAVE` when done editing, it will close the UI and you will need to open it once more as per Step 8 before proceding further.
 10. Check/uncheck the the following checkboxes/radio-buttons to select your preferred setup options, then press the `CONFIG CREATOR` button to create your Advantage Air config.
     - [x] Use a "Switch" accessory as "On/Off" control for "Fan" state:
     
