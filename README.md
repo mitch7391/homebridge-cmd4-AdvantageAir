@@ -130,55 +130,46 @@ apk add curl
 
 9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
 10. Check/uncheck the the following checkboxes/radio-buttons to select your preferred setup options, then press the `CONFIG CREATOR` button to create your Advantage Air config.
-    <p align="left">
-    <img width="25px" src="Screenshots/Checkbox.png">"Fan" setup as "FanSwitch"
-    </p>
+    - [x] Use a "Switch" accessory as "On/Off" control for "Fan" state:
+    
     "FanSwitch" setup allows the current fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
+    
     <p align="left">
     <img width="420px" src="Screenshots/FanSwitch_setup.png">
     </p>
 
-    <p align="left">
-    <img width="25px" src="Screenshots/Checkbox.png">Include fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent
-    </p>    
-            This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
+    - [x] Include fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent:
+  
+    This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
 
      ### Zone Control setup options:
-    <p align="left">
-    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb/Switch" as proxy with standalone temperature and myZone switch (legacy)
-    </p>
+    * Use "Lightbulb/Switch" * accessory with standalone temperature and myZone switch (legacy).
     
-    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control and a separate `TemperatureSensor` for the temperature info.  If myZone is defined, a standalone myZone switch will also be configured.
+         For systems with Temperature Sensors, this option will use the `Switch` accessory for Zone Control and a separate `TemperatureSensor` for the temperature info.  If myZone is defined, a standalone myZone switch will also be configured.
     
-    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+         For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control.
     
-    <p align="left">
-    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb/Switch" as proxy with integrated temperature but standalone myZone switch
-    </p>
+    *  Use "Lightbulb/Switch" * accessory with integrated temperature but standalone myZone switch.
     
-    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to be able to see the zone temperature displayed on the zone itself. If myZone is defined, a standalone myZone switch will also be configured.
+         For systems with Temperature Sensors, this option will use the `Switch` accessory for Zone Control and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to be able to see the zone temperature displayed on the zone itself. If myZone is defined, a standalone myZone switch will also be configured.
     
-    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+         For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control.
 
-    <p align="left">
-    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb" only as proxy with integrated temperature but standalone myZone switch
-    </p>
+    * Use "Lightbulb" accessory with integrated temperature but standalone myZone switch.
     
-    For systems with Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the "zone % open" displayed on the zone itself. Please note that the `Brightness` which is a proxy for "zone % open" is not user controllable. If myZone is defined, a standalone myZone switch will also be configured.
+         For systems with Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the "zone % open" displayed on the zone itself. _Please note that the `Brightness` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design._ If myZone is defined, a standalone myZone switch will also be configured.
     
-    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and the `Brightness` which is a proxy for "zone % open" is user controllable.
+         For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control and the `Brightness` which is a proxy for "zone % open" is user controllable.
 
-    <p align="left">
-    <img width="25px" src="Screenshots/Radio_button.png">Use "Fan/Fanv2" as proxy with integrated temperature and myZone switch (recommended)
-    </p>
+    * Use "Fan" accessory with integrated temperature and myZone switch (recommended).
     
-    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control with `Fanv2` `SwingMode` charateristic as myZone switch and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. Please note that the `Speed` which is a proxy for "zone % open" is not user controllable.  Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it.
+        For systems with Temperature Sensors, this option will use the `Fanv2` accessory for Zone Control with `Fanv2`'s `SwingMode` charateristic being repurposed as the myZone switch and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. _Please note that the `Speed` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design. Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it._
     
     <p align="left">
     <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
     </p>
 
-    For systems with no Temperature Sensors, this option will use `Fan` as proxy for Zone Control and the `Speed` which is a proxy for "zone % open" is user controllable.
+    For systems with no Temperature Sensors, this option will use the `Fan` accessory for Zone Control and the `Speed` which is a proxy for "zone % open" is user controllable.
 
 
     
