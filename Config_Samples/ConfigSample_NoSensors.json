@@ -16,7 +16,7 @@
             "constants": [
                 {
                     "key": "${IP}",
-                    "value": "192.168.0.173"
+                    "value": "192.168.0.173:2025"
                 }
             ],
             "queueTypes": [

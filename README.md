@@ -40,10 +40,11 @@ No affiliation with Advantage Air.
 
 
 ## How It Looks:
-### Air Conditioning - Thermostat Mode (with Fan Speed) and Fan Mode:
+### Air Conditioning - Thermostat Mode (with Fan Speed) and Fan or FanSwitch Mode:
 <p align="left">
 <img src="Screenshots/Aircon.png" width="295" height="640">
 <img src="Screenshots/Fan.png" width="295" height="640">
+<img src="Screenshots/Aircon_fanSwitch.png" width="295" height="640">
 </p>
 
 ### Air Conditioning - Zone Control and Temperature Sensors:
@@ -75,11 +76,15 @@ No affiliation with Advantage Air.
 1. Install Homebridge via these instructions for [Raspbian](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-Raspbian), [HOOBS](https://support.hoobs.org/docs) or [macOS](https://github.com/homebridge/homebridge/wiki/Install-Homebridge-on-macOS).
 2. Install the [homebridge-cmd4](https://github.com/ztalbot2000/homebridge-cmd4) plug-in via the Homebridge UI ['plugins'](https://github.com/oznu/homebridge-config-ui-x#plugin-screen) tab search function. Once installed, a pop-up box with a small config in it will appear. Do not edit anything and make sure you click `SAVE`.
 
-![Install Cmd4](Screenshots/cmd4Install.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/cmd4Install.png">
+     </p>
 
 3. Install `homebridge-cmd4-AdvantageAir` plug-in via the Homebridge UI 'plugins' tab search function.
 
-![Install Cmd4 Advantage Air](Screenshots/cmd4AdvAirInstall.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/cmd4AdvAirInstall.png">
+     </p>
 
 4. Install <B>jq</B> via your Homebridge UI terminal or through ssh: 
 ```shell
@@ -119,19 +124,85 @@ apk add curl
 * HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#hoobs-terminal-instructions).
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
+     <p align="left">
+     <img width="800px" src="Screenshots/AdvAirConfigCreator2.png">
+     </p>
 
-![Advantage Air Shell Check](Screenshots/AdvAirConfigCreator.png)
+9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name`, `IP Address` and `PORT used` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
+10. Check/uncheck the the following checkboxes/radio-buttons to select your preferred setup options, then press the `CONFIG CREATOR` button to create your Advantage Air config.
+    <p align="left">
+    <img width="25px" src="Screenshots/Checkbox.png">"Fan" setup as "FanSwitch"
+    </p>
+    "FanSwitch" setup allows the current fanSpeed to be displayed on Homekit tile when the Aircon is On and is in Cool, Heat or Dry (Auto) mode.
+    <p align="left">
+    <img width="420px" src="Screenshots/FanSwitch_setup.png">
+    </p>
 
-9. Scroll down to the 'AdvantageAir Device Settings' area and fill out the `Name` and `IP Address` fields (if you have more than one Advantage Air tablet, you can click `Add new device` to setup the others), and then click `SAVE`. It will close the UI and you will need to open it once more as per Step 8.
-10. Tick/untick the `"Fan" setup as "FanSwitch"` checkbox, then press the `CONFIG CREATOR` button; your Advantage Air config has now been created!
+    <p align="left">
+    <img width="25px" src="Screenshots/Checkbox.png">Include fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent
+    </p>    
+            This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
+
+     ### Zone Control setup options:
+    <p align="left">
+    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb/Switch" as proxy with standalone temperature and myZone switch (legacy)
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control and a separate `TemperatureSensor` for the temperature info.  If myZone is defined, a standalone myZone switch will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+    
+    <p align="left">
+    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb/Switch" as proxy with integrated temperature but standalone myZone switch
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Switch` as proxy for Zone Control and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to be able to see the zone temperature displayed on the zone itself. If myZone is defined, a standalone myZone switch will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control.
+
+    <p align="left">
+    <img width="25px" src="Screenshots/Radio_button.png">Use "Lightbulb" only as proxy with integrated temperature but standalone myZone switch
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the "zone % open" displayed on the zone itself. Please note that the `Brightness` which is a proxy for "zone % open" is not user controllable. If myZone is defined, a standalone myZone switch will also be configured.
+    
+    For systems with no Temperature Sensors, this option will use `Lightbulb` as proxy for Zone Control and the `Brightness` which is a proxy for "zone % open" is user controllable.
+
+    <p align="left">
+    <img width="25px" src="Screenshots/Radio_button.png">Use "Fan/Fanv2" as proxy with integrated temperature and myZone switch (recommended)
+    </p>
+    
+    For systems with Temperature Sensors, this option will use `Fanv2` as proxy for Zone Control with `Fanv2` `SwingMode` charateristic as myZone switch and integrate a `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. Please note that the `Speed` which is a proxy for "zone % open" is not user controllable.  Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it.
+    
+    <p align="left">
+    <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
+    </p>
+
+    For systems with no Temperature Sensors, this option will use `Fan` as proxy for Zone Control and the `Speed` which is a proxy for "zone % open" is user controllable.
+
+
+    
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
-<p align="center">
-  <img width="384px" src="Screenshots/AdvAirShellCheckPassed.png">
-</p>
+     <p align="left">
+     <img width="360px" src="Screenshots/AdvAirShellCheckPassed.png">
+     </p>
 
-![Advantage Air Shell Check Error](Screenshots/AdvAirShellCheckError.png)
+     <p align="left">
+     <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
+     </p>
 
+12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvement in performance.
+
+     If for some reasons it was not copied, a script will be created and you can run it manually to get it copied.
+
+     You can find the script in:
+
+     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJs.sh`
+
+     `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
+
+    Restart homebridge for the change to take effect.
 
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
