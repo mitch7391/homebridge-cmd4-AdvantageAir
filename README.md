@@ -144,25 +144,25 @@ apk add curl
     This will generate extra timers to turn-on the Aircon in specidic mode: Heat, Cool or Vent.
 
      ### Zone Control setup options:
-    * Use "Lightbulb/Switch" * accessory with standalone temperature and myZone switch (legacy).
+    * Use "Lightbulb/Switch" * accessory with standalone temperature and myZone switch (legacy):
     
          For systems with Temperature Sensors, this option will use the `Switch` accessory for Zone Control and a separate `TemperatureSensor` for the temperature info.  If myZone is defined, a standalone myZone switch will also be configured.
     
          For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control.
     
-    *  Use "Lightbulb/Switch" * accessory with integrated temperature but standalone myZone switch.
+    *  Use "Lightbulb/Switch" * accessory with integrated temperature but standalone myZone switch:
     
          For systems with Temperature Sensors, this option will use the `Switch` accessory for Zone Control and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to be able to see the zone temperature displayed on the zone itself. If myZone is defined, a standalone myZone switch will also be configured.
     
          For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control.
 
-    * Use "Lightbulb" accessory with integrated temperature but standalone myZone switch.
+    * Use "Lightbulb" accessory with integrated temperature but standalone myZone switch:
     
          For systems with Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info and the "zone % open" displayed on the zone itself. _Please note that the `Brightness` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design._ If myZone is defined, a standalone myZone switch will also be configured.
     
          For systems without Temperature Sensors, this option will use the `Lightbulb` accessory for Zone Control and the `Brightness` which is a proxy for "zone % open" is user controllable.
 
-    * Use "Fan" accessory with integrated temperature and myZone switch (recommended).
+    * Use "Fan" accessory with integrated temperature and myZone switch (recommended):
     
         For systems with Temperature Sensors, this option will use the `Fanv2` accessory for Zone Control with `Fanv2`'s `SwingMode` charateristic being repurposed as the myZone switch and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. _Please note that the `Speed` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design. Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it._
     
