@@ -2,7 +2,37 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
-## 3.9.0 (2022-03-09)
+## 3.10.0 (2023-07-28)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for executing these new features!
+
+### Notable Changes
+
+Some great Zone Control customisation options have come to the `ConfigCreator` based on how different people would like to use this plug-in! All you have to do is run the `ConfigCreator` to try them out or update your config! As always, take a copy of your existing config first just in case you would like to quickly revert back to what you already had.
+
+* "Lightbulb/Switch" * accessory with standalone temperature sensor and myZone switch (legacy).
+* "Lightbulb/Switch" * accessory with integrated temperature sensor but standalone myZone switch (new).
+* "Lightbulb" only accessory with integrated temperature sensor but standalone myZone switch (new).
+* "Fan" accessory with integrated temperature sensor and integrated myZone switch (new - recommended).
+
+_*_ will use a Switch for temperature sensor zones and a Lightbulb for those without.
+
+Read more about these options in Step 10 of the [README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir#readme). If you have ideas for further config options, let us know!
+
+### Other Changes
+
+* Support for Fujitsu anywAIR systems, which seem to be a rebranded AdvantageAir System using port `10211`. As such, the PORT option has been added to the `ConfigCreator` and can be left as default for all AdvantageAir users and changed for anywAIR users.
+* Added an optional performance enhancement by doing the necessary rounding in Cmd4 module.
+* Dev: Dependency updates.
+* Dev: Added unit tests for the additional characteristics `Active` and `SwingMode`.
+
+### Bug Fixes
+
+* Fixed: A vulnerability was found in `ConfigCreator.sh` for use in terminal. It would fail if an optional retries parameter was added in the `config.json`.
+* Fixed: A bug was found in `AdvAir.sh` such that when the aircon system is offline, the plugin still registers it as online.
+
+
+## 3.9.0 (2023-03-09)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot2000](https://github.com/ztalbot2000) for adding these new features!
 
@@ -36,6 +66,7 @@ Special thanks to the amazing [uswong](https://github.com/uswong) and [ztalbot20
             "platform": "cmd4AdvantageAir"
         }
 ```
+
 
 ## 3.8.0 (2022-09-26)
 
