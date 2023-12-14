@@ -389,7 +389,8 @@ class UiServer extends HomebridgePluginUiServer
       // Check #5A
       // Find Node modules
       //
-      let node_modules = this.getGlobalNodeModulesPathForFile( "" );
+      let node_modules = this.getGlobalNodeModulesPathForFile( "/homebridge-cmd4-advantageair/AdvAir.sh" );
+      node_modules = node_modules.replace("/homebridge-cmd4-advantageair/AdvAir.sh", "");
       if ( node_modules == null )
       {
          if ( this.debug )
@@ -850,7 +851,7 @@ class UiServer extends HomebridgePluginUiServer
    {
       let fullPath = null;
 
-      for ( let tryIndex = 1; tryIndex <= 5; tryIndex ++ )
+      for ( let tryIndex = 1; tryIndex <= 6; tryIndex ++ )
       {
          switch ( tryIndex )
          {
@@ -886,7 +887,6 @@ class UiServer extends HomebridgePluginUiServer
               if ( commandExistsSync( "homebridge" ) )
               {
                  const homebridgePath = which.sync( 'homebridge', { nothrow: true } )
-
                  if ( homebridgePath )
                  {
                     let dirname = path.dirname( homebridgePath );
@@ -918,6 +918,15 @@ class UiServer extends HomebridgePluginUiServer
                break;
             }
             case 5:
+            {
+               fullPath = `/var/lib/homebridge/node_modules${ file }`;
+
+               if ( fs.existsSync( fullPath ) )
+                  return fullPath;
+
+               break;
+            }
+            case 6:
             {
                fullPath = `/opt/homebrew/lib/node_modules${ file }`;
 
