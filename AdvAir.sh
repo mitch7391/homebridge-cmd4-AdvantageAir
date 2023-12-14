@@ -977,8 +977,7 @@ if [ $argEND -ge $argSTART ]; then
             #
             first5=${v:0:5}
             if [ "$first5" = light ]; then
-               length=$((${#v} - 6))
-               lightName="${v:6:$length}"
+               lightName="${device}"
                lightSpecified=true
                optionUnderstood=true
             fi
@@ -986,8 +985,7 @@ if [ $argEND -ge $argSTART ]; then
             # See if the option starts with a "thing" for garage, blinds, etc
             #
             if [ "$first5" = thing ]; then
-               length=$((${#v} - 6))
-               thingName="${v:6:$length}"
+               thingName="${device}"
                thingSpecified=true
                optionUnderstood=true
             fi
