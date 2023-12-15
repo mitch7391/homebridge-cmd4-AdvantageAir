@@ -667,13 +667,14 @@ class UiServer extends HomebridgePluginUiServer
                     state_cmd_suffix.match( /fanTimer/ ) ||
                     state_cmd_suffix.match( /coolTimer/ ) ||
                     state_cmd_suffix.match( /heatTimer/ ) ||
+                    state_cmd_suffix.match( /ligID:/ ) ||
                     state_cmd_suffix.match( /'light:/ )
                       )
                    )
                    {
                       this.advError(
                       { "rc": false,
-                        "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires a zone (e.g. z01) if used for zone control, requires 'timer' (without quotes) if being used as the 'Aircon Timer' or requires 'light:${ accessory.displayName }' if being used as a MyPlace Light.`
+                        "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires a zone (e.g. z01) if used for zone control, requires 'timer' (without quotes) if being used as the 'Aircon Timer' or requires 'light:${ accessory.displayName }' or requires ligID:<light ID> if being used as a MyPlace Light.`
                       });
                       return;
                    }
@@ -697,11 +698,11 @@ class UiServer extends HomebridgePluginUiServer
                {
                   if ( ! state_cmd_suffix.match( /z[0-9][0-9]/ ) )
                   {
-                      this.advError(
-                      { "rc": false,
-                        "message": `state_cmd_suffix has no zone for: "${ accessory.displayName }"`
-                      });
-                      return;
+                     this.advError(
+                     { "rc": false,
+                       "message": `state_cmd_suffix has no zone for: "${ accessory.displayName }"`
+                     });
+                     return;
                   }
                }
             }
@@ -712,13 +713,16 @@ class UiServer extends HomebridgePluginUiServer
             //
             if ( accessory.type.match( /GarageDoorOpener/ ) )
             {
-               if ( ! state_cmd_suffix.match( /'thing:/ ) )
+               if ( ! ( state_cmd_suffix.match( /'thing:/ ) || 
+                        state_cmd_suffix.match( /thiID:/ )
+                      )
+                   )
                {
-                   this.advError(
-                   { "rc": false,
-                     "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires 'thing:${ accessory.displayName }'.`
-                   });
-                   return;
+                  this.advError(
+                  { "rc": false,
+                    "message": `The state_cmd_suffix for: "${ accessory.displayName }" requires 'thing:${ accessory.displayName } or required thiID:<thing ID>'.`
+                  });
+                  return;
                }               
             }
 
