@@ -35,7 +35,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
-   run ../AdvAir.sh Get Blah CurrentDoorState 'thing:Garage' 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get "Garage" CurrentDoorState 'thing:Garage' 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
@@ -52,7 +52,7 @@ beforeEach()
    curl -s -g "http://localhost:$PORT/reInit"
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlace.txt"
-   run ../AdvAir.sh Get Blah CurrentDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get "Garage" CurrentDoorState 'thing:Garage' flip 127.0.0.1 TEST_ON
    assert_equal "$status" 0
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"

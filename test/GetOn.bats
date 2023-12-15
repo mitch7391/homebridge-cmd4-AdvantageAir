@@ -155,7 +155,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
-   run ../AdvAir.sh Get Blab On 'light:Study Patio' 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get "Study Patio" On 'light:Study Patio' 127.0.0.1 TEST_ON
    assert_equal "$status" "0"
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
@@ -172,7 +172,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
-   run ../AdvAir.sh Get Blab On 'light:Theatre' 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Get "Theatre" On 'light:Theatre' 127.0.0.1 TEST_ON
    assert_equal "$status" "4"
    assert_equal "${lines[0]}" "Try 0"
    assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"

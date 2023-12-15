@@ -143,7 +143,7 @@ beforeEach()
    # Do the load
    curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
    # TimerEnabled requires On to be set to 0
-   run ../AdvAir.sh Set Blab Brightness 80 'light:Study Patio' 127.0.0.1 TEST_ON
+   run ../AdvAir.sh Set "Study Patio" Brightness 80 'light:Study Patio' 127.0.0.1 TEST_ON
    # AdvAir.sh does a get first
    assert_equal "$status" "0"
    # AdvAir.sh does a get first
