@@ -130,6 +130,25 @@ beforeEach()
    assert_equal "${#lines[@]}" 6
 }
 
+@test "AdvAir Test Set On 1 ligID:a70e005" {
+   beforeEach
+   # Issue the reInit
+   curl -s -g "http://localhost:$PORT/reInit"
+   # Do the load
+   curl -s -g "http://localhost:$PORT?load=testData/myPlaceFull.txt"
+   # TimerEnabled requires On to be set to 0
+   run ../AdvAir.sh Set "Study Patio" On 1 ligID:a70e005 127.0.0.1 TEST_ON
+   assert_equal "$status" "0"
+   # AdvAir.sh does a get first
+   assert_equal "${lines[0]}" "Try 0"
+   assert_equal "${lines[1]}" "Parsing for jqPath: .aircons.ac1.info"
+   assert_equal "${lines[2]}" "Setting url: http://127.0.0.1:2025/setLight?json={id:\"a70e005\",state:on}"
+   assert_equal "${lines[3]}" "Try 0"
+   assert_equal "${lines[4]}" "Setting json: .myLights.lights.\"a70e005\".state=\"on\""
+   # No more lines than expected
+   assert_equal "${#lines[@]}" 5
+}
+
 @test "AdvAir Test Set On 1 light:Patio (multiple lights with \"Patio\" as part of their names)" {
    beforeEach
    # Issue the reInit
