@@ -154,6 +154,8 @@ function cmd4ConstantsQueueTypesAccessoriesMiscFooter()
 function cmd4LightbulbNoDimmer()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -169,7 +171,8 @@ function cmd4LightbulbNoDimmer()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'light:$name' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'light:$name' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"ligID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -177,6 +180,8 @@ function cmd4LightbulbNoDimmer()
 function cmd4LightbulbWithDimmer()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -196,7 +201,8 @@ function cmd4LightbulbWithDimmer()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'light:${name}' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'light:${name}' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"ligID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -204,6 +210,8 @@ function cmd4LightbulbWithDimmer()
 function cmd4GarageDoorOpener()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"GarageDoorOpener\","
      echo "            \"displayName\": \"${name}\","
@@ -224,7 +232,8 @@ function cmd4GarageDoorOpener()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'thing:${name}' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'thing:${name}' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"thiID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -1748,9 +1757,9 @@ for ((n=1; n<=noOfTablets; n++)); do
          name=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.name" | sed s/\"//g)
          value=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.value ")
          if [ "${value}" = "null" ]; then
-            cmd4LightbulbNoDimmer "${cmd4ConfigAccessoriesAA}" "${name}"
+            cmd4LightbulbNoDimmer "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
          else
-            cmd4LightbulbWithDimmer "${cmd4ConfigAccessoriesAA}" "${name}"
+            cmd4LightbulbWithDimmer "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
          fi
       done
    fi
@@ -1760,7 +1769,7 @@ for ((n=1; n<=noOfTablets; n++)); do
       echo "$myAirData" | jq -e ".myThings.things" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id;
       do
          name=$(echo "$myAirData" | jq -e ".myThings.things.${id}.name" | sed s/\"//g)
-         cmd4GarageDoorOpener "${cmd4ConfigAccessoriesAA}" "${name}"
+         cmd4GarageDoorOpener "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
       done
    fi
 

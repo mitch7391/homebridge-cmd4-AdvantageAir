@@ -57,6 +57,10 @@ fanSpeed=false
 sameAsCached=false
 myZoneAssigned=false
 fspeed="low"
+lightName=""
+lightID=""
+thingName=""
+thingID=""
 
 # By default selfTest is off
 selfTest="TEST_OFF"
@@ -973,18 +977,30 @@ if [ $argEND -ge $argSTART ]; then
                optionUnderstood=true
             fi
             #
-            # See if the option starts with a "light" for lightings
+            # See if the option starts with a "light" or "ligID" for lightings
             #
             first5=${v:0:5}
             if [ "$first5" = light ]; then
                lightName="${device}"
                lightSpecified=true
                optionUnderstood=true
+            elif [ "$first5" = ligID ]; then
+               length=$((${#v} - 6))
+               lightID="${v:6:$length}"
+               lightName="${device}"
+               lightSpecified=true
+               optionUnderstood=true
             fi
             #
-            # See if the option starts with a "thing" for garage, blinds, etc
+            # See if the option starts with a "thing" or "thiID" for garage, blinds, etc
             #
             if [ "$first5" = thing ]; then
+               thingName="${device}"
+               thingSpecified=true
+               optionUnderstood=true
+            elif [ "$first5" = thiID ]; then
+               length=$((${#v} - 6))
+               thingID="${v:6:$length}"
                thingName="${device}"
                thingSpecified=true
                optionUnderstood=true
@@ -1140,7 +1156,11 @@ if [ "$io" = "Get" ]; then
       # (100=open, 0=close) (in Homekit 0=open, 1=close)
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            if [ -z "${thingID}" ]; then
+               queryIdByName "thing" "$thingName"
+            else
+               eval "idArray_g=(${thingID})"
+            fi
             parseMyAirDataWithJq ".myThings.things.\"${idArray_g[0]}\".value" "1"
             if [ "$jqResult" = 100 ]; then
                if [ $flipEnabled = true ]; then echo 1; else echo 0; fi
@@ -1318,7 +1338,11 @@ if [ "$io" = "Get" ]; then
                echo 1
                exit 0
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then 
+               queryIdByName "light" "$lightName"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".state" "1"
             if [ "$jqResult" = '"on"' ]; then
                echo 1
@@ -1381,7 +1405,11 @@ if [ "$io" = "Get" ]; then
             fi
          # get the lights dim level
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "$lightName"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".value" "1"
             echo "$jqResult"
             exit 0
@@ -1500,7 +1528,11 @@ if [ "$io" = "Set" ]; then
          # Set the value of the garage door (100=open, 0=close) to MyPlace,
          # (0=open, 1=close for Homekit)
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            if [ -z "${thingID}" ]; then
+               queryIdByName "thing" "$thingName"
+            else
+               eval "idArray_g=(${thingID})"
+            fi
             length=${#idArray_g[@]}
             if [ $flipEnabled = true ]; then value=$((value-1)); value=${value#-}; fi
 
@@ -1791,7 +1823,11 @@ if [ "$io" = "Set" ]; then
             exit 0
          # setting the state of the light
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "$lightName"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             length=${#idArray_g[@]}
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
@@ -1875,7 +1911,11 @@ if [ "$io" = "Set" ]; then
 
          # Set light brightness
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "$lightName"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             length=${#idArray_g[@]}
             for ((a=0;a<length;a++))
             do
