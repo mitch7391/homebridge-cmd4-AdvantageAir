@@ -985,8 +985,7 @@ if [ $argEND -ge $argSTART ]; then
                lightSpecified=true
                optionUnderstood=true
             elif [ "$first5" = ligID ]; then
-               length=$((${#v} - 6))
-               lightID="${v:6:$length}"
+               lightID="${v:6:7}"
                lightName="${device}"
                lightSpecified=true
                optionUnderstood=true
@@ -999,8 +998,7 @@ if [ $argEND -ge $argSTART ]; then
                thingSpecified=true
                optionUnderstood=true
             elif [ "$first5" = thiID ]; then
-               length=$((${#v} - 6))
-               thingID="${v:6:$length}"
+               thingID="${v:6:7}"
                thingName="${device}"
                thingSpecified=true
                optionUnderstood=true
