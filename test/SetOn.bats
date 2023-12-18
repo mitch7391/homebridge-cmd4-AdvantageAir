@@ -17,6 +17,7 @@ beforeEach()
 {
    _common_beforeEach
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
+   rm -f "${TMPDIR}/AA-001/zoneOpen.txt"*
 }
 
 # fanSpecified = true because no zone (z01) specified
