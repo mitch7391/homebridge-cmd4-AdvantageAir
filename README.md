@@ -184,18 +184,16 @@ apk add curl
      <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
      </p>
 
-12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvement in performance.
+12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 or v7.0.2 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvements in performance.
 
-     If for some reasons it was not copied, a script will be created and you can run it manually to get it copied.
+     If for some reasons it was not copied, a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it manually to get it copied.
 
-     You can find the script in:
-
-     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJs.sh`
-
-     `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
+    The `<config.json storage path>` directory is the directory where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
     Restart homebridge for the change to take effect.
 
+    If you do not find the script `copyEnhancedCmd4PriorityPollingQueueJs.sh` in `<config.json storage path>` directory, it means that the optimised version of `Cmd4PriorityPollingQueue.js` module has been copied to Cmd4 plugin successfully.
+    
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
 
