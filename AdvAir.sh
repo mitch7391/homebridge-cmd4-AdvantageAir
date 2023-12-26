@@ -52,7 +52,7 @@ coolTimerSpecified=false
 heatTimerSpecified=false
 argSTART=4
 logErrors=true
-debugSpecified=false
+debugSpecified=true
 fanSpeed=false
 sameAsCached=false
 myZoneAssigned=false
@@ -1198,6 +1198,21 @@ if [ "$io" = "Get" ]; then
             fi
          fi
       ;;
+      RotationDirection )
+         # use Fanv2 RotationDirection characteristic for myZone open or close
+         if [ $zoneSpecified = true ]; then
+            # Check which zone is myZone
+            myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
+            parseMyAirDataWithJq ".aircons.$ac.info.myZone" "1"
+            if [ "$jqResult" = "$myZoneValue" ]; then
+               echo 0
+               exit 0
+            else
+               echo 1
+               exit 0
+            fi
+         fi
+      ;;
       On )
          if [ $fanSpecified = true ]; then
             # Return value of Off if the zone is closed or the Control Unit is Off.
@@ -1637,6 +1652,27 @@ if [ "$io" = "Set" ]; then
          # Uses the Fanv2 SwingMode characteristic for myZone switches.
          if [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
+               # Before setting myZone open the zone if it is currently closed
+               myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
+               parseMyAirDataWithJq ".aircons.$ac.zones.$zone.state" "1"
+               if [ "${jqResult}" = '"close"' ]; then
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{state:open}}}}"
+               fi
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{myZone:$myZoneValue}}}"
+               # when the myZone is changed, update the setTemp of the aircon to be same as active myZone
+               parseMyAirDataWithJq ".aircons.$ac.zones.$zone.setTemp" "1"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{setTemp:$jqResult}}}"
+               exit 0
+            else
+               # do nothing
+               exit 0
+            fi
+         fi
+      ;;
+      RotationDirection )
+         # Uses the Fanv2 RotationDirection characteristic for myZone switches.
+         if [ $zoneSpecified = true ]; then
+            if [ "$value" = "0" ]; then
                # Before setting myZone open the zone if it is currently closed
                myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
                parseMyAirDataWithJq ".aircons.$ac.zones.$zone.state" "1"
