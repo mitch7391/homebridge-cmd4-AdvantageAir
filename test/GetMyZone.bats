@@ -21,7 +21,7 @@ beforeEach()
 
 # ezone
  
-@test "AdvAir Test Get SwingMode ac2 z07" {
+@test "AdvAir Test Get myZone (SwingMode) ac2 z07" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -39,7 +39,7 @@ beforeEach()
    # No more lines than expected
    assert_equal "${#lines[@]}" 4
 }
-@test "AdvAir Test Get RotationDirection ac2 z07" {
+@test "AdvAir Test Get myZone (RotationDirection) ac2 z07" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
