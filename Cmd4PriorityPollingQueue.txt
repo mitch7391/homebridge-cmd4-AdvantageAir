@@ -120,7 +120,12 @@ class Cmd4PriorityPollingQueue
          // set FanSpeed to 4 tiers: 25% (low), 50% (medium), 90% (high) and 100% (Auto/ezFan)
          if ( this.state_cmd.match( /AdvAir.sh'$/ ) )
          {
-            if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) && ( characteristicString == 'RotationSpeed' || ( characteristicString == 'SwingMode' && value == 0) ) )
+            if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) && 
+                  ( characteristicString == 'RotationSpeed' || 
+                    ( characteristicString == 'SwingMode' && value == 0) ||
+                    ( characteristicString == 'RotationDirection' && value == 1) 
+                  ) 
+               )
             {
                let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
                this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( storedValue );
