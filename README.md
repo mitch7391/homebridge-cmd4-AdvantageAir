@@ -184,15 +184,17 @@ apk add curl
      <img width="600px" src="Screenshots/AdvAirShellCheckError.png">
      </p>
 
-12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 or v7.0.2 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvements in performance.
+12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 or v7.0.2 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module which will give you some improvements in performance, will be installed as part of the ConfigCreator process at step 10.
+    
+    A feedback messages from ConfigCreator of "COPIED and DONE!" is an indication of sucessful installation.
 
-     If for some reasons it was not copied, a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it manually to get it copied.
+    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation. Then a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it manually to get it installed.
 
     The `<config.json storage path>` directory is the directory where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
     Restart homebridge for the change to take effect.
 
-    If you do not find the script `copyEnhancedCmd4PriorityPollingQueueJs.sh` in `<config.json storage path>` directory, it means that the optimised version of `Cmd4PriorityPollingQueue.js` module has been copied to Cmd4 plugin successfully.
+    *Please note that if this optimised version of `Cmd4PriorityPollingQueue.js` module is not installed, this plugin will still work fine but just slightly less efficient.*
     
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
