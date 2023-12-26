@@ -19,7 +19,7 @@ beforeEach()
    rm -f "${TMPDIR}/AA-001/myAirData.txt"*
 }
 
-@test "AdvAir Test Set SwingMode 1 z03 -set myZone=3" {
+@test "AdvAir Test Set myZone (SwingMode) 1 z03 - set myZone=3" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
@@ -45,7 +45,7 @@ beforeEach()
    # No more lines than expected
    assert_equal "${#lines[@]}" 13
 }
-@test "AdvAir Test Set RotationDirection 0 z03 -set myZone=3" {
+@test "AdvAir Test Set myZone (RotationDirection) 0 z03 - set myZone=3" {
    beforeEach
    # Issue the reInit
    curl -s -g "http://localhost:$PORT/reInit"
