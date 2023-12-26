@@ -188,7 +188,7 @@ apk add curl
     
     A feedback messages from ConfigCreator of "COPIED and DONE!" is an indication of sucessful installation.
 
-    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation. Then a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it manually to get it installed.
+    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation of the optimised module but the config was generated sucesscully. A script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will then be created in `<config.json storage path>` directory and you can run it to get it installed manually.
 
     The `<config.json storage path>` directory is the directory where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
