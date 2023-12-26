@@ -382,7 +382,7 @@ function cmd4ZoneFanv2()
      echo "            \"displayName\": \"${name}\","
      echo "            \"active\": 0,"
      echo "            \"rotationSpeed\": 100,"
-     echo "            \"swingMode\": 0,"
+     echo "            \"rotationDirection\": 1,"
      echo "            \"name\": \"${name}\","
      echo "            \"manufacturer\": \"Advantage Air Australia\","
      echo "            \"model\": \"${sysType}\","
@@ -396,7 +396,7 @@ function cmd4ZoneFanv2()
      echo "                    \"characteristic\": \"rotationSpeed\""
      echo "                },"
      echo "                {"
-     echo "                    \"characteristic\": \"swingMode\""
+     echo "                    \"characteristic\": \"rotationDirection\""
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
@@ -404,7 +404,7 @@ function cmd4ZoneFanv2()
    } >> "$1"
 }
 
-function cmd4ZoneFanv2noSwingMode()
+function cmd4ZoneFanv2noRotationDirection()
 {
    local name="$2"
    local ac_l=" ${ac}"
@@ -1267,10 +1267,23 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
             customUI )
                cp "${fullPath_txt}" "${fullPath_js}"
                rc1=$?
+               if [ "${rc1}" = "0" ]; then
+                  echo "COPIED and "
+               else
+                  echo "NOT COPIED but "
+               fi
             ;;
             nonUI )
                sudo cp "${fullPath_txt}" "${fullPath_js}"
                rc1=$?
+               if [ "${rc1}" = "0" ]; then
+                  echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
+                  echo ""
+               else
+                  echo "${TYEL}WARNING: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TYEL} was NOT copied to Cmd4 plugin with an error code: ${rc1}."
+                  echo "         Please copy it manually (details explained in item 12 of plugin README).${TNRM}"
+                  echo ""
+               fi
             ;;
          esac
          if [ "${rc1}" != "0" ]; then
@@ -1294,7 +1307,8 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
                echo "      if [ \"\${rc1}\" = \"0\" ]; then"
                echo "         echo \"\${TLBL}INFO: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TLBL} was located and copied to Cmd4 plugin.\${TNRM}\""
                echo "      else"
-               echo "         echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin with an error code: \${rc1}.\${TNRM}\""
+               echo "         echo \"\${TYEL}WARNING: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TYEL} was NOT copied to Cmd4 plugin with an error code: \${rc1}.\${TNRM}\""
+               echo "         echo \"         Please copy it manually (details explained in item 12 of plugin README).\${TNRM}\""
                echo "      fi"
                echo "   else"
                echo "      echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin,\${TNRM}\""
@@ -1306,9 +1320,6 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
                echo "exit 0"
             } > "copyEnhancedCmd4PriorityPollingQueueJs.sh"
             chmod +x "copyEnhancedCmd4PriorityPollingQueueJs.sh"
-         elif [ "${UIversion}" = "nonUI" ]; then
-            echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
-            echo ""
          fi
       fi
    fi
@@ -1748,7 +1759,7 @@ for ((n=1; n<=noOfTablets; n++)); do
                         cmd4ZoneFanv2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
                         cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
                      else
-                        cmd4ZoneFanv2noSwingMode "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneFanv2noRotationDirection "${cmd4ConfigAccessoriesAA}" "${name} Zone"
                         cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
                      fi
                   done
@@ -1804,7 +1815,7 @@ assembleCmd4ConfigJsonAAwithNonAA
 writeToHomebridgeConfigJson
 
 if [ "${rc}" = "0" ]; then
-   echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}"
+   echo "${TGRN}${BOLD}DONE! Run CheckConfig then restart Homebridge or HOOBS.${TNRM}"
    rm -f "${cmd4ConfigJsonAA}"
    if [ "${UIversion}" = "nonUI" ]; then
       echo ""
