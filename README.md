@@ -188,13 +188,13 @@ apk add curl
     
     A feedback messages from ConfigCreator of "COPIED and DONE!" is an indication of sucessful installation.
 
-    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation of the optimised module but the config was generated sucesscully. A script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will then be created in `<config.json storage path>` directory and you can run it to get it installed manually.
+    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation of the optimised module but the config was generated sucesscully. If this happens, a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it to get it installed manually.
 
     The `<config.json storage path>` directory is the directory where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
     Restart homebridge for the change to take effect.
 
-    *Please note that if this optimised version of `Cmd4PriorityPollingQueue.js` module is not installed, this plugin will still work fine but just slightly less efficient.*
+    *Please note that if this optimised version of `Cmd4PriorityPollingQueue.js` module is not installed, this plugin will still work fine but slightly less efficient.*
     
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
