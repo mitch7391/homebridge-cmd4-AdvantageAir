@@ -57,9 +57,7 @@ fanSpeed=false
 sameAsCached=false
 myZoneAssigned=false
 fspeed="low"
-lightName=""
 lightID=""
-thingName=""
 thingID=""
 
 # By default selfTest is off
@@ -981,12 +979,10 @@ if [ $argEND -ge $argSTART ]; then
             #
             first5=${v:0:5}
             if [ "$first5" = light ]; then
-               lightName="${device}"
                lightSpecified=true
                optionUnderstood=true
             elif [ "$first5" = ligID ]; then
                lightID="${v:6:7}"
-               lightName="${device}"
                lightSpecified=true
                optionUnderstood=true
             fi
@@ -994,12 +990,10 @@ if [ $argEND -ge $argSTART ]; then
             # See if the option starts with a "thing" or "thiID" for garage, blinds, etc
             #
             if [ "$first5" = thing ]; then
-               thingName="${device}"
                thingSpecified=true
                optionUnderstood=true
             elif [ "$first5" = thiID ]; then
                thingID="${v:6:7}"
-               thingName="${device}"
                thingSpecified=true
                optionUnderstood=true
             fi
@@ -1155,7 +1149,7 @@ if [ "$io" = "Get" ]; then
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
             if [ -z "${thingID}" ]; then
-               queryIdByName "thing" "$thingName"
+               queryIdByName "thing" "${device}"
             else
                eval "idArray_g=(${thingID})"
             fi
@@ -1352,7 +1346,7 @@ if [ "$io" = "Get" ]; then
                exit 0
          elif [ $lightSpecified = true ]; then
             if [ -z "${lightID}" ]; then 
-               queryIdByName "light" "$lightName"
+               queryIdByName "light" "${device}"
             else
                eval "idArray_g=(${lightID})"
             fi
@@ -1419,7 +1413,7 @@ if [ "$io" = "Get" ]; then
          # get the lights dim level
          elif [ $lightSpecified = true ]; then
             if [ -z "${lightID}" ]; then
-               queryIdByName "light" "$lightName"
+               queryIdByName "light" "${device}"
             else
                eval "idArray_g=(${lightID})"
             fi
@@ -1542,7 +1536,7 @@ if [ "$io" = "Set" ]; then
          # (0=open, 1=close for Homekit)
          if [ $thingSpecified = true ]; then
             if [ -z "${thingID}" ]; then
-               queryIdByName "thing" "$thingName"
+               queryIdByName "thing" "${device}"
             else
                eval "idArray_g=(${thingID})"
             fi
@@ -1858,7 +1852,7 @@ if [ "$io" = "Set" ]; then
          # setting the state of the light
          elif [ $lightSpecified = true ]; then
             if [ -z "${lightID}" ]; then
-               queryIdByName "light" "$lightName"
+               queryIdByName "light" "${device}"
             else
                eval "idArray_g=(${lightID})"
             fi
@@ -1946,7 +1940,7 @@ if [ "$io" = "Set" ]; then
          # Set light brightness
          elif [ $lightSpecified = true ]; then
             if [ -z "${lightID}" ]; then
-               queryIdByName "light" "$lightName"
+               queryIdByName "light" "${device}"
             else
                eval "idArray_g=(${lightID})"
             fi
