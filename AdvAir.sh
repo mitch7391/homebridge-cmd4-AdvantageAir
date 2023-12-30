@@ -901,102 +901,77 @@ if [ $argEND -ge $argSTART ]; then
       case ${v} in
          TEST_OFF)
             # Standard production usage
-            selfTest=${v}
-            optionUnderstood=true
-            # Note: Only bash 4.0 has fallthrough and it's not portable.
+            selfTest="${v}"
             ;;
          TEST_ON)
             # For npm run test
-            selfTest=${v}
+            selfTest="${v}"
             PORT="2025"
-            optionUnderstood=true
             ;;
          fanSpeed)
             # If the accessory is used to control the fan speed
             fanSpeed=true
-            optionUnderstood=true
             ;;
          timer)
             # For timer capability
             timerEnabled=true
-            optionUnderstood=true
             ;;
          fanTimer )
             fanTimerSpecified=true
-            optionUnderstood=true
             ;;
          coolTimer )
             coolTimerSpecified=true
-            optionUnderstood=true
             ;;
          heatTimer )
             heatTimerSpecified=true
-            optionUnderstood=true
             ;;
          flip)
             # To flip open/close, up/down mode for garage or gate
             flipEnabled=true
-            optionUnderstood=true
             ;;
          myZone=*)
             # For myZone setting                                 
             myZoneSpecified=true
             myZoneValue=$(echo "$v" | cut -d"=" -f2)
-            optionUnderstood=true
             ;;
-         ac1)
+         ac*)
             # Specify the aircon system 1, if not defined, ac="ac1"
-            ac="ac1"
-            optionUnderstood=true
+            ac="${v}"
             ;;
-         ac2)
-            # Specify the aircon system 2, if not defined, ac="ac1"
-            ac="ac2"
-            optionUnderstood=true
+         z*)
+            #
+            # if the option starts with a 'z' for zone
+            #
+            zone="${v}"
+            zoneSpecified=true
             ;;
-         ac3)
-            # Specify the aircon system 3, if not defined, ac="ac1"
-            ac="ac3"
-            optionUnderstood=true
+         light*)
+            #
+            # if the option starts with a "light" for lightings
+            #
+            lightSpecified=true
             ;;
-         ac4)
-            # Specify the aircon system 4, if not defined, ac="ac1"
-            ac="ac4"
-            optionUnderstood=true
+         ligID*)
+            #
+            # if the option starts with a "ligID" for lightings
+            #
+            lightID="${v:6:7}"
+            lightSpecified=true
+            ;;
+         thing*)
+            #
+            # if the option starts with a "thing" for garage, blinds, etc
+            #
+            thingSpecified=true
+            ;;
+         thiID*)
+            #
+            # if the option starts with a "thiID" for garage, blinds, etc
+            #
+            thingID="${v:6:7}"
+            thingSpecified=true
             ;;
          *)
-            #
-            # See if the option starts with a 'z' for zone
-            #
-            first="$(printf '%s' "$v" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=${v}
-               zoneSpecified=true
-               optionUnderstood=true
-            fi
-            #
-            # See if the option starts with a "light" or "ligID" for lightings
-            #
-            first5=${v:0:5}
-            if [ "$first5" = light ]; then
-               lightSpecified=true
-               optionUnderstood=true
-            elif [ "$first5" = ligID ]; then
-               lightID="${v:6:7}"
-               lightSpecified=true
-               optionUnderstood=true
-            fi
-            #
-            # See if the option starts with a "thing" or "thiID" for garage, blinds, etc
-            #
-            if [ "$first5" = thing ]; then
-               thingSpecified=true
-               optionUnderstood=true
-            elif [ "$first5" = thiID ]; then
-               thingID="${v:6:7}"
-               thingSpecified=true
-               optionUnderstood=true
-            fi
             #
             # See if the option is in the format of an IP
             #
