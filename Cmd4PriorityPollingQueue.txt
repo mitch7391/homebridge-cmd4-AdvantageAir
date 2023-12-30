@@ -132,6 +132,14 @@ class Cmd4PriorityPollingQueue
                // Do not allow the setting of % zone open or turning off of myZone, so abort this Set request
                return;
             }
+            else if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) &&
+                    (  ( characteristicString == 'SwingMode' && value == 1) ||
+                       ( characteristicString == 'RotationDirection' && value == 0)
+                    )
+                 )
+            {
+               this.service.getCharacteristic( 'Active' ).updateValue( 1 );
+            }
             else if ( this.displayName.match ( / Zone-T$/ ) && characteristicString == 'Brightness' )
             {
                let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
