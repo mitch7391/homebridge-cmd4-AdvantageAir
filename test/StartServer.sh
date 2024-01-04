@@ -6,7 +6,6 @@ TNRM=$(tput sgr0)
 
 if [ -z "$TMPDIR" ]; then TMPDIR="/tmp"; fi
 sudo rm -rf "${TMPDIR}/AA-001"
-rm -rf "${TMPDIR}/temp.txt"
 mkdir "${TMPDIR}/AA-001"
 chmod +666 "${TMPDIR}/AA-001"
 touch "${TMPDIR}/AA-001/AirConServer.out"
