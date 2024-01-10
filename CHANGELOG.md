@@ -2,6 +2,25 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.11.0 (2024-01-10)
+
+Special thanks to the amazing [uswong](https://github.com/uswong) for executing these new features! Make sure to run the ConfigCreator again to update your config and take advantage of the new features!
+
+### Notable Changes
+
+* Accessory names can now handle a single quote `'`, for example `Mitch's Room`. You must also update `homebridge-cmd4` to `v7.0.2` to take advantage of this feature.
+* For users with `myZone` taking advantage of the 'Fan' Zone Control setup, since iOS 17 the `SwingMode` characteristic we were using to be the `myZone` switch has disappeared from the accessory's Homekit primary page but hidden deep inside the accessory's Homekit settings. Now we are using the `RotationDirection` characteristic rather than `SwingMode` as a proxy for the `myZone` switch. `RotationDirection` characteristic will show as a round button switch on the Homekit accessory's primary page.
+
+### Other Changes
+
+* Performance Update: MyPlace `lights` and `things` will now use ID instead of Name as a parameter in `state_cmd_suffix` during the ConfigCreator process, requiring less parsing in `AdvAir.sh`.
+* Dev: Added unit tests to for `lights` and `things` ID as a parameter in `state_cmd_suffix` and also added unit tests to test for `RotationDirection` characteristics.
+
+### Bug Fixes
+
+* Fixed: Broken url path to the homebridge logo on the `README`.
+
+
 ## 3.10.0 (2023-07-28)
 
 Special thanks to the amazing [uswong](https://github.com/uswong) for executing these new features!
