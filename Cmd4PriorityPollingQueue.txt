@@ -120,12 +120,25 @@ class Cmd4PriorityPollingQueue
          // set FanSpeed to 4 tiers: 25% (low), 50% (medium), 90% (high) and 100% (Auto/ezFan)
          if ( this.state_cmd.match( /AdvAir.sh'$/ ) )
          {
-            if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) && ( characteristicString == 'RotationSpeed' || ( characteristicString == 'SwingMode' && value == 0) ) )
+            if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) && 
+                  ( characteristicString == 'RotationSpeed' || 
+                    ( characteristicString == 'SwingMode' && value == 0) ||
+                    ( characteristicString == 'RotationDirection' && value == 1) 
+                  ) 
+               )
             {
                let storedValue = this.cmd4Storage.getStoredValueForIndex( accTypeEnumIndex );
                this.service.getCharacteristic( CMD4_ACC_TYPE_ENUM.properties[ accTypeEnumIndex ].characteristic ).updateValue( storedValue );
                // Do not allow the setting of % zone open or turning off of myZone, so abort this Set request
                return;
+            }
+            else if ( this.typeIndex == 20 && this.displayName.match ( / Zone$/ ) &&
+                    (  ( characteristicString == 'SwingMode' && value == 1) ||
+                       ( characteristicString == 'RotationDirection' && value == 0)
+                    )
+                 )
+            {
+               this.service.getCharacteristic( 'Active' ).updateValue( 1 );
             }
             else if ( this.displayName.match ( / Zone-T$/ ) && characteristicString == 'Brightness' )
             {
@@ -483,7 +496,7 @@ class Cmd4PriorityPollingQueue
       let self = accessory;
       let queue = accessory.queue;
 
-      let cmd = self.state_cmd_prefix + self.state_cmd + " Get '" + self.displayName + "' '" + characteristicString  + "'" + self.state_cmd_suffix;
+      let cmd = self.state_cmd_prefix + self.state_cmd + ' Get "' + self.displayName + '" ' + "'" + characteristicString + "'" + self.state_cmd_suffix;
 
       if ( settings.cmd4Dbg ) self.log.debug( `getValue: accTypeEnumIndex:( ${ accTypeEnumIndex } )-"${ characteristicString }" function for: ${ self.displayName } cmd: ${ cmd } timeout: ${ timeout }` );
 
@@ -665,7 +678,7 @@ class Cmd4PriorityPollingQueue
          value = transposeBoolToValue( value );
       }
 
-      let cmd = accessory.state_cmd_prefix + accessory.state_cmd + " Set '" + accessory.displayName + "' '" + characteristicString  + "' '" + value  + "'" + accessory.state_cmd_suffix;
+      let cmd = accessory.state_cmd_prefix + accessory.state_cmd + ' Set "' + accessory.displayName + '" ' + "'" + characteristicString + "' '" + value + "'" + accessory.state_cmd_suffix;
 
       if ( accessory.hV.statusMsg == "TRUE" )
          self.log.info( chalk.blue( `Setting ${ self.displayName } ${ characteristicString }` ) + ` ${ value }` );

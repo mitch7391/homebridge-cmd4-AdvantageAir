@@ -141,7 +141,7 @@
           "minDamper": 0,
           "motion": 0,
           "motionConfig": 1,
-          "name": "Baby room",
+          "name": "Baby's room",
           "number": 7,
           "rssi": 51,
           "setTemp": 24,
@@ -208,7 +208,32 @@
   "myLights": {
     "groups": {},
     "groupsOrder": [],
-    "lights": {},
+    "lights": {
+      "f70d002": {
+        "id": "f70d002",
+        "name": "Ollie's Room Light",
+        "state": "off",
+        "value": 50
+      },
+      "f70d004": {
+        "id": "f70d004",
+        "name": "Bed 1 Patio",
+        "state": "off",
+        "value": 90
+      },
+      "f70d005": {
+        "id": "f70d005",
+        "name": "M.V. LED",
+        "state": "off",
+        "value": 100
+      },
+      "f70d006": {
+        "id": "f70d006",
+        "name": "Bed1 Bath 2",
+        "state": "off",
+        "value": 90
+      }
+    },
     "system": {
       "lastUsedLightId": "",
       "numberClicks": 0,
@@ -231,7 +256,24 @@
     "groups": {},
     "groupsOrder": [],
     "system": {},
-    "things": {}
+    "things": {
+      "6801801": {
+        "buttonType": "upDown",
+        "channelDipState": 3,
+        "dimPercent": 0,
+        "id": "6801801",
+        "name": "Michael's House Garage",
+        "value": 0
+      },
+      "6801802": {
+        "buttonType": "upDown",
+        "channelDipState": 3,
+        "dimPercent": 0,
+        "id": "6801802",
+        "name": "Main Gate",
+        "value": 0
+      }
+    }
   },
   "system": {
     "aaServiceRev": "14.116",
@@ -244,10 +286,10 @@
     "garageDoorReminderWaitTime": 2,
     "garageDoorSecurityPinEnabled": true,
     "hasAircons": true,
-    "hasLights": false,
+    "hasLights": true,
     "hasLocks": false,
     "hasSensors": false,
-    "hasThings": false,
+    "hasThings": true,
     "hasThingsBOG": false,
     "hasThingsLight": false,
     "latitude": -30.0671284,

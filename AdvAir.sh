@@ -57,6 +57,8 @@ fanSpeed=false
 sameAsCached=false
 myZoneAssigned=false
 fspeed="low"
+lightID=""
+thingID=""
 
 # By default selfTest is off
 selfTest="TEST_OFF"
@@ -899,98 +901,77 @@ if [ $argEND -ge $argSTART ]; then
       case ${v} in
          TEST_OFF)
             # Standard production usage
-            selfTest=${v}
-            optionUnderstood=true
-            # Note: Only bash 4.0 has fallthrough and it's not portable.
+            selfTest="${v}"
             ;;
          TEST_ON)
             # For npm run test
-            selfTest=${v}
+            selfTest="${v}"
             PORT="2025"
-            optionUnderstood=true
             ;;
          fanSpeed)
             # If the accessory is used to control the fan speed
             fanSpeed=true
-            optionUnderstood=true
             ;;
          timer)
             # For timer capability
             timerEnabled=true
-            optionUnderstood=true
             ;;
          fanTimer )
             fanTimerSpecified=true
-            optionUnderstood=true
             ;;
          coolTimer )
             coolTimerSpecified=true
-            optionUnderstood=true
             ;;
          heatTimer )
             heatTimerSpecified=true
-            optionUnderstood=true
             ;;
          flip)
             # To flip open/close, up/down mode for garage or gate
             flipEnabled=true
-            optionUnderstood=true
             ;;
          myZone=*)
             # For myZone setting                                 
             myZoneSpecified=true
             myZoneValue=$(echo "$v" | cut -d"=" -f2)
-            optionUnderstood=true
             ;;
-         ac1)
+         ac*)
             # Specify the aircon system 1, if not defined, ac="ac1"
-            ac="ac1"
-            optionUnderstood=true
+            ac="${v}"
             ;;
-         ac2)
-            # Specify the aircon system 2, if not defined, ac="ac1"
-            ac="ac2"
-            optionUnderstood=true
+         z*)
+            #
+            # if the option starts with a 'z' for zone
+            #
+            zone="${v}"
+            zoneSpecified=true
             ;;
-         ac3)
-            # Specify the aircon system 3, if not defined, ac="ac1"
-            ac="ac3"
-            optionUnderstood=true
+         light*)
+            #
+            # if the option starts with a "light" for lightings
+            #
+            lightSpecified=true
             ;;
-         ac4)
-            # Specify the aircon system 4, if not defined, ac="ac1"
-            ac="ac4"
-            optionUnderstood=true
+         ligID*)
+            #
+            # if the option starts with a "ligID" for lightings
+            #
+            lightID="${v:6:7}"
+            lightSpecified=true
+            ;;
+         thing*)
+            #
+            # if the option starts with a "thing" for garage, blinds, etc
+            #
+            thingSpecified=true
+            ;;
+         thiID*)
+            #
+            # if the option starts with a "thiID" for garage, blinds, etc
+            #
+            thingID="${v:6:7}"
+            thingSpecified=true
             ;;
          *)
-            #
-            # See if the option starts with a 'z' for zone
-            #
-            first="$(printf '%s' "$v" | cut -c1 )"
-            if [ "$first" = z ]; then
-               zone=${v}
-               zoneSpecified=true
-               optionUnderstood=true
-            fi
-            #
-            # See if the option starts with a "light" for lightings
-            #
-            first5=${v:0:5}
-            if [ "$first5" = light ]; then
-               length=$((${#v} - 6))
-               lightName="${v:6:$length}"
-               lightSpecified=true
-               optionUnderstood=true
-            fi
-            #
-            # See if the option starts with a "thing" for garage, blinds, etc
-            #
-            if [ "$first5" = thing ]; then
-               length=$((${#v} - 6))
-               thingName="${v:6:$length}"
-               thingSpecified=true
-               optionUnderstood=true
-            fi
             #
             # See if the option is in the format of an IP
             #
@@ -1142,7 +1123,11 @@ if [ "$io" = "Get" ]; then
       # (100=open, 0=close) (in Homekit 0=open, 1=close)
       TargetDoorState | CurrentDoorState )
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            if [ -z "${thingID}" ]; then
+               queryIdByName "thing" "${device}"
+            else
+               eval "idArray_g=(${thingID})"
+            fi
             parseMyAirDataWithJq ".myThings.things.\"${idArray_g[0]}\".value" "1"
             if [ "$jqResult" = 100 ]; then
                if [ $flipEnabled = true ]; then echo 1; else echo 0; fi
@@ -1178,6 +1163,21 @@ if [ "$io" = "Get" ]; then
                exit 0
             else
                echo 0
+               exit 0
+            fi
+         fi
+      ;;
+      RotationDirection )
+         # use Fanv2 RotationDirection characteristic for myZone open or close
+         if [ $zoneSpecified = true ]; then
+            # Check which zone is myZone
+            myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
+            parseMyAirDataWithJq ".aircons.$ac.info.myZone" "1"
+            if [ "$jqResult" = "$myZoneValue" ]; then
+               echo 0
+               exit 0
+            else
+               echo 1
                exit 0
             fi
          fi
@@ -1320,7 +1320,11 @@ if [ "$io" = "Get" ]; then
                echo 1
                exit 0
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then 
+               queryIdByName "light" "${device}"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".state" "1"
             if [ "$jqResult" = '"on"' ]; then
                echo 1
@@ -1383,7 +1387,11 @@ if [ "$io" = "Get" ]; then
             fi
          # get the lights dim level
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "${device}"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             parseMyAirDataWithJq ".myLights.lights.\"${idArray_g[0]}\".value" "1"
             echo "$jqResult"
             exit 0
@@ -1502,7 +1510,11 @@ if [ "$io" = "Set" ]; then
          # Set the value of the garage door (100=open, 0=close) to MyPlace,
          # (0=open, 1=close for Homekit)
          if [ $thingSpecified = true ]; then
-            queryIdByName "thing" "$thingName"
+            if [ -z "${thingID}" ]; then
+               queryIdByName "thing" "${device}"
+            else
+               eval "idArray_g=(${thingID})"
+            fi
             length=${#idArray_g[@]}
             if [ $flipEnabled = true ]; then value=$((value-1)); value=${value#-}; fi
 
@@ -1609,6 +1621,27 @@ if [ "$io" = "Set" ]; then
          # Uses the Fanv2 SwingMode characteristic for myZone switches.
          if [ $zoneSpecified = true ]; then
             if [ "$value" = "1" ]; then
+               # Before setting myZone open the zone if it is currently closed
+               myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
+               parseMyAirDataWithJq ".aircons.$ac.zones.$zone.state" "1"
+               if [ "${jqResult}" = '"close"' ]; then
+                  setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{zones:{$zone:{state:open}}}}"
+               fi
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{myZone:$myZoneValue}}}"
+               # when the myZone is changed, update the setTemp of the aircon to be same as active myZone
+               parseMyAirDataWithJq ".aircons.$ac.zones.$zone.setTemp" "1"
+               setAirConUsingIteration "http://$IP:$PORT/setAircon?json={$ac:{info:{setTemp:$jqResult}}}"
+               exit 0
+            else
+               # do nothing
+               exit 0
+            fi
+         fi
+      ;;
+      RotationDirection )
+         # Uses the Fanv2 RotationDirection characteristic for myZone switches.
+         if [ $zoneSpecified = true ]; then
+            if [ "$value" = "0" ]; then
                # Before setting myZone open the zone if it is currently closed
                myZoneValue=$(( 10#$( echo "${zone}" | cut -d'z' -f2 ) ))
                parseMyAirDataWithJq ".aircons.$ac.zones.$zone.state" "1"
@@ -1793,7 +1826,11 @@ if [ "$io" = "Set" ]; then
             exit 0
          # setting the state of the light
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "${device}"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             length=${#idArray_g[@]}
             if [ "$value" = "1" ]; then
                for ((a=0;a<length;a++))
@@ -1877,7 +1914,11 @@ if [ "$io" = "Set" ]; then
 
          # Set light brightness
          elif [ $lightSpecified = true ]; then
-            queryIdByName "light" "$lightName"
+            if [ -z "${lightID}" ]; then
+               queryIdByName "light" "${device}"
+            else
+               eval "idArray_g=(${lightID})"
+            fi
             length=${#idArray_g[@]}
             for ((a=0;a<length;a++))
             do

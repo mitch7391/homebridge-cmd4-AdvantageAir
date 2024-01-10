@@ -154,6 +154,8 @@ function cmd4ConstantsQueueTypesAccessoriesMiscFooter()
 function cmd4LightbulbNoDimmer()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -169,7 +171,8 @@ function cmd4LightbulbNoDimmer()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'light:$name' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'light:$name' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"ligID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -177,6 +180,8 @@ function cmd4LightbulbNoDimmer()
 function cmd4LightbulbWithDimmer()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"Lightbulb\","
      echo "            \"displayName\": \"${name}\","
@@ -196,7 +201,8 @@ function cmd4LightbulbWithDimmer()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'light:${name}' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'light:${name}' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"ligID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -204,6 +210,8 @@ function cmd4LightbulbWithDimmer()
 function cmd4GarageDoorOpener()
 {
    local name="$2"
+   local id="$3"
+   id=${id//\"/}
    { echo "        {"
      echo "            \"type\": \"GarageDoorOpener\","
      echo "            \"displayName\": \"${name}\","
@@ -224,7 +232,8 @@ function cmd4GarageDoorOpener()
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
-     echo "            \"state_cmd_suffix\": \"'thing:${name}' ${ip}\""
+    #echo "            \"state_cmd_suffix\": \"'thing:${name}' ${ip}\""
+     echo "            \"state_cmd_suffix\": \"thiID:$id ${ip}\""
      echo "        },"
    } >> "$1"
 }
@@ -373,7 +382,7 @@ function cmd4ZoneFanv2()
      echo "            \"displayName\": \"${name}\","
      echo "            \"active\": 0,"
      echo "            \"rotationSpeed\": 100,"
-     echo "            \"swingMode\": 0,"
+     echo "            \"rotationDirection\": 1,"
      echo "            \"name\": \"${name}\","
      echo "            \"manufacturer\": \"Advantage Air Australia\","
      echo "            \"model\": \"${sysType}\","
@@ -387,7 +396,7 @@ function cmd4ZoneFanv2()
      echo "                    \"characteristic\": \"rotationSpeed\""
      echo "                },"
      echo "                {"
-     echo "                    \"characteristic\": \"swingMode\""
+     echo "                    \"characteristic\": \"rotationDirection\""
      echo "                }"
      echo "            ],"
      echo "            \"state_cmd\": \"'${ADVAIR_SH_PATH}'\","
@@ -395,7 +404,7 @@ function cmd4ZoneFanv2()
    } >> "$1"
 }
 
-function cmd4ZoneFanv2noSwingMode()
+function cmd4ZoneFanv2noRotationDirection()
 {
    local name="$2"
    local ac_l=" ${ac}"
@@ -1005,7 +1014,7 @@ function writeToHomebridgeConfigJson()
       ;;
    esac
    if [ "${rc}" = "0" ]; then
-      # copy and use the enhanced version of Cmd4PriorityPollingQueue.js if available and Cmd4 version is v7.0.0-beta2 or v7.0.1
+      # copy and use the enhanced version of Cmd4PriorityPollingQueue.js if available and Cmd4 version is v7.0.0-beta2 or v7.0.1 or v7.0.2
       copyEnhancedCmd4PriorityPollingQueueJs
    fi
 }
@@ -1244,7 +1253,7 @@ function checkForCmd4PlatformNameInFile()
 
 function copyEnhancedCmd4PriorityPollingQueueJs()
 {
-   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0 or v7.0.1,
+   # if the enhanced version of "Cmd4PriorityPollingQueue.txt" is present and Cmd4 version is v7.0.0 or v7.0.1 or v7.0.2,
    # then use this enhanced verison.
    getGlobalNodeModulesPathForFile "Cmd4PriorityPollingQueue.txt"
    if [ -f "${fullPath}" ]; then
@@ -1252,49 +1261,68 @@ function copyEnhancedCmd4PriorityPollingQueueJs()
       fullPath_package="${fullPath%/*/*}/homebridge-cmd4/package.json"
       # check the Cmd4 version
       Cmd4_version="$(jq '.version' "${fullPath_package}")"
-      if expr "${Cmd4_version}" : '"7.0.[0-1]"' >/dev/null; then
+      if expr "${Cmd4_version}" : '"7.0.[0-2]"' >/dev/null; then
          fullPath_js="${fullPath%/*/*}/homebridge-cmd4/Cmd4PriorityPollingQueue.js"
-         sudo cp "${fullPath_txt}" "${fullPath_js}"
-         rc1=$?
-         if [[ "${rc1}" = "0" && "${UIversion}" = "nonUI" ]]; then
-            echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
-            echo ""
-         else
-            { echo "#!/bin/bash"
-              echo ""
-              echo "# This script will copy the enhanced version of Cmd4PriorityPollingQueue.js module to Cmd4 plugin."
-              echo "# This will improve the performance of \"Cmd4-AdvantageAir\" plugin."
-              echo ""
-              echo "# fun color stuff"
-              echo "BOLD=\$(tput bold)"
-              echo "TRED=\$(tput setaf 1)"
-              echo "TLBL=\$(tput setaf 6)"
-              echo "TNRM=\$(tput sgr0)"
-              echo ""
-              echo "if [ -f ${fullPath} ]; then"
-              echo "   # check the Cmd4 version whether it is v7.0.0 or v7.0.1"
-              echo "   Cmd4_version=\$(jq '.version' ${fullPath_package})"
-              echo "   if expr \"\${Cmd4_version}\" : '\"7.0.[0-1]\"' >/dev/null; then"
-              echo "      sudo cp ${fullPath_txt} ${fullPath_js}"
-              echo "      rc1=\$?"
-              echo "      if [ \"\${rc1}\" = \"0\" ]; then"
-              echo "         echo \"\${TLBL}INFO: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TLBL} was located and copied to Cmd4 plugin.\${TNRM}\""
-              echo "      else"
-              echo "         echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin with an error code: \${rc1}.\${TNRM}\""
-              echo "      fi"
-              echo "   else"
-              echo "      echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin,\${TNRM}\""
-              echo "      echo \"\${TRED}ERROR: because the Cmd4 version is \${Cmd4_version}. It has to be v7.0.0 or v7.0.1.\${TNRM}\""
-              echo "   fi"
-              echo "else"
-              echo "   echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT located.\${TNRM}\""
-              echo "fi"
-              echo "exit 0"
+         case $UIversion in
+            customUI )
+               cp "${fullPath_txt}" "${fullPath_js}"
+               rc1=$?
+               if [ "${rc1}" = "0" ]; then
+                  echo "COPIED and "
+               else
+                  echo "NOT COPIED but "
+               fi
+            ;;
+            nonUI )
+               sudo cp "${fullPath_txt}" "${fullPath_js}"
+               rc1=$?
+               if [ "${rc1}" = "0" ]; then
+                  echo "${TLBL}INFO: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TLBL} was located and copied to Cmd4 plugin.${TNRM}"
+                  echo ""
+               else
+                  echo "${TYEL}WARNING: An enhanced version of ${BOLD}\"Cmd4PriorityPollingQueue.js\"${TNRM}${TYEL} was NOT copied to Cmd4 plugin with an error code: ${rc1}."
+                  echo "         Please copy it manually (details explained in item 12 of plugin README).${TNRM}"
+                  echo ""
+               fi
+            ;;
+         esac
+         if [ "${rc1}" != "0" ]; then
+            {  echo "#!/bin/bash"
+               echo ""
+               echo "# This script will copy the enhanced version of Cmd4PriorityPollingQueue.js module to Cmd4 plugin."
+               echo "# This will improve the performance of \"Cmd4-AdvantageAir\" plugin."
+               echo ""
+               echo "# fun color stuff"
+               echo "BOLD=\$(tput bold)"
+               echo "TRED=\$(tput setaf 1)"
+               echo "TLBL=\$(tput setaf 6)"
+               echo "TNRM=\$(tput sgr0)"
+               echo ""
+               echo "if [ -f ${fullPath} ]; then"
+               echo "   # check the Cmd4 version whether it is v7.0.0 or v7.0.1 or v7.0.2"
+               echo "   Cmd4_version=\$(jq '.version' ${fullPath_package})"
+               echo "   if expr \"\${Cmd4_version}\" : '\"7.0.[0-2]\"' >/dev/null; then"
+               echo "      sudo cp ${fullPath_txt} ${fullPath_js}"
+               echo "      rc1=\$?"
+               echo "      if [ \"\${rc1}\" = \"0\" ]; then"
+               echo "         echo \"\${TLBL}INFO: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TLBL} was located and copied to Cmd4 plugin.\${TNRM}\""
+               echo "      else"
+               echo "         echo \"\${TYEL}WARNING: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TYEL} was NOT copied to Cmd4 plugin with an error code: \${rc1}.\${TNRM}\""
+               echo "         echo \"         Please copy it manually (details explained in item 12 of plugin README).\${TNRM}\""
+               echo "      fi"
+               echo "   else"
+               echo "      echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT copied to Cmd4 plugin,\${TNRM}\""
+               echo "      echo \"\${TRED}ERROR: because the Cmd4 version is \${Cmd4_version}. It has to be v7.0.0 or v7.0.1 or v7.0.2.\${TNRM}\""
+               echo "   fi"
+               echo "else"
+               echo "   echo \"\${TRED}ERROR: An enhanced version of \${BOLD}\\\"Cmd4PriorityPollingQueue.js\\\"\${TNRM}\${TRED} was NOT located.\${TNRM}\""
+               echo "fi"
+               echo "exit 0"
             } > "copyEnhancedCmd4PriorityPollingQueueJs.sh"
             chmod +x "copyEnhancedCmd4PriorityPollingQueueJs.sh"
          fi
       fi
-  fi
+   fi
 }
 
 function cleanUp()
@@ -1731,7 +1759,7 @@ for ((n=1; n<=noOfTablets; n++)); do
                         cmd4ZoneFanv2 "${cmd4ConfigAccessoriesAA}" "${name} Zone"
                         cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
                      else
-                        cmd4ZoneFanv2noSwingMode "${cmd4ConfigAccessoriesAA}" "${name} Zone"
+                        cmd4ZoneFanv2noRotationDirection "${cmd4ConfigAccessoriesAA}" "${name} Zone"
                         cmd4ZoneLinkedTypesTempSensor "${cmd4ConfigAccessoriesAA}" "${name} Temperature"
                      fi
                   done
@@ -1748,9 +1776,9 @@ for ((n=1; n<=noOfTablets; n++)); do
          name=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.name" | sed s/\"//g)
          value=$(echo "$myAirData" | jq -e ".myLights.lights.${id}.value ")
          if [ "${value}" = "null" ]; then
-            cmd4LightbulbNoDimmer "${cmd4ConfigAccessoriesAA}" "${name}"
+            cmd4LightbulbNoDimmer "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
          else
-            cmd4LightbulbWithDimmer "${cmd4ConfigAccessoriesAA}" "${name}"
+            cmd4LightbulbWithDimmer "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
          fi
       done
    fi
@@ -1760,7 +1788,7 @@ for ((n=1; n<=noOfTablets; n++)); do
       echo "$myAirData" | jq -e ".myThings.things" | grep \"id\" | cut -d":" -f2 | sed s/[,]//g | while read -r id;
       do
          name=$(echo "$myAirData" | jq -e ".myThings.things.${id}.name" | sed s/\"//g)
-         cmd4GarageDoorOpener "${cmd4ConfigAccessoriesAA}" "${name}"
+         cmd4GarageDoorOpener "${cmd4ConfigAccessoriesAA}" "${name}" "${id}"
       done
    fi
 
@@ -1787,7 +1815,7 @@ assembleCmd4ConfigJsonAAwithNonAA
 writeToHomebridgeConfigJson
 
 if [ "${rc}" = "0" ]; then
-   echo "${TGRN}${BOLD}DONE! Restart Homebridge/HOOBS for the created config to take effect OR run CheckConfig prior (recommended)${TNRM}"
+   echo "${TGRN}${BOLD}DONE! Run CheckConfig then restart Homebridge or HOOBS.${TNRM}"
    rm -f "${cmd4ConfigJsonAA}"
    if [ "${UIversion}" = "nonUI" ]; then
       echo ""

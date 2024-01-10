@@ -12,3 +12,4 @@ else
    echo "Setup: Curl has Stoped daemon rc: $rc" >> "${TMPDIR}"/AA-001/AirConServer.out
    echo "Curl has Stoped AirConServer daemon successfully rc: $rc"
 fi
+sudo rm -r $TMPDIR/AA-001

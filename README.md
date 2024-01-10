@@ -124,7 +124,7 @@ apk add curl
 * Homebridge users without access to the Homebridge web UI can use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#homebridge-terminal-instructions).
 * HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#hoobs-terminal-instructions).
 
-8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS` and it should launch the 'Advantage Air Configuration Creator'.
+8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS > Config` and it should launch the 'Advantage Air Configuration Creator'.
      <p align="left">
      <img width="800px" src="Screenshots/AdvAirConfigCreator.png">
      </p>
@@ -164,38 +164,38 @@ apk add curl
 
     * Use "Fan" accessory with integrated temperature and myZone switch (recommended):
     
-        For systems with Temperature Sensors, this option will use the `Fanv2` accessory for Zone Control with `Fanv2`'s `SwingMode` charateristic being repurposed as the myZone switch and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. _Please note that the `Speed` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design. Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it._
+        For systems with Temperature Sensors, this option will use the `Fanv2` accessory for Zone Control with `Fanv2`'s `RotationDirection` charateristic being repurposed as the myZone switch and integrate a linked `TemperatureSensor` for the temperature info. The advantage of this option is to have the temperature info & the "zone % open" displayed on the zone itself and able to set this zone as myZone if it hasn't been set yet. _Please note that the `Speed` which is a proxy for "zone % open" is not user controllable as per AdvantageAir design. Please also note that once myZone is set, you cannot unset it. You have to set another zone as myZone to unset it._
     
     <p align="left">
-    <img width="450px" src="Screenshots/Fanv2_as_integrated_zoneControl.png">
+    <img width="600px" src="Screenshots/Fanv2_as_integrated_zoneControl2.png">
     </p>
 
-    For systems with no Temperature Sensors, this option will use the `Fan` accessory for Zone Control and the `Speed` which is a proxy for "zone % open" is user controllable.
+    For systems with no Temperature Sensors, there will be no `button switch` and no temperature info but the `Speed` which is a proxy for "zone % open" is user controllable.
 
 
     
 11. Click `CHECK CONFIGURATION`. It will check over your installation and config to make sure you have everything correct. On a success it will say `Passed`; if something is incorrect, an error message will pop up telling you what it is that you have missed and need to fix.
 
      <p align="left">
-     <img width="360px" src="Screenshots/AdvAirShellCheckPassed.png">
+     <img width="300px" src="Screenshots/AdvAirShellCheckPassed.png">
      </p>
 
      <p align="left">
-     <img width="800px" src="Screenshots/AdvAirShellCheckError.png">
+     <img width="600px" src="Screenshots/AdvAirShellCheckError.png">
      </p>
 
-12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module would have been copied to Cmd4 plugin. This optimised version of `Cmd4PriorityPollingQueue.js` module will give you some improvement in performance.
+12. If you have Cmd4 v7.0.0-beta2 or v7.0.1 or v7.0.2 installed, an optimised version of `Cmd4PriorityPollingQueue.js` module which will give you some improvements in performance, will be installed as part of the ConfigCreator process at step 10.
+    
+    A feedback messages from ConfigCreator of "COPIED and DONE!" is an indication of sucessful installation.
 
-     If for some reasons it was not copied, a script will be created and you can run it manually to get it copied.
+    A feedback messages from ConfigCreator of "NOT COPIED but DONE!" is an indication of unsucessful installation of the optimised module but the config was generated sucesscully. If this happens, a script `copyEnhancedCmd4PriorityPollingQueueJs.sh` will be created in `<config.json storage path>` directory and you can run it to get it installed manually.
 
-     You can find the script in:
-
-     `<config.json storage path>/copyEnhancedCmd4PriorityPollingQueueJs.sh`
-
-     `<config.json storage path>` is the directory path where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
+    The `<config.json storage path>` directory is the directory where "config.json" is stored.  For Raspbian installation, it is typically `/var/lib/homebridge`.  For Mac users, it is typically `$HOME/.homebridge`. For HOOBS users, it is typically `/var/lib/hoobs/<bridge>`.
 
     Restart homebridge for the change to take effect.
 
+    *Please note that if this optimised version of `Cmd4PriorityPollingQueue.js` module is not installed, this plugin will still work fine but slightly less efficient.*
+    
 ### Windows OS
 I have not successfully set this up on a Windows OS Homebridge server yet. If you have and want to contribute; please reach out and let me know how you did it. Otherwise I strongly suggest you buy a dedicated Raspberry Pi for Homebridge.
 
