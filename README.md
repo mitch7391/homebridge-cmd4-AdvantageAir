@@ -8,6 +8,8 @@
 [![npm](https://badgen.net/npm/v/homebridge-cmd4-advantageair/latest?icon=npm&label)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
 [![npm](https://badgen.net/npm/dt/homebridge-cmd4-advantageair?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![buy-me-a-coffee](https://badgen.net/badge/icon/BuyMeACoffee/orange?icon=buymeacoffee&label)](https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD)
+[![reddit](https://badgen.net/badge/icon/Mitch7391/red?icon=reddit&label)](https://www.reddit.com/user/Mitch7391/)
   
 </span>
 
