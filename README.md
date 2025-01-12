@@ -8,8 +8,19 @@
 [![npm](https://badgen.net/npm/v/homebridge-cmd4-advantageair/latest?icon=npm&label)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
 [![npm](https://badgen.net/npm/dt/homebridge-cmd4-advantageair?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
+[![buy-me-a-coffee](https://badgen.net/badge/icon/BuyMeACoffee/orange?icon=buymeacoffee&label)](https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD)
+[![reddit](https://badgen.net/badge/icon/Mitch7391/red?icon=reddit&label)](https://www.reddit.com/user/Mitch7391/)
   
 </span>
+
+<!-- prettier-ignore -->
+> [!NOTE]
+> It is with a heavy heart that I have to archive this plugin for the time being after many years of supporting this community. After years of of IVF, becoming a father of twins early last year has changed my outlook on life, my priorities and of course how much free time I have! An archived plugin means that all users will still be able to use the plugin, but you will not be able to submit issues or requests, and it will no longer be updated. I am hoping to have all prepared that is required for Homebridge v2 so that is a smooth transition for existing users.
+>
+> It would be remiss of me to not let users know that former contributer [Uswong](https://github.com/uswong), has created his own version of this plugin some time ago called [homebridge-myplace](https://github.com/uswong/homebridge-myplace) that no longer requires a seperate install of homebridge-cmd4 and has had some further improvements that have not be applied to this plugin. Please note that his plugin only has one configuration option, and if you use homebridge-cmd4 for accessories outside of this plugin, they may no longer work in homebridge alongside his plugin.
+>
+> For the first time ever I will be adding a donate link to my page. This is just if anyone would like to shout me a coffee :) I have also added a link to my Reddit account if anyone does need to get hold of me for any reason. Lastly, I would like to thank you all for making this an amazing journey. I have met so many nice people along the way who have helped shape this plugin and been patient with me as I learned to get this going from little to no coding background to where it is now. I do hope to get back into this again one day! :D
+> 
 
 # homebridge-cmd4-AdvantageAir
 
