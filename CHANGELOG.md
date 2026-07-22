@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.12.2 (2026-07-22)
+
+Clearly rusty at releases...
+
+### Fixed
+
+* Restored compatibility with current Homebridge Configuration UI versions.
+* Restored the Check Configuration button that was no longer working.
+
+### Changed
+* Declared compatibility with Homebridge 2.x and dropped the beta tagging.
+* Added Node.js 24 support while keeping 18 also.
+* Updated lodash from 4.17.21 to 4.18.1.
+* Updated package metadata for the 3.12.2 release.
+
+## 3.12.1 (2026-07-22)
+
+* Initial maintenance release containing the Homebridge 2.x compatibility and configuration UI fixes.
+* Superseded by 3.12.2 to complete the changelog and package-lock version metadata.
+
 ## 3.12.0 (2025-01-12)
 
 ### Farewell
