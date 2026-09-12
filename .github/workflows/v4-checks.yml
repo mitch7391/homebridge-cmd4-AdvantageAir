@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - v4-beta
-      - v4-template-foundation
+      - v4-api-client
   pull_request:
     branches:
       - v4-beta
@@ -41,8 +41,8 @@ jobs:
       - name: Check code style
         run: npm run lint
 
-      - name: Build plugin
-        run: npm run build
+      - name: Build and Test plugin
+        run: npm test
 
       - name: Check package contents
         run: npm pack --dry-run
