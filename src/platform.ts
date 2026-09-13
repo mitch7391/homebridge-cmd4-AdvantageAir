@@ -8,6 +8,7 @@ import type {
 
 import { AdvantageAirClient } from './api/advantageAirClient.js';
 import { ControllerPoller } from './api/controllerPoller.js';
+import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
   name: string;
@@ -58,6 +59,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
   configureAccessory(accessory: PlatformAccessory): void {
     this.log.debug('Loading accessory from cache:', accessory.displayName);
     this.accessories.set(accessory.UUID, accessory);
+    ZoneTemperatureManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -108,8 +110,35 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         const debug = device.debug === true;
         let previouslyFailed = false;
         let receivedData = false;
+        let accessoryUpdateFailed = false;
+
+        const temperatureManager = new ZoneTemperatureManager(
+          this.api,
+          this.accessories,
+        );
 
         const poller = new ControllerPoller(client, 30000, (state) => {
+          try {
+            temperatureManager.update(state);
+            accessoryUpdateFailed = false;
+          } catch (error) {
+            if (error instanceof DuplicateControllerError) {
+              poller.stop();
+              this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
+              return;
+            }
+
+            if (!accessoryUpdateFailed) {
+              this.log.error(
+                'Temperature accessory update failed:',
+                name,
+                'Existing accessories have been retained.',
+              );
+            }
+
+            accessoryUpdateFailed = true;
+          }
+
           if (state.lastAttemptFailed) {
             if (!previouslyFailed) {
               this.log.warn(
