@@ -1,84 +1,54 @@
 {
-   "pluginAlias": "cmd4AdvantageAir",
-   "pluginType": "platform",
-   "singular": true,
-   "customUi": true,
-   "headerDisplay": "Homebridge plugin for AdvantageAir devices",
-   "schema": {
-      "debug": {
-         "title": "debug",
-         "type": "boolean",
-         "description": "Enables additional output in the log.",
-         "required": false,
-         "placeholder": false
+  "pluginAlias": "AdvantageAir",
+  "pluginType": "platform",
+  "singular": true,
+  "strictValidation": false,
+  "schema": {
+    "type": "object",
+    "required": ["name", "devices"],
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "title": "Name",
+        "type": "string",
+        "default": "Homebridge Advantage Air"
       },
-      "type": "object",
-      "properties": {
-         "name": {
-           "title": "Name",
-           "type": "string",
-           "default": "cmd4AdvantageAir",
-           "required": true
-         },
-         "devices": {
-            "type": "array",
-            "items": {
-               "title": "AdvantageAir device",
-               "type": "object",
-               "properties": {
-                  "name": {
-                     "title": "Name",
-                     "description": "The name of the AdvantageAir device, default=Aircon",
-                     "type": "string",
-                     "required": true,
-                     "default": "Aircon"
-                  },
-                  "ipAddress": {
-                     "title": "IP Address",
-                     "description": "The device's IP address. It is recommended to set a static IP for this device.",
-                     "type": "string",
-                     "format": "ipv4",
-                     "required": true,
-                     "placeholder": "192.168.0.1"
-                  },
-                  "port": {
-                     "title": "PORT used",
-                     "description": "The PORT number used for this device, default=2025.",
-                     "type": "number",
-                     "required": true,
-                     "default": "2025"
-                  },
-                  "debug": {
-                     "title": "Enable detailed debug log",
-                     "description": "Enables a detailed debug log. Useful when trying to figure out issues with the plugin.",
-                     "type": "boolean",
-                     "required": false,
-                     "default": false
-                  }
-               }
+      "devices": {
+        "title": "Controllers",
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": ["ipAddress"],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Controller name",
+              "type": "string",
+              "default": "Aircon"
+            },
+            "ipAddress": {
+              "title": "IP address",
+              "description": "The wall-mounted controller's IP address. A reserved address in your router is recommended.",
+              "type": "string",
+              "format": "ipv4"
+            },
+            "port": {
+              "title": "Port",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 2025
+            },
+            "debug": {
+              "title": "Detailed debug logging",
+              "description": "Log controller read summaries without including full responses.",
+              "type": "boolean",
+              "default": false
             }
-         }
+          }
+        }
       }
-   },
-   "layout": [
-      {
-      "type": "fieldset",
-      "title": "AdvantageAir Device Settings",
-      "description": "Enter below the name and IP address of your AdvantageAir device.",
-      "items": [
-         ]
-      },
-      {
-      "key": "devices",
-      "type": "tabarray",
-      "title": "{{ value.name || 'new device' }}",
-      "description": "Note: only a maximum of 3 AdvantageAir devices can be processed by Config Creator.",
-      "items": [
-         "devices[].name",
-         "devices[].ipAddress",
-         "devices[].port",
-         "devices[].debug"
-         ]
-      }
-   ]
+    }
+  }
 }
