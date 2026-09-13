@@ -4,8 +4,14 @@ Standalone Homebridge integration for Advantage Air systems.
 
 ## Development status
 
-This branch contains the foundation for the v4 standalone rewrite.
-It does not yet connect to controllers or create working accessories.
+This branch contains the v4 standalone rewrite in development.
+
+It supports read-only controller polling and retains the last valid response
+when a read fails. Each configured controller is read at startup, then
+30 seconds after the previous attempt finishes.
+
+It does not yet create working HomeKit accessories or send control commands.
+Live hardware validation is still pending.
 
 The existing v3 plugin remains on the `master` branch.
 See [the v3 documentation](README-v3.md) for the existing Cmd4 integration.
@@ -39,10 +45,10 @@ is under development.
 
 ## Planned work
 
-- Advantage Air API client
-- Controller and zone discovery
-- Shared polling and state caching
-- Accessory control and cache restoration
+- Live controller validation
+- Accessory discovery and control
+- Accessory cache restoration and migration
+- Independent validation of air conditioning, lighting and other device data
 - Explicit migration instructions for existing Cmd4 users
 
 ## Project history and attribution

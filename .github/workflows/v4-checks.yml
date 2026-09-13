@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - v4-beta
-      - v4-api-client
+      - v4-controller-polling
   pull_request:
     branches:
       - v4-beta
