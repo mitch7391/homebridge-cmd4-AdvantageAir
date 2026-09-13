@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - v4-beta
-      - v4-accessory-discovery
+      - v4-legacy-accessories
   pull_request:
     branches:
       - v4-beta
