@@ -1,0 +1,226 @@
+<link rel="stylesheet" href="css/style.css">
+<div class="card card-body">
+  <img src="images/AdvAir.png" alt="Advantage Air" width="150px" class="center-it cmd4Logo">
+  <h5 class="text-center"><b style="font-weight: 600;">Advantage Air Configuration Creator</b></h5>
+  <h6 class="text-center">This will create the required AdvantageAir Cmd4 configuration file for your AdvantageAir system.</h6>
+  <div class="text-center">
+    <button id="ConfigCreatorButton" type="button" class="btn btn-primary">Config Creator</button>
+  </div>
+  <div>
+    <input type="checkbox" id="fanSetup"> "Fan" setup as "FanSwitch"
+  </div>
+  <div>
+    <input type="checkbox" id="timerSetup"> Include extra fancy timers to turn-on the Aircon in specific mode: Cool, Heat or Vent 
+  </div>
+  <div>
+    <br>
+    <p><b style="font-weight: 600;">Zone Control setup options:</b></p>
+    <input type="radio" id="zoneSetup1" name="zSetup" value="LightbulbSwitch1">
+           <label for="zoneSetup1">Use "Lightbulb/Switch" as proxy with standalone temperature and myZone switch (legacy)</label><br>
+    <input type="radio" id="zoneSetup2" name="zSetup" value="LightbulbSwitch2">
+           <label for="zoneSetup2">Use "Lightbulb/Switch" as proxy with integrated temperature but standalone myZone switch</label><br>
+    <input type="radio" id="zoneSetup3" name="zSetup" value="Lightbulb">
+           <label for="zoneSetup3">Use "Lightbulb" only as proxy with integrated temperature but standalone myZone switch</label><br>
+    <input type="radio" id="zoneSetup4" name="zSetup" value="Fan" checked>
+           <label for="zoneSetup4">Use "Fan/Fanv2" as proxy with integrated temperature and myZone switch (recommended)</label><br>
+  </div>
+  <div class="form-group">
+    <br>
+    <label for="feedbackOutput"><b style="font-weight: 600;">Feedback messages from ConfigCreator (read only):</b></label>
+    <input type="text" class="form-control" id="feedbackOutput" readonly>
+  </div>
+</div>
+
+<div id="main" class="card card-body pb-5">
+
+  <!-- start -->
+  <div id="start">
+    <h5 class="text-center"> <b style="font-weight: 600;">Advantage Air Configuration Check</b></h5>
+    <h6 class="text-center">This will check your AdvantageAir Cmd4 configuration file for any errors.</h6>
+    <button id="checkInstallationButton" type="submit" class="btn btn-primary center-it mt-3">Check Configuration</button>
+  </div>
+</div>
+
+<div id="advErrorModal" class="modal fade" tabindex="-1" role="dialog">
+   <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+         <div class="modal-header">
+            <h5 class="modal-title">Error:</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+               <span aria-hidden="true">&times;</span>
+            </button>
+         </div>
+         <div class="modal-body"
+            <p>Modal body text goes here.</p>
+         </div>
+      </div>
+   </div>
+</div>
+
+<!-- Modules bootstrap is supposedly already there, but I have problems with modal being undefined. I believe this is because bootstrap only allows One Modal and this is the Error Dialog is the second. The solution is to reload them again in the proper order
+-->
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="   crossorigin="anonymous">var $jq = jQuery.noConflict(true);</script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/js/bootstrap.min.js" integrity="sha384-ChfqqxuZUCnJSK3+MXmPNIyE6ZbWh2IMqE241rYiqJxyMiZ6OW/JmZQ5stwEULTy" crossorigin="anonymous"></script>
+
+<!-- Main -->
+<script type="text/javascript" src="js/main.js?v=0.0.7">
+</script>
+
+<script>
+  (async () => {
+    // get the initial config - this is an array potentially containing multiple config blocks
+    const pluginConfig = await homebridge.getPluginConfig();
+    const configSchema = await homebridge.getPluginConfigSchema();
+
+    if (!pluginConfig.length) {
+      pluginConfig.push({});
+    }
+    const configuration = pluginConfig[0];
+    configuration.devices = configuration.devices || [];
+
+    function createForm(configSchema, configuration) {
+      const configForm = homebridge.createForm(configSchema, configuration);
+      configForm.onChange(async (changes) => {
+        await homebridge.updatePluginConfig([changes]);
+      })
+    }
+
+    AAIP = "";
+    AAname = "";
+    AAport = "2025"
+    AAdebug = "false";
+    AAIP2 = "";
+    AAname2 = "";
+    AAport2 = "2025"
+    AAdebug2 = "false";
+    AAIP3 = "";
+    AAname3 = "";
+    AAport3 = "2025"
+    AAdebug3 = "false";
+    feedback = "";
+    var fanSetup;
+    var zoneSetup;
+    var timerSetup;
+
+    // get the intial from the config and add it to the form
+    if (pluginConfig.length) {
+      if (pluginConfig[0].devices.length >= 1) {
+        AAIP = pluginConfig[0].devices[0].ipAddress;
+        AAname = pluginConfig[0].devices[0].name;
+        AAport = pluginConfig[0].devices[0].port;
+        AAdebug = pluginConfig[0].devices[0].debug;
+      }
+      if (pluginConfig[0].devices.length >= 2) {
+        AAIP2 = pluginConfig[0].devices[1].ipAddress;
+        AAname2 = pluginConfig[0].devices[1].name;
+        AAport2 = pluginConfig[0].devices[1].port;
+        AAdebug2 = pluginConfig[0].devices[1].debug;
+      }
+      if (pluginConfig[0].devices.length >= 3) {
+        AAIP3 = pluginConfig[0].devices[2].ipAddress;
+        AAname3 = pluginConfig[0].devices[2].name;
+        AAport3 = pluginConfig[0].devices[2].port;
+        AAdebug3 = pluginConfig[0].devices[2].debug;
+      }
+    }
+    if (AAport == undefined) {AAport = "2025"}
+    if (AAport2 == undefined) {AAport2 = "2025"}
+    if (AAport3 == undefined) {AAport3 = "2025"}
+
+    // watch for click events on the ConfigCreatorButton
+    document.querySelector('#ConfigCreatorButton').addEventListener('click', async () => {
+
+      if (pluginConfig[0].devices.length === 0) {
+        homebridge.toast.error(`No device defined yet. Please define at least 1 device and SAVE it.`, 'Error');
+        return;
+      }
+
+      // validate an ip was provided
+      if (AAIP === "undefined" || !AAIP) {
+        // create a error / red toast notification if the required input is not provided.
+        homebridge.toast.error('An ip address of your AdvantageAir system must be provided.', 'Error');
+        return;
+      }
+
+      if (document.getElementById("fanSetup").checked == true) {
+         fanSetup = "fanSwitch";
+      } else {
+         fanSetup = "fan";
+      }
+      if (document.getElementById("zoneSetup1").checked == true) {
+         zoneSetup = "LightbulbSwitch1";
+      } else if (document.getElementById("zoneSetup2").checked == true) {
+         zoneSetup = "LightbulbSwitch2";
+      } else if (document.getElementById("zoneSetup3").checked == true) {
+         zoneSetup = "Lightbulb";
+      } else if (document.getElementById("zoneSetup4").checked == true) {
+         zoneSetup = "Fan";
+      }
+      if (document.getElementById("timerSetup").checked == true) {
+         timerSetup = "includeFancyTimers";
+         document.querySelector('#feedbackOutput').value = fanSetup + ", " + "zoneSetup:" + zoneSetup + " and " + timerSetup;
+      } else {
+         timerSetup = "noFancyTimers";
+         document.querySelector('#feedbackOutput').value = fanSetup + ", " + "zoneSetup:" + zoneSetup + " but " + timerSetup;
+      }
+
+
+
+      // starting the request, show the loading spinner
+      homebridge.showSpinner();
+
+      // request key paths from the server
+      if(pluginConfig[0].devices.length === 1) {
+         homebridge.toast.info(`This process may take up to 1 minute`, 'Info');
+      }
+      if(pluginConfig[0].devices.length === 2) {
+         homebridge.toast.info(`This process may take up to 2 minutes`, 'Info');
+      }
+      if(pluginConfig[0].devices.length === 3) {
+         homebridge.toast.info(`This process may take up to 3 minutes`, 'Info');
+      }
+
+      try {
+        const response = await homebridge.request('/configcreator', {
+          ip: AAIP,
+          name: AAname,
+          port: AAport,
+          debug: AAdebug,
+          ip2: AAIP2,
+          name2: AAname2,
+          port2: AAport2,
+          debug2: AAdebug2,
+          ip3: AAIP3,
+          name3: AAname3,
+          port3: AAport3,
+          debug3: AAdebug3,
+          fanSetup: fanSetup,
+          zoneSetup: zoneSetup,
+          timerSetup: timerSetup,
+          feedback: feedback 
+        });
+
+        // update the #feedbackOutput with the response
+        document.querySelector('#feedbackOutput').value = response.feedback;
+
+        if(response.feedback.includes("ERROR")) {
+           // create a red toast notification of the error
+           homebridge.toast.error(`${response.feedback}`, 'Error');
+           return;
+        } else if(response.feedback.includes("DONE")) {
+           // show a success toast notification
+           homebridge.toast.success('ConfigCreator completed!', 'Success');
+           return;
+        } else {
+           homebridge.toast.error(`ConfigCreator did not run!`, 'Error');
+        }
+      } catch (e) {
+        homebridge.toast.error(e.error, e.message);
+      } finally {
+        // remember to un-hide the spinner
+        homebridge.hideSpinner();
+      }
+    });
+    createForm(configSchema, configuration);
+  })();
+</script>
