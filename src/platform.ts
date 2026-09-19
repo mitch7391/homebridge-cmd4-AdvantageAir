@@ -8,12 +8,15 @@ import type {
 
 import { AdvantageAirClient } from './api/advantageAirClient.js';
 import { ControllerPoller } from './api/controllerPoller.js';
+import { ZoneCommandExecutor } from './api/zoneCommandExecutor.js';
+import { ZoneSwitchManager } from './accessories/zoneSwitchManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
   name: string;
   debug: boolean;
   poller: ControllerPoller;
+  switchManager: ZoneSwitchManager;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -52,6 +55,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
 
       for (const controller of this.controllers) {
         controller.poller.stop();
+        controller.switchManager.stop();
       }
     });
   }
@@ -60,6 +64,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     this.log.debug('Loading accessory from cache:', accessory.displayName);
     this.accessories.set(accessory.UUID, accessory);
     ZoneTemperatureManager.prepareCachedAccessory(this.api, accessory);
+    ZoneSwitchManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -117,27 +122,36 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           this.accessories,
         );
 
+        const switchManager = new ZoneSwitchManager(
+          this.api,
+          this.accessories,
+          new ZoneCommandExecutor(client),
+          message => this.log.warn(name, message),
+        );
+
         const poller = new ControllerPoller(client, 30000, (state) => {
-          try {
-            temperatureManager.update(state);
-            accessoryUpdateFailed = false;
-          } catch (error) {
-            if (error instanceof DuplicateControllerError) {
-              poller.stop();
-              this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
-              return;
+          let updateFailed = false;
+          for (const manager of [switchManager, temperatureManager]) {
+            try {
+              manager.update(state);
+            } catch (error) {
+              if (error instanceof DuplicateControllerError) {
+                poller.stop();
+                switchManager.stop();
+                this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
+                return;
+              }
+              updateFailed = true;
             }
-
-            if (!accessoryUpdateFailed) {
-              this.log.error(
-                'Temperature accessory update failed:',
-                name,
-                'Existing accessories have been retained.',
-              );
-            }
-
-            accessoryUpdateFailed = true;
           }
+          if (updateFailed && !accessoryUpdateFailed) {
+            this.log.error(
+              'Controller accessory update failed:',
+              name,
+              'Existing accessories have been retained.',
+            );
+          }
+          accessoryUpdateFailed = updateFailed;
 
           if (state.lastAttemptFailed) {
             if (!previouslyFailed) {
@@ -182,7 +196,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           }
         });
 
-        this.controllers.push({ name, debug, poller });
+        this.controllers.push({ name, debug, poller, switchManager });
       } catch (error) {
         const reason = error instanceof Error
           ? error.message

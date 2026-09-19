@@ -18,6 +18,7 @@ export class AdvantageAirClient {
   private readonly endpoint: URL;
   private readonly timeoutMs: number;
   private inFlight?: Promise<SystemData>;
+  private requests: Promise<void> = Promise.resolve();
 
   constructor(options: AdvantageAirClientOptions) {
     const port = options.port ?? 2025;
@@ -48,30 +49,89 @@ export class AdvantageAirClient {
 
   getSystemData(): Promise<SystemData> {
     if (!this.inFlight) {
-      this.inFlight = this.requestSystemData().finally(() => {
-        this.inFlight = undefined;
+      const request = this.requestSystemData().finally(() => {
+        if (this.inFlight === request) {
+          this.inFlight = undefined;
+        }
       });
+      this.inFlight = request;
     }
 
     return this.inFlight;
   }
 
   private async requestSystemData(): Promise<SystemData> {
+    return validateSystemData(await this.requestJson(this.endpoint));
+  }
+
+  getFreshSystemData(): Promise<SystemData> {
+    this.inFlight = undefined;
+    return this.getSystemData();
+  }
+
+  /** Sends once. The returned response is not confirmation of the zone state. */
+  async requestZoneState(
+    airconKey: string,
+    zoneKey: string,
+    state: 'open' | 'close',
+    signal?: AbortSignal,
+  ): Promise<unknown> {
+    if (
+      typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || typeof zoneKey !== 'string' || !/^z\d+$/.test(zoneKey)
+      || (state !== 'open' && state !== 'close')
+    ) {
+      throw new AdvantageAirRequestError('Invalid zone command.');
+    }
+
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({
+      [airconKey]: { zones: { [zoneKey]: { state } } },
+    }));
+
+    // Reads requested after this write must not share an earlier read.
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AdvantageAirRequestError('Controller rejected the zone command.');
+    }
+    return response;
+  }
+
+  private requestJson(endpoint: URL, signal?: AbortSignal): Promise<unknown> {
+    const request = this.requests.then(() => {
+      if (signal?.aborted) {
+        throw new AdvantageAirRequestError('Controller request cancelled.');
+      }
+      return this.performRequest(endpoint, signal);
+    });
+    // A failed request must not prevent subsequent requests from running.
+    this.requests = request.then(() => undefined, () => undefined);
+    return request;
+  }
+
+  private async performRequest(endpoint: URL, signal?: AbortSignal): Promise<unknown> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), this.timeoutMs);
+    const requestSignal = signal
+      ? AbortSignal.any([controller.signal, signal])
+      : controller.signal;
 
     try {
       let response: Response;
 
       try {
-        response = await fetch(this.endpoint, {
-          signal: controller.signal,
+        response = await fetch(endpoint, {
+          signal: requestSignal,
           redirect: 'error',
           headers: {
             Accept: 'application/json',
           },
         });
       } catch {
+        if (signal?.aborted) {
+          throw new AdvantageAirRequestError('Controller request cancelled.');
+        }
         throw new AdvantageAirRequestError(
           controller.signal.aborted
             ? 'Controller request timed out.'
@@ -91,6 +151,9 @@ export class AdvantageAirClient {
       try {
         body = await response.text();
       } catch {
+        if (signal?.aborted) {
+          throw new AdvantageAirRequestError('Controller request cancelled.');
+        }
         throw new AdvantageAirRequestError(
           controller.signal.aborted
             ? 'Controller request timed out.'
@@ -108,7 +171,7 @@ export class AdvantageAirClient {
         );
       }
 
-      return validateSystemData(data);
+      return data;
     } finally {
       clearTimeout(timer);
     }

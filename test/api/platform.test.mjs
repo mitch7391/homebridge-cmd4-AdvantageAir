@@ -19,10 +19,12 @@ function snapshot(type = 0, controllerId = 'test-controller') {
     },
     aircons: {
       ac1: {
-        info: { uid: 'test-aircon', name: 'Aircon' },
+        info: { uid: 'test-aircon', name: 'Aircon', myZone: 0 },
         zones: {
           z01: {
             name: 'Living',
+            number: 1,
+            state: 'open',
             type,
             error: 0,
             measuredTemp: 23.5,
@@ -62,11 +64,14 @@ function setup(t, devices, read) {
 
   const api = new HomebridgeAPI();
   const registrations = [];
+  const allRegistrations = [];
   const registerAccessories = api.registerPlatformAccessories.bind(api);
 
   t.mock.method(api, 'registerPlatformAccessories', (plugin, platform, accessories) => {
     registerAccessories(plugin, platform, accessories);
-    registrations.push(...accessories);
+    allRegistrations.push(...accessories);
+    // Keep the existing temperature tests focused on temperature accessories.
+    registrations.push(...accessories.filter(item => item.context.advantageAirTemperature === true));
   });
   const platform = new AdvantageAirPlatform(
     log,
@@ -76,7 +81,7 @@ function setup(t, devices, read) {
 
   t.after(() => api.emit('shutdown'));
 
-  return { api, platform, messages, registrations };
+  return { api, platform, messages, registrations, allRegistrations };
 }
 
 test('starts each controller once and stops polling on shutdown', async (t) => {
@@ -109,6 +114,141 @@ test('starts each controller once and stops polling on shutdown', async (t) => {
   t.mock.timers.tick(60000);
   await flushPromises();
   assert.equal(reads, 4);
+});
+
+async function flushCommands() {
+  for (let i = 0; i < 30; i++) {
+    await Promise.resolve();
+  }
+}
+
+function switchOn(context) {
+  const accessory = context.allRegistrations.find(item => item.context.advantageAirZoneSwitch === true);
+  assert.ok(accessory);
+  return accessory.getService(context.api.hap.Service.Switch)
+    .getCharacteristic(context.api.hap.Characteristic.On);
+}
+
+test('platform discovers both a zone switch and its separate temperature sensor', async (t) => {
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  assert.equal(c.allRegistrations.length, 2);
+  assert.equal(c.registrations.length, 1);
+  assert.equal(await switchOn(c).handleGetRequest(), true);
+  t.mock.timers.tick(30000);
+  await flushPromises();
+  assert.equal(c.allRegistrations.length, 2);
+});
+
+test('platform confirms a switch write and later reflects controller reopening', async (t) => {
+  const data = snapshot(1);
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => data);
+  let writes = 0;
+  t.mock.method(AdvantageAirClient.prototype, 'requestZoneState', async (aircon, zone, state) => {
+    writes++;
+    assert.equal(aircon, 'ac1');
+    assert.equal(zone, 'z01');
+    data.aircons.ac1.zones.z01.state = state;
+    return {};
+  });
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  const on = switchOn(c);
+  const write = on.handleSetRequest(false);
+  const read = on.handleGetRequest();
+  await flushCommands();
+  assert.equal(writes, 1);
+  t.mock.timers.tick(1000);
+  await flushCommands();
+  await write;
+  assert.equal(await read, false);
+  assert.equal(await on.handleGetRequest(), false);
+  data.aircons.ac1.zones.z01.state = 'open';
+  t.mock.timers.tick(30000);
+  await flushCommands();
+  assert.equal(await on.handleGetRequest(), true);
+  assert.equal(writes, 1);
+});
+
+test('platform reports myZone refusal without sending a command', async (t) => {
+  const data = snapshot(1);
+  data.aircons.ac1.info.myZone = 1;
+  const c = setup(t, [{ ipAddress: '192.0.2.1', name: 'Controller' }], async () => data);
+  let writes = 0;
+  t.mock.method(AdvantageAirClient.prototype, 'requestZoneState', async () => {
+    writes++;
+  });
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  await assert.rejects(switchOn(c).handleSetRequest(false), error =>
+    error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  assert.equal(writes, 0);
+  assert.equal(c.messages.warn.length, 1);
+  assert.match(c.messages.warn[0], /Living Zone.*Select another myZone/);
+  t.mock.timers.tick(30000);
+  await flushPromises();
+  assert.equal(c.messages.warn.length, 1);
+});
+
+test('platform restores a cached switch without exposing its saved state before discovery', async (t) => {
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
+  const identity = JSON.stringify(['AdvantageAir', 'test-controller', 'test-aircon', 'zone', 'z01']);
+  const uuid = c.api.hap.uuid.generate(JSON.stringify([identity, 'zone-switch']));
+  const cached = new c.api.platformAccessory('Living Zone', uuid);
+  cached.context.advantageAirZoneSwitch = true;
+  const on = cached.addService(c.api.hap.Service.Switch, 'Living Zone')
+    .getCharacteristic(c.api.hap.Characteristic.On);
+  on.updateValue(false);
+  c.platform.configureAccessory(cached);
+  await assert.rejects(on.handleGetRequest(), error =>
+    error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  assert.equal(await on.handleGetRequest(), true);
+  assert.equal(c.platform.accessories.get(uuid), cached);
+  assert.equal(c.allRegistrations.length, 1);
+  assert.equal(c.registrations.length, 1);
+});
+
+test('platform shutdown interrupts confirmation and prevents further zone writes', async (t) => {
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
+  let writes = 0;
+  t.mock.method(AdvantageAirClient.prototype, 'requestZoneState', async () => {
+    writes++;
+    return {};
+  });
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  const on = switchOn(c);
+  const write = assert.rejects(on.handleSetRequest(false), error =>
+    error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  await flushCommands();
+  assert.equal(writes, 1);
+  c.api.emit('shutdown');
+  await write;
+  await assert.rejects(on.handleSetRequest(false), error =>
+    error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  assert.equal(writes, 1);
+});
+
+test('invalid identity data makes both switch and temperature readings unavailable', async (t) => {
+  const data = snapshot(1);
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => data);
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  const temperature = c.registrations[0].getService(c.api.hap.Service.TemperatureSensor)
+    .getCharacteristic(c.api.hap.Characteristic.CurrentTemperature);
+  assert.equal(await temperature.handleGetRequest(), 23.5);
+  delete data.system.mid;
+  t.mock.timers.tick(30000);
+  await flushPromises();
+  for (const characteristic of [temperature, switchOn(c)]) {
+    await assert.rejects(characteristic.handleGetRequest(), error =>
+      error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
+  }
+  assert.equal(c.messages.error.length, 1);
+  assert.equal(c.allRegistrations.length, 2);
 });
 
 test('skips invalid and duplicate controllers but starts valid ones', async (t) => {
