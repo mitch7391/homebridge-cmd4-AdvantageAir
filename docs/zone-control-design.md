@@ -41,8 +41,10 @@ request rather than repeated on each poll.
 4. Otherwise the client sends one encoded `/setAircon?json=...` request for that
    zone. HTTP success or an empty JSON response is not state confirmation.
 5. The executor waits one second before each fresh confirmation read, allowing
-   at most five attempts within the remaining deadline. It succeeds only when
-   the same zone identity reports the requested state.
+   further reads within the remaining seven-second deadline rather than stopping
+   after five attempts. A secondary cap permits at most ten attempts; at the
+   default one-second spacing the deadline is reached first. It succeeds only
+   when the same zone identity reports the requested state.
 6. The manager accepts the confirmed response before the HomeKit write resolves.
    Reads arriving during a pending write wait for that result, with their own
    seven-second deadline.
@@ -77,6 +79,11 @@ controller overrides, cancellation, full HAP request deadlines, cached accessory
 restoration, and platform integration with separate temperature sensors.
 
 Live controller reads and temperature sensors have been validated on the isolated
-Raspberry Pi test bridge. Zone writes and their confirmation timing still need
-live validation: change one ordinary zone, compare HomeKit with the controller,
-then restore its original state. Active-myZone reassignment remains unsupported.
+Raspberry Pi test bridge. A zone-write trace showed several empty-object reads,
+followed by an old state and then the changed state. One command was confirmed
+on its fifth read; another exhausted the former five-attempt cap while time
+remained, with the changed state observed on a later poll.
+
+The confirmation change uses that remaining time but still needs a live retest.
+The trace does not establish when the failed command would have been confirmed
+by an additional read. Active-myZone reassignment remains unsupported.

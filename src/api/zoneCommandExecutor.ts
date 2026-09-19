@@ -21,7 +21,9 @@ export class ZoneCommandExecutor {
 
   constructor(
     private readonly client: ZoneCommandClient,
-    private readonly attempts = 5,
+    // Leave room for another read after the controller's busy responses.
+    // The seven-second deadline still bounds the complete operation.
+    private readonly attempts = 10,
     private readonly delayMs = 1000,
   ) {
     if (!Number.isInteger(attempts) || attempts < 1 || attempts > 10
