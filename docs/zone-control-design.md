@@ -31,59 +31,74 @@ request rather than repeated on each poll.
 
 ## Command flow
 
-1. The HomeKit handler starts a seven-second deadline when a write arrives,
-   including time spent waiting behind another request for that switch.
-2. One executor per controller serializes whole zone operations. The client
-   also serializes HTTP requests from polling and commands.
-3. Each operation obtains a fresh system response, resolves the zone's stable
-   identity, and replans against that response. If the state already matches,
-   no write is needed.
-4. Otherwise the client sends one encoded `/setAircon?json=...` request for that
-   zone. HTTP success or an empty JSON response is not state confirmation.
-5. The executor waits one second before each fresh confirmation read, allowing
-   further reads within the remaining seven-second deadline rather than stopping
-   after five attempts. A secondary cap permits at most ten attempts; at the
-   default one-second spacing the deadline is reached first. It succeeds only
-   when the same zone identity reports the requested state.
-6. The manager accepts the confirmed response before the HomeKit write resolves.
-   Reads arriving during a pending write wait for that result, with their own
-   seven-second deadline.
+A HomeKit write acknowledges local acceptance of a validated request. It does
+not assert that the controller has already completed the change. The Switch
+shows the requested value while confirmation is pending; the controller's last
+observed value and timestamp remain separate internally.
 
-The command itself is never automatically retried. Failed confirmation reads may
-be retried within the attempt and time limits. Polls started before or during a
-completed command cannot overwrite its result with older data.
+One ControllerCoordinator per controller owns normal polling, preflight,
+physical writes and confirmation. The accessory handler has no independent
+command queue or seven-second confirmation deadline. Managers preserve existing
+accessory UUIDs and the legacy switch/separate-temperature layout.
 
-## Cancellation and availability
+Admission requires valid recent data and passes the zone planner, including
+myZone protection. Before sending, the coordinator obtains fresh data and
+rechecks stable identity, zone capability and protection. A matching fresh state
+needs no write. Otherwise it sends exactly one encoded state-only request.
 
-The executor also enforces a seven-second deadline from its own entry point.
-Cancellation is passed through the manager, executor, HTTP queue, and active
-write request. An expired queued request cannot later send a command. A slow
-read may finish after cancellation, but checks after that read prevent it from
-initiating a late write. Shutdown cancels waiting operations and stops polling.
+Confirmation reads are spaced one second apart. An exact empty-object response
+is considered temporarily busy during confirmation. Other invalid responses
+fail the operation. Ordinary polls defer while commands are running, and valid
+confirmation snapshots update temperature accessories as well as switches.
 
-Cancellation cannot undo a command already sent to the controller. After a
-failed or unconfirmed operation, the manager makes its switch readings
-unavailable until a newer valid poll restores them. It does not claim that the
-requested change failed to happen physically, nor expose pre-command data as
-confirmation.
+An explicit controller rejection fails the command. An ambiguous transport
+failure is reconciled by reads within the operation budget, without resending.
+A valid old state is not confirmation and may be followed by a matching state.
 
-Cached switches remain unavailable at startup until valid discovery data arrives.
-Previously valid switch data expires after 90 seconds without a successful
-refresh. Invalid identities also make affected readings unavailable. Accessories
-are retained rather than removed solely because of failed or incomplete reads.
+## Rapid changes and bounded work
 
-## Validation status
+The coordinator keeps at most one unsent desired value per zone and at most 64
+zones with pending intentions. A newer unsent value replaces an older one.
+Already transmitted commands cannot be recalled. Their completion updates the
+observed snapshot without overwriting a newer requested value in HomeKit.
+Other queued rooms retain their order, preventing a repeatedly changed room
+from jumping ahead of them.
 
-Automated coverage includes planning, transport, ordering, confirmation,
-controller overrides, cancellation, full HAP request deadlines, cached accessory
-restoration, and platform integration with separate temperature sensors.
+Each accepted intent expires after 30 seconds. Each execution, including its
+fresh preflight, write and readback, has at most 15 seconds, shortened to the
+intent's remaining lifetime. Individual HTTP requests retain a 10-second cap
+and receive cancellation from the coordinator. These are engineering limits,
+not manufacturer guarantees. They do not make HomeKit wait for confirmation.
 
-Live controller reads and temperature sensors have been validated on the isolated
-Raspberry Pi test bridge. A zone-write trace showed several empty-object reads,
-followed by an old state and then the changed state. One command was confirmed
-on its fifth read; another exhausted the former five-attempt cap while time
-remained, with the changed state observed on a later poll.
+A timed-out reader cannot send a write when it eventually returns. Unsent
+expired intentions are discarded. An unconfirmed transmitted command cancels
+dependent queued intentions instead of sending them into uncertain state.
+Shutdown cancels pending work and prevents late publication; restart does not
+replay intentions. Cancellation cannot undo an already transmitted command.
 
-The confirmation change uses that remaining time but still needs a live retest.
-The trace does not establish when the failed command would have been confirmed
-by an additional read. Active-myZone reassignment remains unsupported.
+## Availability and errors
+
+Immediate refusals are reported to HomeKit and logged with the zone name and
+reason. Errors after acknowledgement cannot retroactively reject the original
+HomeKit request: they clear the pending value, mark the affected zone unavailable,
+and emit one failure message for that intent. Later valid observations restore
+availability. Other zones retain their valid observations.
+
+Observed values are never replaced with invented target readings. Pending state
+does not refresh sensor timestamps. Without a valid read, observations expire
+after 90 seconds. Cached accessories remain unavailable at startup until valid
+controller discovery. Failed reads do not remove accessories.
+
+## Validation
+
+The automated suite exercises the real client, platform, HomeKit characteristics
+and full HAP write path against a simulated transport. It includes the supplied
+7.225-second confirmation trace, rapid reversals, unsent replacement, multiple
+rooms, shared temperature refresh, myZone changes before dispatch, constant
+zones, write rejection, ambiguous delivery, stale and malformed reads, bounded
+expiry, identity changes and shutdown with late reads.
+
+The earlier executor and seven-second HAP waiting tests are replaced by the
+coordinator integration tests. Transport cancellation tests are retained.
+The coordinated implementation still requires an isolated Raspberry Pi live
+trial; automated simulation does not establish compatibility with every device.

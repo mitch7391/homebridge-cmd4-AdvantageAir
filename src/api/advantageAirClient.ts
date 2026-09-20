@@ -14,6 +14,8 @@ export class AdvantageAirRequestError extends Error {
   }
 }
 
+export class ZoneCommandRejectedError extends AdvantageAirRequestError {}
+
 export class AdvantageAirClient {
   private readonly endpoint: URL;
   private readonly timeoutMs: number;
@@ -47,7 +49,10 @@ export class AdvantageAirClient {
     this.timeoutMs = timeoutMs;
   }
 
-  getSystemData(): Promise<SystemData> {
+  getSystemData(signal?: AbortSignal): Promise<SystemData> {
+    if (signal) {
+      return this.requestSystemData(signal);
+    }
     if (!this.inFlight) {
       const request = this.requestSystemData().finally(() => {
         if (this.inFlight === request) {
@@ -60,13 +65,13 @@ export class AdvantageAirClient {
     return this.inFlight;
   }
 
-  private async requestSystemData(): Promise<SystemData> {
-    return validateSystemData(await this.requestJson(this.endpoint));
+  private async requestSystemData(signal?: AbortSignal): Promise<SystemData> {
+    return validateSystemData(await this.requestJson(this.endpoint, signal));
   }
 
-  getFreshSystemData(): Promise<SystemData> {
+  getFreshSystemData(signal?: AbortSignal): Promise<SystemData> {
     this.inFlight = undefined;
-    return this.getSystemData();
+    return this.getSystemData(signal);
   }
 
   /** Sends once. The returned response is not confirmation of the zone state. */
@@ -93,7 +98,7 @@ export class AdvantageAirClient {
     this.inFlight = undefined;
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
-      throw new AdvantageAirRequestError('Controller rejected the zone command.');
+      throw new ZoneCommandRejectedError('Controller rejected the zone command.');
     }
     return response;
   }

@@ -1,11 +1,10 @@
 import type { API, PlatformAccessory } from 'homebridge';
 
 import type { ControllerPollState } from '../api/controllerPoller.js';
-import type { ZoneCommandExecutor } from '../api/zoneCommandExecutor.js';
+import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
 import { ZoneCommandError } from '../api/zoneCommand.js';
 import { discoverDevices } from '../discovery/discoverDevices.js';
 import { PLATFORM_NAME, PLUGIN_NAME } from '../settings.js';
-import { zoneIsOpen } from './legacyState.js';
 import { ZoneSwitchAccessory } from './zoneSwitchAccessory.js';
 import { DuplicateControllerError } from './zoneTemperatureManager.js';
 
@@ -13,14 +12,12 @@ export class ZoneSwitchManager {
   private static readonly owners = new WeakMap<API, Map<string, ZoneSwitchManager>>();
   private readonly handlers = new Map<string, ZoneSwitchAccessory>();
   private state: ControllerPollState = { lastAttemptFailed: false };
-  private pending = 0;
-  private completedAt = -Infinity;
   private stopped = false;
 
   constructor(
     private readonly api: API,
     private readonly accessories: Map<string, PlatformAccessory>,
-    private readonly executor: Pick<ZoneCommandExecutor, 'setZone' | 'stop'>,
+    private readonly coordinator: Pick<ControllerCoordinator, 'readZone' | 'requestZone' | 'stop'>,
     private readonly warn: (message: string) => void,
   ) {}
 
@@ -33,20 +30,16 @@ export class ZoneSwitchManager {
     };
     new ZoneSwitchAccessory(api, accessory, {
       getOn: unavailable,
-      setOn: async () => unavailable(),
+      setOn: unavailable,
       warn: () => undefined,
     }).update();
   }
 
   update(state: ControllerPollState): void {
-    if (this.stopped || this.pending > 0) {
+    if (this.stopped) {
       return;
     }
-    // Ignore polls that started before the most recently completed command.
-    // Failed polls can contain retained data from before that command too.
-    if (state.lastAttemptFailed || !state.data
-      || (this.completedAt !== -Infinity
-        && (typeof state.lastAttemptAt !== 'number' || state.lastAttemptAt <= this.completedAt))) {
+    if (!state.data || state.lastAttemptFailed) {
       this.updateHandlers();
       return;
     }
@@ -55,7 +48,7 @@ export class ZoneSwitchManager {
 
   stop(): void {
     this.stopped = true;
-    this.executor.stop();
+    this.coordinator.stop();
     this.state = { lastAttemptFailed: true };
     this.updateHandlers();
   }
@@ -98,7 +91,7 @@ export class ZoneSwitchManager {
         const accessory = cached ?? new this.api.platformAccessory(`${device.name} Zone`, uuid);
         const handler = new ZoneSwitchAccessory(this.api, accessory, {
           getOn: () => this.read(device.identity),
-          setOn: (on, signal) => this.set(device.identity, on, signal),
+          setOn: on => this.coordinator.requestZone(device.identity, on),
           warn: this.warn,
         });
         const needsMarker = accessory.context.advantageAirZoneSwitch !== true;
@@ -121,52 +114,10 @@ export class ZoneSwitchManager {
   }
 
   private read(identity: string): boolean {
-    const { data, lastSuccessAt } = this.state;
-    if (this.stopped || !data || typeof lastSuccessAt !== 'number'
-      || !Number.isFinite(lastSuccessAt) || Date.now() < lastSuccessAt
-      || Date.now() - lastSuccessAt >= 90000) {
+    if (this.stopped || !this.state.data) {
       throw new ZoneCommandError('Fresh controller data is unavailable.');
     }
-    const device = discoverDevices(data).find(item => item.kind === 'zone' && item.identity === identity);
-    if (!device || device.kind !== 'zone') {
-      throw new ZoneCommandError('The requested zone is unavailable.');
-    }
-    const zone = data.aircons[device.airconKey].zones[device.zoneKey];
-    if (typeof zone.type !== 'number' || !Number.isInteger(zone.type) || zone.type <= 0) {
-      throw new ZoneCommandError('The zone no longer supports this switch layout.');
-    }
-    return zoneIsOpen(zone);
-  }
-
-  private async set(identity: string, on: boolean, signal?: AbortSignal): Promise<void> {
-    if (this.stopped) {
-      throw new ZoneCommandError('Zone control has stopped.');
-    }
-    this.pending++;
-    try {
-      signal?.throwIfAborted();
-      const result = await this.executor.setZone(identity, on, signal);
-      signal?.throwIfAborted();
-      if (this.stopped) {
-        throw new ZoneCommandError('Zone control has stopped.');
-      }
-      const now = Date.now();
-      this.accept({
-        data: result.data,
-        lastSuccessAt: now,
-        lastAttemptAt: now,
-        lastAttemptFailed: false,
-      });
-    } catch (error) {
-      // A failed write may still have reached the controller. Require a new
-      // polling response rather than exposing the pre-command cached value.
-      this.state = { lastAttemptFailed: true };
-      throw error;
-    } finally {
-      this.completedAt = Date.now();
-      this.pending--;
-      this.updateHandlers();
-    }
+    return this.coordinator.readZone(identity);
   }
 
   private updateHandlers(): void {

@@ -7,15 +7,15 @@ import type {
 } from 'homebridge';
 
 import { AdvantageAirClient } from './api/advantageAirClient.js';
-import { ControllerPoller } from './api/controllerPoller.js';
-import { ZoneCommandExecutor } from './api/zoneCommandExecutor.js';
+import { ControllerCoordinator } from './api/controllerCoordinator.js';
+import type { ControllerPollState } from './api/controllerPoller.js';
 import { ZoneSwitchManager } from './accessories/zoneSwitchManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
   name: string;
   debug: boolean;
-  poller: ControllerPoller;
+  poller: ControllerCoordinator;
   switchManager: ZoneSwitchManager;
 }
 
@@ -122,22 +122,17 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           this.accessories,
         );
 
-        const switchManager = new ZoneSwitchManager(
-          this.api,
-          this.accessories,
-          new ZoneCommandExecutor(client),
-          message => this.log.warn(name, message),
-        );
-
-        const poller = new ControllerPoller(client, 30000, (state) => {
+        const updateManagers: Array<(state: ControllerPollState) => void> = [
+          state => temperatureManager.update(state),
+        ];
+        const poller = new ControllerCoordinator(client, (state) => {
           let updateFailed = false;
-          for (const manager of [switchManager, temperatureManager]) {
+          for (const update of updateManagers) {
             try {
-              manager.update(state);
+              update(state);
             } catch (error) {
               if (error instanceof DuplicateControllerError) {
                 poller.stop();
-                switchManager.stop();
                 this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
                 return;
               }
@@ -194,7 +189,15 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
               `${aircons.length} air conditioner(s), ${zoneCount} zone(s).`,
             );
           }
-        });
+        }, message => this.log.warn(name, message));
+
+        const switchManager = new ZoneSwitchManager(
+          this.api,
+          this.accessories,
+          poller,
+          message => this.log.warn(name, message),
+        );
+        updateManagers.unshift(state => switchManager.update(state));
 
         this.controllers.push({ name, debug, poller, switchManager });
       } catch (error) {
