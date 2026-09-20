@@ -1,10 +1,22 @@
 import { validateSystemData } from './systemData.js';
 import type { SystemData } from './systemData.js';
 
+export interface RequestDiagnostic {
+  id: number;
+  endpoint: '/getSystemData' | '/setAircon';
+  event: 'send' | 'headers' | 'body' | 'error';
+  elapsedMs: number;
+  status?: number;
+  json?: 'empty-object' | 'object' | 'array' | 'null' | 'boolean' | 'number' | 'string';
+  rejected?: boolean;
+  reason?: 'cancelled' | 'timeout' | 'connect' | 'http' | 'body' | 'json';
+}
+
 export interface AdvantageAirClientOptions {
   ipAddress: string;
   port?: number;
   timeoutMs?: number;
+  onDiagnostic?: (event: RequestDiagnostic) => void;
 }
 
 export class AdvantageAirRequestError extends Error {
@@ -20,6 +32,8 @@ export class AdvantageAirClient {
   private readonly endpoint: URL;
   private readonly timeoutMs: number;
   private inFlight?: Promise<SystemData>;
+  private requestId = 0;
+  private readonly onDiagnostic?: (event: RequestDiagnostic) => void;
   private requests: Promise<void> = Promise.resolve();
 
   constructor(options: AdvantageAirClientOptions) {
@@ -47,6 +61,7 @@ export class AdvantageAirClient {
 
     this.endpoint = new URL(`http://${host}:${port}/getSystemData`);
     this.timeoutMs = timeoutMs;
+    this.onDiagnostic = options.onDiagnostic;
   }
 
   getSystemData(signal?: AbortSignal): Promise<SystemData> {
@@ -122,6 +137,21 @@ export class AdvantageAirClient {
       ? AbortSignal.any([controller.signal, signal])
       : controller.signal;
 
+    const id = ++this.requestId;
+    const started = performance.now();
+    let reason: RequestDiagnostic['reason'] = 'connect';
+    const diagnostic = (event: RequestDiagnostic['event'], details: Partial<RequestDiagnostic> = {}) => {
+      try {
+        this.onDiagnostic?.({
+          id, endpoint: endpoint.pathname === '/setAircon' ? '/setAircon' : '/getSystemData',
+          event, elapsedMs: Math.round(performance.now() - started), ...details,
+        });
+      } catch {
+        // Diagnostic observers cannot change request outcomes or queue progress.
+      }
+    };
+    diagnostic('send');
+
     try {
       let response: Response;
 
@@ -144,13 +174,16 @@ export class AdvantageAirClient {
         );
       }
 
+      diagnostic('headers', { status: response.status });
       if (!response.ok) {
+        reason = 'http';
         await response.body?.cancel();
         throw new AdvantageAirRequestError(
           `Controller returned HTTP ${response.status}.`,
         );
       }
 
+      reason = 'body';
       let body: string;
 
       try {
@@ -166,6 +199,7 @@ export class AdvantageAirClient {
         );
       }
 
+      reason = 'json';
       let data: unknown;
 
       try {
@@ -176,7 +210,20 @@ export class AdvantageAirClient {
         );
       }
 
+      const json: RequestDiagnostic['json'] = data === null ? 'null'
+        : Array.isArray(data) ? 'array'
+          : typeof data === 'object' ? (Object.keys(data).length === 0 ? 'empty-object' : 'object')
+            : typeof data as 'boolean' | 'number' | 'string';
+      diagnostic('body', {
+        json,
+        ...(endpoint.pathname === '/setAircon' && data === false ? { rejected: true } : {}),
+      });
       return data;
+    } catch (error) {
+      diagnostic('error', {
+        reason: signal?.aborted ? 'cancelled' : controller.signal.aborted ? 'timeout' : reason,
+      });
+      throw error;
     } finally {
       clearTimeout(timer);
     }

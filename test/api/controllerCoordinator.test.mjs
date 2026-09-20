@@ -84,10 +84,16 @@ async function setup(t, options = {}) {
   const api = new HomebridgeAPI();
   const messages = { info: [], warn: [], error: [], debug: [] };
   const log = Object.fromEntries(Object.keys(messages).map(level => [level,
-    (...args) => messages[level].push(args.join(' ')),
+    (...args) => {
+      const message = args.join(' ');
+      messages[level].push(message);
+      if (options.throwLogs && /Created accessory:|Controller confirmed:/.test(message)) {
+        throw new Error('logging failed');
+      }
+    },
   ]));
   const platform = new AdvantageAirPlatform(log, {
-    platform: 'AdvantageAir', devices: [{ ipAddress: '192.0.2.1', name: 'Controller' }],
+    platform: 'AdvantageAir', devices: [{ ipAddress: '192.0.2.1', name: 'Controller', debug: options.debug === true }],
   }, api);
   t.after(() => api.emit('shutdown'));
   api.emit('didFinishLaunching');
@@ -446,4 +452,82 @@ test('stable identity resolves changed aircon addressing before writing', async 
   assert.equal(c.writes[0].aircon, 'ac2');
   assert.equal(await c.on().handleGetRequest(), false);
   assert.equal(c.platform.accessories.size, 6);
+});
+
+test('native timing is opt-in and routine summaries count reads, not desired-state updates', async t => {
+  const c = await setup(t, { debug: true, delay: 1000 });
+  const reads = () => c.messages.debug.filter(line => line.includes('Controller read:'));
+  const confirmations = () => c.messages.info.filter(line => line.includes('Controller confirmed:'));
+  assert.equal(reads().length, 1);
+  await c.on().handleSetRequest(false);
+  await flush();
+  // Initial read and preflight happen at the same mocked timestamp.
+  assert.equal(reads().length, 2);
+  assert.equal(confirmations().length, 0);
+  await c.advance(1100);
+  assert.equal(reads().length, 3);
+  assert.deepEqual(confirmations(), ['Controller Bedroom Zone Controller confirmed: Closed']);
+  const sends = c.messages.debug.filter(line => line.includes('AA timing:') && line.includes('"event":"send"'));
+  assert.equal(sends.length, c.requests.length);
+  await c.advance(30000);
+  assert.equal(confirmations().length, 1);
+});
+
+test('default logging has no timing or read summaries and creation messages occur once', async t => {
+  const c = await setup(t, { delay: 1000 });
+  const creations = () => c.messages.info.filter(line => line.includes('Created accessory:'));
+  assert.equal(creations().length, 6);
+  assert.equal(new Set(creations()).size, 6);
+  await c.on().handleSetRequest(false);
+  await c.advance(1100);
+  await c.advance(30000);
+  assert.equal(creations().length, 6);
+  assert.deepEqual(c.messages.debug, []);
+  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: Closed')).length, 1);
+});
+
+test('reversed command confirmation is debug only and the latest confirmed result is informational', async t => {
+  const c = await setup(t, { debug: true, delay: 1000 });
+  await c.on().handleSetRequest(false);
+  await flush();
+  await c.on().handleSetRequest(true);
+  await c.advance(2200);
+  assert.deepEqual(c.messages.info.filter(line => line.includes('Controller confirmed:')),
+    ['Controller Bedroom Zone Controller confirmed: Open']);
+  assert.ok(c.messages.debug.includes('Controller Bedroom Zone Earlier command confirmed: Closed'));
+});
+
+test('unchanged requests never claim a command opened the zone', async t => {
+  const c = await setup(t, { debug: true });
+  await c.on().handleSetRequest(true);
+  await flush();
+  assert.equal(c.writes.length, 0);
+  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
+  assert.ok(c.messages.debug.includes('Controller Bedroom Zone Already in requested state: Open'));
+});
+
+test('rejected and expired requests produce no success message', async t => {
+  const c = await setup(t, { reject: true });
+  await c.on().handleSetRequest(false);
+  await flush();
+  c.model.reject = false;
+  c.model.never = true;
+  await c.on().handleSetRequest(false);
+  await c.advance(16000);
+  assert.equal(c.messages.warn.length, 2);
+  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
+});
+
+test('creation and confirmation logging exceptions cannot break discovery or command progress', async t => {
+  const c = await setup(t, { throwLogs: true, delay: 1000 });
+  assert.equal(c.platform.accessories.size, 6);
+  await c.on().handleSetRequest(false);
+  await c.advance(1100);
+  await c.on().handleSetRequest(true);
+  await c.advance(1100);
+  assert.equal(c.writes.length, 2);
+  assert.equal(await c.on().handleGetRequest(), true);
+  assert.deepEqual(c.messages.warn, []);
+  assert.deepEqual(c.messages.error, []);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory:')).length, 6);
 });

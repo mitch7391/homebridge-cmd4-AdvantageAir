@@ -19,6 +19,7 @@ export class ZoneSwitchManager {
     private readonly accessories: Map<string, PlatformAccessory>,
     private readonly coordinator: Pick<ControllerCoordinator, 'readZone' | 'requestZone' | 'stop'>,
     private readonly warn: (message: string) => void,
+    private readonly onCreated?: (name: string) => void,
   ) {}
 
   static prepareCachedAccessory(api: API, accessory: PlatformAccessory): void {
@@ -104,6 +105,13 @@ export class ZoneSwitchManager {
           this.accessories.set(uuid, accessory);
         }
         this.handlers.set(device.identity, handler);
+        if (!cached) {
+          try {
+            this.onCreated?.(accessory.displayName);
+          } catch {
+            // A logging failure must not interrupt accessory discovery.
+          }
+        }
       }
     } catch (error) {
       this.state = { lastAttemptFailed: true };
