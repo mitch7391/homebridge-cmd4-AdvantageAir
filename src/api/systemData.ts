@@ -24,6 +24,8 @@ export class IncompleteSystemDataError extends Error {
   }
 }
 
+export class ControllerBusyError extends InvalidSystemDataError {}
+
 function isObject(value: unknown): value is JsonObject {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
@@ -37,6 +39,9 @@ export function validateSystemData(value: unknown): SystemData {
     throw new InvalidSystemDataError('System data must be an object.');
   }
 
+  if (Object.keys(value).length === 0) {
+    throw new ControllerBusyError('Controller returned an empty response.');
+  }
   const { system, aircons } = value;
 
   if (!isObject(system) || !isObject(aircons)) {
