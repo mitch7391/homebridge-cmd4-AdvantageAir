@@ -103,7 +103,13 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           ? device.name.trim()
           : `Controller ${index + 1}`;
 
-        const client = new AdvantageAirClient({ ipAddress, port });
+        const debug = device.debug === true;
+        const client = new AdvantageAirClient({
+          ipAddress, port,
+          onDiagnostic: debug
+            ? event => this.log.debug(name, 'AA timing:', JSON.stringify(event))
+            : undefined,
+        });
         const endpoint = `${ipAddress}:${port}`;
 
         if (endpoints.has(endpoint)) {
@@ -112,7 +118,6 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
 
         endpoints.add(endpoint);
 
-        const debug = device.debug === true;
         let previouslyFailed = false;
         let receivedData = false;
         let accessoryUpdateFailed = false;
@@ -120,12 +125,13 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         const temperatureManager = new ZoneTemperatureManager(
           this.api,
           this.accessories,
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
         );
 
         const updateManagers: Array<(state: ControllerPollState) => void> = [
           state => temperatureManager.update(state),
         ];
-        const poller = new ControllerCoordinator(client, (state) => {
+        const poller = new ControllerCoordinator(client, (state, reason) => {
           let updateFailed = false;
           for (const update of updateManagers) {
             try {
@@ -147,6 +153,9 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
           accessoryUpdateFailed = updateFailed;
+          if (reason === 'state') {
+            return;
+          }
 
           if (state.lastAttemptFailed) {
             if (!previouslyFailed) {
@@ -189,13 +198,24 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
               `${aircons.length} air conditioner(s), ${zoneCount} zone(s).`,
             );
           }
-        }, message => this.log.warn(name, message));
+        }, message => this.log.warn(name, message), (event) => {
+          const state = event.on ? 'Open' : 'Closed';
+          if (event.superseded || event.outcome === 'unchanged') {
+            if (debug) {
+              this.log.debug(name, event.name,
+                event.superseded ? 'Earlier command confirmed:' : 'Already in requested state:', state);
+            }
+          } else {
+            this.log.info(name, event.name, 'Controller confirmed:', state);
+          }
+        });
 
         const switchManager = new ZoneSwitchManager(
           this.api,
           this.accessories,
           poller,
           message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
         );
         updateManagers.unshift(state => switchManager.update(state));
 

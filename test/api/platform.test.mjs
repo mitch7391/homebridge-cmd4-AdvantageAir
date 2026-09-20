@@ -85,6 +85,25 @@ function setup(t, devices, read) {
   return { api, platform, messages, registrations, allRegistrations };
 }
 
+test('restored switches and sensors are not logged as newly created accessories', async t => {
+  const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
+  const identity = JSON.stringify(['AdvantageAir', 'test-controller', 'test-aircon', 'zone', 'z01']);
+  for (const [kind, name, marker] of [
+    ['temperature', 'Living Temperature', 'advantageAirTemperature'],
+    ['zone-switch', 'Living Zone', 'advantageAirZoneSwitch'],
+  ]) {
+    const uuid = c.api.hap.uuid.generate(JSON.stringify([identity, kind]));
+    const accessory = new c.api.platformAccessory(name, uuid);
+    accessory.context[marker] = true;
+    c.platform.configureAccessory(accessory);
+  }
+  c.api.emit('didFinishLaunching');
+  await flushPromises();
+  assert.equal(c.platform.accessories.size, 2);
+  assert.equal(c.allRegistrations.length, 0);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory:')).length, 0);
+});
+
 test('starts each controller once and stops polling on shutdown', async (t) => {
   const clients = new Set();
   let reads = 0;

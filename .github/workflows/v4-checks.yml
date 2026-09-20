@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - v4-beta
-      - v4-zone-controls
+      - v4-diagnostics
   pull_request:
     branches:
       - v4-beta

@@ -49,6 +49,7 @@ export class ZoneTemperatureManager {
   constructor(
     private readonly api: API,
     private readonly accessories: Map<string, PlatformAccessory>,
+    private readonly onCreated?: (name: string) => void,
   ) {}
 
   update(state: ControllerPollState): void {
@@ -179,6 +180,13 @@ export class ZoneTemperatureManager {
         });
 
         this.bindings.set(uuid, binding);
+        if (!cachedAccessory) {
+          try {
+            this.onCreated?.(accessory.displayName);
+          } catch {
+            // A logging failure must not interrupt accessory discovery.
+          }
+        }
       }
     } finally {
       this.updateHandlers();

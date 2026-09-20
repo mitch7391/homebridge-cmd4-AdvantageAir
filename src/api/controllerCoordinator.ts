@@ -12,6 +12,15 @@ export interface ControllerClient {
   requestZoneState(aircon: string, zone: string, state: 'open' | 'close', signal?: AbortSignal): Promise<unknown>;
 }
 
+export type ControllerUpdateReason = 'read' | 'failure' | 'state';
+
+export interface ZoneCommandConfirmation {
+  name: string;
+  on: boolean;
+  outcome: 'confirmed' | 'unchanged';
+  superseded: boolean;
+}
+
 interface Intent {
   identity: string;
   on: boolean;
@@ -37,8 +46,9 @@ export class ControllerCoordinator {
 
   constructor(
     private readonly client: ControllerClient,
-    private readonly onUpdate: (state: ControllerPollState) => void,
+    private readonly onUpdate: (state: ControllerPollState, reason: ControllerUpdateReason) => void,
     private readonly warn: (message: string) => void,
+    private readonly onConfirmation?: (event: ZoneCommandConfirmation) => void,
   ) {}
 
   start(): void {
@@ -124,10 +134,10 @@ export class ControllerCoordinator {
     return zone;
   }
 
-  private emit(): void {
+  private emit(reason: ControllerUpdateReason = 'state'): void {
     if (!this.stopped) {
       try {
-        this.onUpdate(structuredClone(this.state));
+        this.onUpdate(structuredClone(this.state), reason);
       } catch {
         // An observer must not break scheduling or strand accepted requests.
       }
@@ -143,7 +153,7 @@ export class ControllerCoordinator {
       lastSuccessAt: Date.now(), lastAttemptFailed: false,
     };
     this.faults.clear();
-    this.emit();
+    this.emit('read');
   }
 
   private expire(intent: Intent): void {
@@ -161,6 +171,19 @@ export class ControllerCoordinator {
       this.desired.delete(intent.identity);
     }
     this.emit();
+  }
+
+  private confirm(intent: Intent, outcome: ZoneCommandConfirmation['outcome']): void {
+    if (this.stopped || intent.finished) {
+      return;
+    }
+    const superseded = this.desired.get(intent.identity) !== intent;
+    this.finish(intent);
+    try {
+      this.onConfirmation?.({ name: intent.name, on: intent.on, outcome, superseded });
+    } catch {
+      // Logging must not turn a confirmed command into a failure.
+    }
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -212,7 +235,7 @@ export class ControllerCoordinator {
     } catch {
       if (!this.stopped) {
         this.state = { ...this.state, lastAttemptAt: Date.now(), lastAttemptFailed: true };
-        this.emit();
+        this.emit('failure');
       }
     }
   }
@@ -231,7 +254,7 @@ export class ControllerCoordinator {
           return;
         }
         if (plan.kind === 'unchanged') {
-          this.finish(intent);
+          this.confirm(intent, 'unchanged');
           return;
         }
         signal.throwIfAborted();
@@ -262,7 +285,7 @@ export class ControllerCoordinator {
           const currentZone = this.locate(current, intent.identity);
           this.observe(current);
           if (zoneIsOpen(current.aircons[currentZone.airconKey].zones[currentZone.zoneKey]) === intent.on) {
-            this.finish(intent);
+            this.confirm(intent, 'confirmed');
             return;
           }
         }
