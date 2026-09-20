@@ -57,8 +57,10 @@ A valid old state is not confirmation and may be followed by a matching state.
 
 ## Rapid changes and bounded work
 
-The coordinator keeps at most one unsent desired value per zone and at most 64
-zones with pending intentions. A newer unsent value replaces an older one.
+The coordinator keeps at most one unsent desired value per zone state,
+thermostat mode, or thermostat temperature, with at most 64 pending control
+requests across the controller. A newer unsent value for the same control
+replaces an older one. Different controls retain their queue positions.
 Already transmitted commands cannot be recalled. Their completion updates the
 observed snapshot without overwriting a newer requested value in HomeKit.
 Other queued rooms retain their order, preventing a repeatedly changed room

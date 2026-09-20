@@ -199,7 +199,8 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
         }, message => this.log.warn(name, message), (event) => {
-          const state = event.on ? 'Open' : 'Closed';
+          const state = event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
+            : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               this.log.debug(name, event.name,

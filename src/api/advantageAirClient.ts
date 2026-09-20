@@ -1,3 +1,5 @@
+import { validateThermostatPatch } from './thermostatPatch.js';
+import type { ThermostatPatch } from './thermostatPatch.js';
 import { validateSystemData } from './systemData.js';
 import type { SystemData } from './systemData.js';
 
@@ -26,7 +28,9 @@ export class AdvantageAirRequestError extends Error {
   }
 }
 
-export class ZoneCommandRejectedError extends AdvantageAirRequestError {}
+export class AirconCommandRejectedError extends AdvantageAirRequestError {}
+
+export class ZoneCommandRejectedError extends AirconCommandRejectedError {}
 
 export class AdvantageAirClient {
   private readonly endpoint: URL;
@@ -114,6 +118,22 @@ export class AdvantageAirClient {
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
       throw new ZoneCommandRejectedError('Controller rejected the zone command.');
+    }
+    return response;
+  }
+
+  /** One absolute thermostat write; readback is coordinated separately. */
+  async requestThermostatPatch(airconKey: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)) {
+      throw new AdvantageAirRequestError('Invalid air conditioner address.');
+    }
+    validateThermostatPatch(patch);
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: patch }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the thermostat command.');
     }
     return response;
   }
