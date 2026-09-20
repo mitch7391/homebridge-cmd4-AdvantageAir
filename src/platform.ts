@@ -10,6 +10,7 @@ import { AdvantageAirClient } from './api/advantageAirClient.js';
 import { ControllerCoordinator } from './api/controllerCoordinator.js';
 import type { ControllerPollState } from './api/controllerPoller.js';
 import { ZoneSwitchManager } from './accessories/zoneSwitchManager.js';
+import { ThermostatManager } from './accessories/thermostatManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
@@ -17,6 +18,7 @@ interface ConfiguredController {
   debug: boolean;
   poller: ControllerCoordinator;
   switchManager: ZoneSwitchManager;
+  thermostatManager: ThermostatManager;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -56,6 +58,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
       for (const controller of this.controllers) {
         controller.poller.stop();
         controller.switchManager.stop();
+        controller.thermostatManager.stop();
       }
     });
   }
@@ -65,6 +68,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     this.accessories.set(accessory.UUID, accessory);
     ZoneTemperatureManager.prepareCachedAccessory(this.api, accessory);
     ZoneSwitchManager.prepareCachedAccessory(this.api, accessory);
+    ThermostatManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -220,7 +224,16 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         );
         updateManagers.unshift(state => switchManager.update(state));
 
-        this.controllers.push({ name, debug, poller, switchManager });
+        const thermostatManager = new ThermostatManager(
+          this.api,
+          this.accessories,
+          poller,
+          message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
+        );
+        updateManagers.push(state => thermostatManager.update(state));
+
+        this.controllers.push({ name, debug, poller, switchManager, thermostatManager });
       } catch (error) {
         const reason = error instanceof Error
           ? error.message

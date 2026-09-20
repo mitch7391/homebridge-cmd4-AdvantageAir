@@ -85,7 +85,7 @@ function setup(t, devices, read) {
   return { api, platform, messages, registrations, allRegistrations };
 }
 
-test('restored switches and sensors are not logged as newly created accessories', async t => {
+test('restored thermostats, switches and sensors are not logged as newly created accessories', async t => {
   const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
   const identity = JSON.stringify(['AdvantageAir', 'test-controller', 'test-aircon', 'zone', 'z01']);
   for (const [kind, name, marker] of [
@@ -97,9 +97,14 @@ test('restored switches and sensors are not logged as newly created accessories'
     accessory.context[marker] = true;
     c.platform.configureAccessory(accessory);
   }
+  const thermostatIdentity = JSON.stringify(['AdvantageAir', 'test-controller', 'test-aircon', 'aircon']);
+  const thermostat = new c.api.platformAccessory('Aircon',
+    c.api.hap.uuid.generate(JSON.stringify([thermostatIdentity, 'thermostat'])));
+  thermostat.context.advantageAirThermostat = true;
+  c.platform.configureAccessory(thermostat);
   c.api.emit('didFinishLaunching');
   await flushPromises();
-  assert.equal(c.platform.accessories.size, 2);
+  assert.equal(c.platform.accessories.size, 3);
   assert.equal(c.allRegistrations.length, 0);
   assert.equal(c.messages.info.filter(line => line.includes('Created accessory:')).length, 0);
 });
@@ -153,12 +158,12 @@ test('platform discovers both a zone switch and its separate temperature sensor'
   const c = setup(t, [{ ipAddress: '192.0.2.1' }], async () => snapshot(1));
   c.api.emit('didFinishLaunching');
   await flushPromises();
-  assert.equal(c.allRegistrations.length, 2);
+  assert.equal(c.allRegistrations.length, 3);
   assert.equal(c.registrations.length, 1);
   assert.equal(await switchOn(c).handleGetRequest(), true);
   t.mock.timers.tick(30000);
   await flushPromises();
-  assert.equal(c.allRegistrations.length, 2);
+  assert.equal(c.allRegistrations.length, 3);
 });
 
 test('platform confirms a switch write and later reflects controller reopening', async (t) => {
@@ -227,7 +232,7 @@ test('platform restores a cached switch without exposing its saved state before 
   await flushPromises();
   assert.equal(await on.handleGetRequest(), true);
   assert.equal(c.platform.accessories.get(uuid), cached);
-  assert.equal(c.allRegistrations.length, 1);
+  assert.equal(c.allRegistrations.length, 2);
   assert.equal(c.registrations.length, 1);
 });
 
@@ -267,7 +272,7 @@ test('invalid identity data makes both switch and temperature readings unavailab
       error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE);
   }
   assert.equal(c.messages.error.length, 1);
-  assert.equal(c.allRegistrations.length, 2);
+  assert.equal(c.allRegistrations.length, 3);
 });
 
 test('skips invalid and duplicate controllers but starts valid ones', async (t) => {

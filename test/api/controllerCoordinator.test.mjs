@@ -451,7 +451,7 @@ test('stable identity resolves changed aircon addressing before writing', async 
   assert.equal(c.writes.length, 1);
   assert.equal(c.writes[0].aircon, 'ac2');
   assert.equal(await c.on().handleGetRequest(), false);
-  assert.equal(c.platform.accessories.size, 6);
+  assert.equal(c.platform.accessories.size, 7);
 });
 
 test('native timing is opt-in and routine summaries count reads, not desired-state updates', async t => {
@@ -476,12 +476,12 @@ test('native timing is opt-in and routine summaries count reads, not desired-sta
 test('default logging has no timing or read summaries and creation messages occur once', async t => {
   const c = await setup(t, { delay: 1000 });
   const creations = () => c.messages.info.filter(line => line.includes('Created accessory:'));
-  assert.equal(creations().length, 6);
-  assert.equal(new Set(creations()).size, 6);
+  assert.equal(creations().length, 7);
+  assert.equal(new Set(creations()).size, 7);
   await c.on().handleSetRequest(false);
   await c.advance(1100);
   await c.advance(30000);
-  assert.equal(creations().length, 6);
+  assert.equal(creations().length, 7);
   assert.deepEqual(c.messages.debug, []);
   assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: Closed')).length, 1);
 });
@@ -520,7 +520,7 @@ test('rejected and expired requests produce no success message', async t => {
 
 test('creation and confirmation logging exceptions cannot break discovery or command progress', async t => {
   const c = await setup(t, { throwLogs: true, delay: 1000 });
-  assert.equal(c.platform.accessories.size, 6);
+  assert.equal(c.platform.accessories.size, 7);
   await c.on().handleSetRequest(false);
   await c.advance(1100);
   await c.on().handleSetRequest(true);
@@ -529,5 +529,5 @@ test('creation and confirmation logging exceptions cannot break discovery or com
   assert.equal(await c.on().handleGetRequest(), true);
   assert.deepEqual(c.messages.warn, []);
   assert.deepEqual(c.messages.error, []);
-  assert.equal(c.messages.info.filter(line => line.includes('Created accessory:')).length, 6);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory:')).length, 7);
 });

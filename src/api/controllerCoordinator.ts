@@ -6,7 +6,7 @@ import { planThermostatMode, planThermostatTemperature, ThermostatCommandError }
 import { temperatureConfirmation } from './thermostatPatch.js';
 import type { ThermostatPatch } from './thermostatPatch.js';
 import type { ThermostatMode } from '../accessories/legacyState.js';
-import { thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
+import { thermostatCurrentTemperature, thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
 import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
@@ -104,6 +104,17 @@ export class ControllerCoordinator {
     const zone = this.locate(this.state.data!, identity);
     planZoneSwitch(this.state.data!.aircons[zone.airconKey], zone.zoneKey, on);
     this.admit(identity, `${zone.name} Zone`, { kind: 'zone', on });
+  }
+
+  /** Legacy projection of observed power/mode, not measured compressor activity. */
+  readThermostatCurrentMode(identity: string): ThermostatMode {
+    this.available();
+    return thermostatTargetMode(this.aircon(this.state.data!, identity).data);
+  }
+
+  readThermostatCurrentTemperature(identity: string): number {
+    this.available();
+    return thermostatCurrentTemperature(this.aircon(this.state.data!, identity).data);
   }
 
   readThermostatMode(identity: string): ThermostatMode {
