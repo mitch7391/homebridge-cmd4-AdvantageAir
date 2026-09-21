@@ -60,7 +60,7 @@ async function setup(t, options = {}) {
   const registered = [];
   t.mock.method(api, 'registerPlatformAccessories', (plugin, platform, accessories) => registered.push(...accessories));
   const platform = new AdvantageAirPlatform(log,
-    { platform: 'AdvantageAir', devices: [{ ipAddress: '192.0.2.1', name: 'Controller' }] }, api);
+    { platform: 'AdvantageAir', devices: [{ ipAddress: '192.0.2.1', name: 'Controller', debug: true }] }, api);
   t.after(() => api.emit('shutdown'));
   const uuid = api.hap.uuid.generate(JSON.stringify([JSON.stringify(['AdvantageAir', 'controller', 'unit', 'aircon']), 'thermostat']));
   let cached;
@@ -99,7 +99,7 @@ test('platform creates one Celsius thermostat with only Off Heat Cool, alongside
   assert.deepEqual(c.char('TargetHeatingCoolingState').props.validValues, [0, 1, 2]);
   assert.equal(c.char('TargetTemperature').props.minValue, 16);
   assert.equal(c.char('TargetTemperature').props.maxValue, 32);
-  assert.equal(c.char('TargetTemperature').props.minStep, 0.1);
+  assert.equal(c.char('TargetTemperature').props.minStep, 1);
   assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), 0);
   assert.equal(await c.char('TargetHeatingCoolingState').handleGetRequest(), 0);
   assert.ok(Math.abs(await c.char('CurrentTemperature').handleGetRequest() - 23.1) < 1e-8);
@@ -137,21 +137,21 @@ test('a HomeKit mode write completes while busy and current mode changes only on
   await c.advance(1100);
   assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), 1);
   assert.deepEqual(c.writes, [{ ac1: { info: { state: 'on', mode: 'heat' } } }]);
-  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: heat')).length, 1);
+  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: heat')).length, 1);
   assert.deepEqual(c.messages.warn, []);
   assert.deepEqual(warnings, []);
 });
 
 test('HomeKit temperature writes preserve measured readings and confirm main plus closed-zone targets', async t => {
   const c = await setup(t);
-  await c.char('TargetTemperature').handleSetRequest(25.5);
-  assert.equal(await c.char('TargetTemperature').handleGetRequest(), 25.5);
+  await c.char('TargetTemperature').handleSetRequest(25);
+  assert.equal(await c.char('TargetTemperature').handleGetRequest(), 25);
   assert.ok(Math.abs(await c.char('CurrentTemperature').handleGetRequest() - 23.1) < 1e-8);
   await c.advance(7200);
-  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 25.5 }, zones: { z01: { setTemp: 25.5 }, z02: { setTemp: 25.5 } } } }]);
+  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 25 }, zones: { z01: { setTemp: 25 }, z02: { setTemp: 25 } } } }]);
   assert.equal(c.data.aircons.ac1.info.state, 'off');
   assert.ok(Math.abs(await c.char('CurrentTemperature').handleGetRequest() - 23.1) < 1e-8);
-  assert.equal(c.char('TargetTemperature').value, 25.5);
+  assert.equal(c.char('TargetTemperature').value, 25);
 });
 
 test('rapid HomeKit mode reversals preserve the newest target while confirming both physical changes', async t => {
@@ -166,8 +166,8 @@ test('rapid HomeKit mode reversals preserve the newest target while confirming b
   await c.advance(7200);
   assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), 0);
   assert.equal(c.writes.length, 2);
-  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: heat')).length, 0);
-  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: off')).length, 1);
+  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: heat')).length, 0);
+  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: off')).length, 1);
 });
 
 test('thermostat observes tablet changes and selects myZone temperature by its reported number', async t => {
@@ -317,14 +317,14 @@ test('shutdown makes thermostat controls unavailable and stops pending physical 
   await assert.rejects(c.char('TargetHeatingCoolingState').handleGetRequest(), unavailable(c));
   await assert.rejects(c.char('TargetTemperature').handleSetRequest(25), unavailable(c));
   assert.equal(c.writes.length, 1);
-  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
+  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed:')).length, 0);
 });
 
 test('HomeKit rejects unsupported modes and out-of-range temperatures before any controller write', async t => {
   const c = await setup(t);
   for (const [name, values] of [
     ['TargetHeatingCoolingState', [-1, 3, 4]],
-    ['TargetTemperature', [15, 33]],
+    ['TargetTemperature', [15, 24.5, 33]],
     ['TemperatureDisplayUnits', [1]],
   ]) {
     for (const value of values) {
@@ -332,6 +332,37 @@ test('HomeKit rejects unsupported modes and out-of-range temperatures before any
     }
   }
   assert.equal(c.writes.length, 0);
+});
+
+test('live regression: integer write repairs fractional zone targets even when the main target already matches', async t => {
+  const c = await setup(t, { paused: true });
+  c.data.aircons.ac1.zones.z01.setTemp = 24.5;
+  c.data.aircons.ac1.zones.z02.setTemp = 24.5;
+  c.api.emit('didFinishLaunching');
+  await flush();
+  await c.char('TargetTemperature').handleSetRequest(24, {});
+  await c.advance(7200);
+  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 24 }, zones: { z01: { setTemp: 24 }, z02: { setTemp: 24 } } } }]);
+  assert.ok(c.messages.info.includes('Controller Aircon Sending: target temperature 24 °C'));
+  assert.ok(c.messages.debug.includes('Controller Aircon Controller confirmed: 24 °C'));
+  assert.equal(c.messages.info.some(line => line.includes('Controller confirmed:')), false);
+  assert.deepEqual(c.messages.warn, []);
+  assert.ok(Math.abs(await c.char('CurrentTemperature').handleGetRequest() - 23.1) < 1e-8);
+});
+
+test('dispatch logs only the latest unsent target, and failure names that target', async t => {
+  const c = await setup(t);
+  c.model.reject = true;
+  const first = c.char('TargetTemperature').handleSetRequest(25, {});
+  const second = c.char('TargetTemperature').handleSetRequest(26, {});
+  await Promise.all([first, second]);
+  await flush();
+  assert.equal(c.writes.length, 1);
+  assert.equal(c.writes[0].ac1.info.setTemp, 26);
+  assert.deepEqual(c.messages.info.filter(line => line.includes('Sending:')),
+    ['Controller Aircon Sending: target temperature 26 °C']);
+  assert.equal(c.messages.warn.length, 1);
+  assert.match(c.messages.warn[0], /Aircon.*target temperature 26 °C.*rejected/);
 });
 
 test('accessory isolates invalid readings and sanitises unexpected admission errors', async () => {

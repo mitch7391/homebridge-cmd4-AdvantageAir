@@ -137,15 +137,15 @@ test('mode-only response without requested power never confirms Heat', async t =
 
 test('temperature admission keeps measured data unchanged until all legacy targets confirm', async t => {
   const c = await setup(t, { delay: 3000 });
-  c.coordinator.requestThermostatTemperature(identity, 26.5);
-  assert.equal(c.coordinator.readThermostatTemperature(identity), 26.5);
+  c.coordinator.requestThermostatTemperature(identity, 26);
+  assert.equal(c.coordinator.readThermostatTemperature(identity), 26);
   assert.equal(c.data.aircons.ac1.info.setTemp, 24);
   assert.equal(c.observations.at(-1).state.data.aircons.ac1.zones.z01.measuredTemp, 23);
   await c.advance(3100);
-  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 26.5 },
-    zones: { z01: { setTemp: 26.5 }, z02: { setTemp: 26.5 } } } }]);
+  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 26 },
+    zones: { z01: { setTemp: 26 }, z02: { setTemp: 26 } } } }]);
   assert.equal(c.data.aircons.ac1.info.state, 'off');
-  assert.equal(c.events[0].temperature, 26.5);
+  assert.equal(c.events[0].temperature, 26);
 });
 
 test('matching main target cannot falsely confirm missing zone target updates', async t => {
@@ -422,6 +422,7 @@ test('thermostat transport encodes one aircon patch and rejects unexpected field
   const c = await setup(t);
   const invalid = [null, {}, { info: { state: 'on' } }, { info: { state: 'on', mode: 'dry' } },
     { info: { state: 'off', fan: 'high' } }, { info: { setTemp: '26' } }, { info: { setTemp: NaN } },
+    { info: { setTemp: 24.5 }, zones: { z01: { setTemp: 24.5 } } },
     { info: { setTemp: 26 }, zones: { z01: { setTemp: 25 } } },
     { info: { setTemp: 26 }, zones: { z01: { setTemp: 26, state: 'close' } } },
     { info: { state: 'off' }, zones: {} }, { info: { setTemp: 26 }, zones: [] },
@@ -431,8 +432,8 @@ test('thermostat transport encodes one aircon patch and rejects unexpected field
   }
   await assert.rejects(c.client.requestThermostatPatch('ac1?extra', { info: { state: 'off' } }));
   assert.equal(c.writes.length, 0);
-  await c.client.requestThermostatPatch('ac1', { info: { setTemp: 26.5 }, zones: { z02: { setTemp: 26.5 } } });
-  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 26.5 }, zones: { z02: { setTemp: 26.5 } } } }]);
+  await c.client.requestThermostatPatch('ac1', { info: { setTemp: 26 }, zones: { z02: { setTemp: 26 } } });
+  assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 26 }, zones: { z02: { setTemp: 26 } } } }]);
   c.model.reject = true;
   await assert.rejects(c.client.requestThermostatPatch('ac1', { info: { state: 'off' } }), AirconCommandRejectedError);
 });

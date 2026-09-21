@@ -21,7 +21,7 @@ export function validateThermostatPatch(value: unknown): asserts value is Thermo
   const keys = Object.keys(info);
   if (Object.hasOwn(info, 'setTemp')) {
     const temperature = info.setTemp;
-    if (keys.length !== 1 || typeof temperature !== 'number' || !Number.isFinite(temperature)
+    if (keys.length !== 1 || typeof temperature !== 'number' || !Number.isInteger(temperature)
       || temperature < 16 || temperature > 32) {
       return invalid();
     }

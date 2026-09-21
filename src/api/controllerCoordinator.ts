@@ -63,6 +63,7 @@ export class ControllerCoordinator {
     private readonly onUpdate: (state: ControllerPollState, reason: ControllerUpdateReason) => void,
     private readonly warn: (message: string) => void,
     private readonly onConfirmation?: (event: ControllerCommandConfirmation) => void,
+    private readonly onSending?: (name: string, target: string) => void,
   ) {}
 
   start(): void {
@@ -327,6 +328,11 @@ export class ControllerCoordinator {
     }
   }
 
+  private describe(intent: Intent): string {
+    return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
+      : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+  }
+
   private fail(intent: Intent, reason: string): void {
     if (this.stopped || intent.finished) {
       return;
@@ -336,7 +342,7 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      this.warn(`${intent.kind === 'zone' ? 'Zone' : 'Thermostat'} command failed for "${intent.name}": ${reason}`);
+      this.warn(`${intent.kind === 'zone' ? 'Zone' : 'Thermostat'} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.
     }
@@ -396,6 +402,12 @@ export class ControllerCoordinator {
         if (plan.kind === 'unchanged') {
           this.confirm(intent, 'unchanged');
           return;
+        }
+        signal.throwIfAborted();
+        try {
+          this.onSending?.(intent.name, this.describe(intent));
+        } catch {
+          // Logging must not interrupt physical commands.
         }
         signal.throwIfAborted();
         sent = true;

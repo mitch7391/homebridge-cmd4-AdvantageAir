@@ -78,9 +78,9 @@ test('mode planning requires a known power state', () => {
 });
 
 test('legacy target updates main and all temperature zones with no myZone, including closed zones', () => {
-  assert.deepEqual(planThermostatTemperature(snapshot(), 22.5), {
-    kind: 'command', requestedTemperature: 22.5,
-    patch: { info: { setTemp: 22.5 }, zones: { z01: { setTemp: 22.5 }, z03: { setTemp: 22.5 } } },
+  assert.deepEqual(planThermostatTemperature(snapshot(), 22), {
+    kind: 'command', requestedTemperature: 22,
+    patch: { info: { setTemp: 22 }, zones: { z01: { setTemp: 22 }, z03: { setTemp: 22 } } },
   });
 });
 
@@ -133,10 +133,10 @@ test('systems with only percentage zones or no zones receive only the main targe
 });
 
 test('temperature bounds are inclusive and invalid values are refused without coercion or clamping', () => {
-  for (const value of [16, 16.5, 24.5, 32]) {
+  for (const value of [16, 24, 32]) {
     assert.equal(planThermostatTemperature(snapshot(), value).requestedTemperature, value);
   }
-  for (const value of [15.9, 32.1, NaN, Infinity, -Infinity, '24', null, undefined, true]) {
+  for (const value of [15.9, 16.5, 24.5, 32.1, NaN, Infinity, -Infinity, '24', null, undefined, true]) {
     assert.throws(() => planThermostatTemperature(snapshot(), value), ThermostatCommandError);
   }
 });

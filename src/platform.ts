@@ -210,10 +210,10 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
               this.log.debug(name, event.name,
                 event.superseded ? 'Earlier command confirmed:' : 'Already in requested state:', state);
             }
-          } else {
-            this.log.info(name, event.name, 'Controller confirmed:', state);
+          } else if (debug) {
+            this.log.debug(name, event.name, 'Controller confirmed:', state);
           }
-        });
+        }, (accessoryName, target) => this.log.info(name, accessoryName, 'Sending:', target));
 
         const switchManager = new ZoneSwitchManager(
           this.api,

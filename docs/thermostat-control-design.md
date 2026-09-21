@@ -15,9 +15,9 @@ Auto, Dry and Vent are not offered as thermostat target modes.
 
 ## Target temperature
 
-Accept finite numbers within 16-32 degrees Celsius. Do not coerce strings,
+Accept whole numbers within 16-32 degrees Celsius. Do not coerce strings,
 clamp values, or silently round them in the planner. The HomeKit characteristic
-advertises 16-32 Celsius and the HAP default 0.1-degree step; the Home app decides
+advertises 16-32 Celsius and a 1-degree step; the Home app decides
 how to present its slider. Temperature display units are Celsius for this initial
 legacy layout. Changing that display characteristic produces no controller write.
 
@@ -117,3 +117,19 @@ observed versus desired state, repeated edits, multiple aircons, cache restorati
 identity changes, sensor faults, rejection, freshness and shutdown. After the
 feature-branch checks pass, perform an isolated Raspberry Pi thermostat trial
 before adding fan controls. Automated tests are not a substitute for that trial.
+
+## Live precision finding and logging
+
+On 21 September 2026, an e-zone controller accepted a 24.5 C write as main
+target 24 C but all six zone targets 24.5 C. Confirmation correctly failed.
+The initial legacy thermostat therefore restricts writes to whole degrees in
+HomeKit, planning and transport. This is a conservative layout policy, not a
+claim that all controllers or individual zone controls lack fractional support.
+Measured temperature precision is unchanged. Confirmation remains exact; a
+matching main target does not suppress a write when zone targets differ.
+
+Normal info logs report dispatch with accessory and requested value. Queued
+values replaced before dispatch and no-op requests do not claim to be sent.
+Confirmations, no-op and superseded results are debug only. Refusals and failures
+remain warnings and identify the requested value. Raw response bodies are never
+logged. Timing, queue behaviour and confirmation deadlines are unchanged.

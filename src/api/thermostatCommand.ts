@@ -61,9 +61,9 @@ export function planThermostatMode(aircon: AirconData, mode: ThermostatMode): Th
  * The coordinator must replan against fresh addressing before dispatch.
  */
 export function planThermostatTemperature(aircon: AirconData, temperature: number): ThermostatTemperaturePlan {
-  if (typeof temperature !== 'number' || !Number.isFinite(temperature)
+  if (typeof temperature !== 'number' || !Number.isInteger(temperature)
     || temperature < 16 || temperature > 32) {
-    throw new ThermostatCommandError('Target temperature must be a number from 16 to 32 degrees Celsius.');
+    throw new ThermostatCommandError('Target temperature must be a whole number from 16 to 32 degrees Celsius.');
   }
   const myZone = aircon.info.myZone;
   if (typeof myZone !== 'number' || !Number.isInteger(myZone) || myZone < 0) {

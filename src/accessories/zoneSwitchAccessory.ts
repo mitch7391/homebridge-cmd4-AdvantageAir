@@ -46,7 +46,7 @@ export class ZoneSwitchAccessory {
       this.options.setOn(value);
     } catch (error) {
       const reason = error instanceof ZoneCommandError ? error.message : 'The zone request could not be accepted.';
-      this.options.warn(`Zone command refused for "${this.accessory.displayName}": ${reason}`);
+      this.options.warn(`Zone command refused for "${this.accessory.displayName}" (${value ? 'Open' : 'Closed'}): ${reason}`);
       throw this.unavailable();
     }
   }

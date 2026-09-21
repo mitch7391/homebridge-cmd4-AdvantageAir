@@ -32,7 +32,7 @@ export class ThermostatAccessory {
     const currentTemperature = service.getCharacteristic(Characteristic.CurrentTemperature);
     const targetTemperature = service.getCharacteristic(Characteristic.TargetTemperature)
       .updateValue(this.unavailable())
-      .setProps({ minValue: 16, maxValue: 32, minStep: 0.1 });
+      .setProps({ minValue: 16, maxValue: 32, minStep: 1 });
     this.readings = [
       [currentMode, () => this.mode(this.options.getCurrentMode())],
       [targetMode, () => this.mode(this.options.getTargetMode())],
@@ -53,11 +53,11 @@ export class ThermostatAccessory {
         throw this.invalid();
       }
       const mode = value === 0 ? 'off' : value === 1 ? 'heat' : 'cool';
-      this.accept(() => this.options.setTargetMode(mode));
+      this.accept(`mode ${mode}`, () => this.options.setTargetMode(mode));
     });
     targetTemperature.onSet(value => {
       this.validateTarget(value);
-      this.accept(() => this.options.setTargetTemperature(value as number));
+      this.accept(`target temperature ${value} °C`, () => this.options.setTargetTemperature(value as number));
     });
     // This initial legacy layout displays Celsius. No controller write is needed.
     service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
@@ -105,19 +105,19 @@ export class ThermostatAccessory {
   }
 
   private validateTarget(value: CharacteristicValue): void {
-    if (typeof value !== 'number' || !Number.isFinite(value) || value < 16 || value > 32) {
+    if (typeof value !== 'number' || !Number.isInteger(value) || value < 16 || value > 32) {
       throw this.invalid();
     }
   }
 
-  private accept(request: () => void): void {
+  private accept(target: string, request: () => void): void {
     try {
       request();
     } catch (error) {
       const reason = error instanceof ThermostatCommandError || error instanceof ZoneCommandError
         ? error.message : 'The thermostat request could not be accepted.';
       try {
-        this.options.warn(`Thermostat command refused for "${this.accessory.displayName}": ${reason}`);
+        this.options.warn(`Thermostat command refused for "${this.accessory.displayName}" (${target}): ${reason}`);
       } catch {
         // Logging cannot change the HomeKit error response.
       }

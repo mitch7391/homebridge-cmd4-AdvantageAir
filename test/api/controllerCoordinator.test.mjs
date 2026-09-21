@@ -87,7 +87,7 @@ async function setup(t, options = {}) {
     (...args) => {
       const message = args.join(' ');
       messages[level].push(message);
-      if (options.throwLogs && /Created accessory:|Controller confirmed:/.test(message)) {
+      if (options.throwLogs && /Created accessory:|Controller confirmed:|Sending:/.test(message)) {
         throw new Error('logging failed');
       }
     },
@@ -457,7 +457,7 @@ test('stable identity resolves changed aircon addressing before writing', async 
 test('native timing is opt-in and routine summaries count reads, not desired-state updates', async t => {
   const c = await setup(t, { debug: true, delay: 1000 });
   const reads = () => c.messages.debug.filter(line => line.includes('Controller read:'));
-  const confirmations = () => c.messages.info.filter(line => line.includes('Controller confirmed:'));
+  const confirmations = () => c.messages.debug.filter(line => line.includes('Controller confirmed:'));
   assert.equal(reads().length, 1);
   await c.on().handleSetRequest(false);
   await flush();
@@ -483,16 +483,17 @@ test('default logging has no timing or read summaries and creation messages occu
   await c.advance(30000);
   assert.equal(creations().length, 7);
   assert.deepEqual(c.messages.debug, []);
-  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed: Closed')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.includes('Sending: Closed')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
 });
 
-test('reversed command confirmation is debug only and the latest confirmed result is informational', async t => {
+test('reversed commands log sends normally and both confirmations only in debug', async t => {
   const c = await setup(t, { debug: true, delay: 1000 });
   await c.on().handleSetRequest(false);
   await flush();
   await c.on().handleSetRequest(true);
   await c.advance(2200);
-  assert.deepEqual(c.messages.info.filter(line => line.includes('Controller confirmed:')),
+  assert.deepEqual(c.messages.debug.filter(line => line.includes('Controller confirmed:')),
     ['Controller Bedroom Zone Controller confirmed: Open']);
   assert.ok(c.messages.debug.includes('Controller Bedroom Zone Earlier command confirmed: Closed'));
 });
@@ -502,6 +503,7 @@ test('unchanged requests never claim a command opened the zone', async t => {
   await c.on().handleSetRequest(true);
   await flush();
   assert.equal(c.writes.length, 0);
+  assert.equal(c.messages.info.filter(line => line.includes('Sending:')).length, 0);
   assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
   assert.ok(c.messages.debug.includes('Controller Bedroom Zone Already in requested state: Open'));
 });
