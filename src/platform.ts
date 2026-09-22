@@ -205,7 +205,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           }
         }, message => this.log.warn(name, message), (event) => {
           const state = event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
-            : event.kind === 'fan' ? 'fan speed ' + fanSetting(event.percentage).fan
+            : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
               : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {

@@ -147,7 +147,9 @@ test('Auto sends legacy autoAA, accepts auto readback, and does not resend an eq
   await c.fan('RotationSpeed').handleSetRequest(100, {});
   await flush();
   assert.equal(c.writes.length, 1);
-  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: fan speed autoAA')));
+  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: fan speed Auto Mode')));
+  assert.ok(c.messages.info.some(line => line.includes('Sending: fan speed Auto Mode')));
+  assert.ok(c.messages.debug.some(line => line.includes('Controller confirmed: fan speed Auto Mode')));
 });
 
 test('fan replacement and queued temperature preserve newest speed and independent controls', async t => {

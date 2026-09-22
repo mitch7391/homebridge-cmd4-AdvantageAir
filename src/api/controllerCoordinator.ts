@@ -370,7 +370,7 @@ export class ControllerCoordinator {
 
   private describe(intent: Intent): string {
     return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-      : intent.kind === 'fan' ? 'fan speed ' + fanSetting(intent.percentage).fan
+      : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
         : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
