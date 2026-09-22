@@ -113,6 +113,31 @@ async function setup(t, options = {}) {
     max: () => maximum };
 }
 
+test('sensor dropout faults only temperature while the existing zone switch remains usable', async t => {
+  const c = await setup(t);
+  const zone = c.data.aircons.ac1.zones.z03;
+  zone.type = 0;
+  zone.error = 1;
+  delete zone.measuredTemp;
+  await c.advance(30000);
+  const temperature = c.accessory('Bedroom Temperature').getService(c.api.hap.Service.TemperatureSensor)
+    .getCharacteristic(c.api.hap.Characteristic.CurrentTemperature);
+  await assert.rejects(temperature.handleGetRequest());
+  assert.equal(await c.on().handleGetRequest(), true);
+  await c.on().handleSetRequest(false, {});
+  await c.advance(7200);
+  assert.equal(c.writes.length, 1);
+  assert.equal(zone.state, 'close');
+  assert.equal(await c.on().handleGetRequest(), false);
+  await assert.rejects(temperature.handleGetRequest());
+  zone.type = 1;
+  zone.error = 0;
+  zone.measuredTemp = 24;
+  await c.advance(30000);
+  assert.equal(await temperature.handleGetRequest(), 24);
+  assert.equal(await c.on().handleGetRequest(), false);
+});
+
 test('full HAP write returns before slow confirmation; immediate reads retain requested state', async t => {
   const c = await setup(t);
   const on = c.on();

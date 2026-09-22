@@ -243,10 +243,7 @@ export class ControllerCoordinator {
     if (!zone || zone.kind !== 'zone') {
       throw new ZoneCommandError('The requested zone identity is unavailable.');
     }
-    const type = data.aircons[zone.airconKey].zones[zone.zoneKey].type;
-    if (typeof type !== 'number' || !Number.isInteger(type) || type <= 0) {
-      throw new ZoneCommandError('The zone no longer supports this switch layout.');
-    }
+    // Sensor availability does not determine whether a zone can open or close.
     return zone;
   }
 
