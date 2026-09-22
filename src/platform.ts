@@ -1,3 +1,4 @@
+import { fanSetting } from './api/fanCommand.js';
 import type {
   API,
   DynamicPlatformPlugin,
@@ -204,7 +205,8 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           }
         }, message => this.log.warn(name, message), (event) => {
           const state = event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
-            : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
+            : event.kind === 'fan' ? 'fan speed ' + fanSetting(event.percentage).fan
+              : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               this.log.debug(name, event.name,

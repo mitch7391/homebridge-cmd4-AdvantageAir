@@ -1,3 +1,4 @@
+import type { FanSpeed } from './fanCommand.js';
 import { validateThermostatPatch } from './thermostatPatch.js';
 import type { ThermostatPatch } from './thermostatPatch.js';
 import { validateSystemData } from './systemData.js';
@@ -134,6 +135,21 @@ export class AdvantageAirClient {
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
       throw new AirconCommandRejectedError('Controller rejected the thermostat command.');
+    }
+    return response;
+  }
+
+  async requestFanSpeed(airconKey: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || !['low', 'medium', 'high', 'autoAA'].includes(fan)) {
+      throw new AdvantageAirRequestError('Invalid fan speed command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info: { fan } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the fan command.');
     }
     return response;
   }

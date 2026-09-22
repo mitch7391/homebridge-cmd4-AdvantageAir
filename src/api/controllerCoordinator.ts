@@ -1,3 +1,5 @@
+import { planFanSpeed, fanSetting } from './fanCommand.js';
+import type { FanSpeed } from './fanCommand.js';
 import type { ControllerPollState } from './controllerPoller.js';
 import type { SystemData } from './systemData.js';
 import { discoverDevices } from '../discovery/discoverDevices.js';
@@ -6,11 +8,12 @@ import { planThermostatMode, planThermostatTemperature, ThermostatCommandError }
 import { temperatureConfirmation } from './thermostatPatch.js';
 import type { ThermostatPatch } from './thermostatPatch.js';
 import type { ThermostatMode } from '../accessories/legacyState.js';
-import { thermostatCurrentTemperature, thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
+import { fanSpeedPercentage, thermostatCurrentTemperature, thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
 import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestFanSpeed?(aircon: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown>;
   requestThermostatPatch?(aircon: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown>;
   getSystemData(signal?: AbortSignal): Promise<SystemData>;
   getFreshSystemData(signal?: AbortSignal): Promise<SystemData>;
@@ -27,7 +30,8 @@ export type ControllerCommandConfirmation = {
 
 type Request = { kind: 'zone'; on: boolean }
   | { kind: 'mode'; mode: ThermostatMode }
-  | { kind: 'temperature'; temperature: number };
+  | { kind: 'temperature'; temperature: number }
+  | { kind: 'fan'; percentage: number };
 
 type ExecutionPlan = { kind: 'unchanged' } | {
   kind: 'command';
@@ -118,6 +122,29 @@ export class ControllerCoordinator {
     return thermostatCurrentTemperature(this.aircon(this.state.data!, identity).data);
   }
 
+  readFanSpeed(identity: string): number {
+    this.available();
+    const key = this.key(identity, 'fan');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'fan') {
+      return pending.percentage;
+    }
+    if (this.faults.has(key)) {
+      throw new ThermostatCommandError('The fan command could not be confirmed.');
+    }
+    return fanSpeedPercentage(this.aircon(this.state.data!, identity).data);
+  }
+
+  requestFanSpeed(identity: string, percentage: number): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    const plan = planFanSpeed(aircon.data, percentage);
+    if (!this.client.requestFanSpeed) {
+      throw new ThermostatCommandError('Fan transport is unavailable.');
+    }
+    this.admit(identity, aircon.device.name, { kind: 'fan', percentage: plan.percentage });
+  }
+
   readThermostatMode(identity: string): ThermostatMode {
     this.available();
     const key = this.key(identity, 'mode');
@@ -177,6 +204,7 @@ export class ControllerCoordinator {
     const previous = this.desired.get(key);
     if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on)
       || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
+      || (request.kind === 'fan' && previous.kind === 'fan' && request.percentage === previous.percentage)
       || (request.kind === 'temperature' && previous.kind === 'temperature' && request.temperature === previous.temperature))) {
       return;
     }
@@ -247,6 +275,17 @@ export class ControllerCoordinator {
       };
     }
     const aircon = this.aircon(data, intent.identity);
+    if (intent.kind === 'fan') {
+      const plan = planFanSpeed(aircon.data, intent.percentage);
+      if (plan.unchanged) {
+        return { kind: 'unchanged' };
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestFanSpeed!(aircon.device.airconKey, plan.fan, signal),
+        matches: current => fanSpeedPercentage(this.aircon(current, intent.identity).data) === plan.percentage,
+      };
+    }
     if (intent.kind === 'mode') {
       const plan = planThermostatMode(aircon.data, intent.mode);
       if (plan.kind === 'unchanged') {
@@ -321,7 +360,8 @@ export class ControllerCoordinator {
     try {
       const request: Request = intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
         : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
-          : { kind: 'temperature', temperature: intent.temperature };
+          : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+            : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -330,7 +370,8 @@ export class ControllerCoordinator {
 
   private describe(intent: Intent): string {
     return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-      : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+      : intent.kind === 'fan' ? 'fan speed ' + fanSetting(intent.percentage).fan
+        : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -342,7 +383,8 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      this.warn(`${intent.kind === 'zone' ? 'Zone' : 'Thermostat'} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
+      const control = intent.kind === 'zone' ? 'Zone' : intent.kind === 'fan' ? 'Fan' : 'Thermostat';
+      this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.
     }

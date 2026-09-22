@@ -1,3 +1,4 @@
+import { FanSpeedAccessory } from './fanSpeedAccessory.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
@@ -10,11 +11,11 @@ import { DuplicateControllerError } from './zoneTemperatureManager.js';
 type ThermostatController = Pick<ControllerCoordinator,
   'readThermostatCurrentMode' | 'readThermostatCurrentTemperature'
   | 'readThermostatMode' | 'readThermostatTemperature'
-  | 'requestThermostatMode' | 'requestThermostatTemperature'>;
+  | 'requestThermostatMode' | 'requestThermostatTemperature' | 'readFanSpeed' | 'requestFanSpeed'>;
 
 export class ThermostatManager {
   private static readonly owners = new WeakMap<API, Map<string, ThermostatManager>>();
-  private readonly handlers = new Map<string, ThermostatAccessory>();
+  private readonly handlers = new Map<string, { update: () => void }>();
   private present = new Set<string>();
   private stopped = false;
 
@@ -39,6 +40,10 @@ export class ThermostatManager {
       setTargetMode: unavailable, setTargetTemperature: unavailable,
       warn: () => undefined,
     }).update();
+    // Reuse the stable subtype on restored accessories; never expose cached speed.
+    if (accessory.getServiceById(api.hap.Service.Fan, 'fan-speed')) {
+      new FanSpeedAccessory(api, accessory, unavailable, unavailable, () => undefined).update();
+    }
   }
 
   update(state: ControllerPollState): void {
@@ -87,16 +92,23 @@ export class ThermostatManager {
           setTargetTemperature: temperature => use(() => this.coordinator.requestThermostatTemperature(identity, temperature)),
           warn: this.warn,
         });
+        const needsFan = !accessory.getServiceById(this.api.hap.Service.Fan, 'fan-speed');
+        const fan = new FanSpeedAccessory(this.api, accessory,
+          () => use(() => this.coordinator.readFanSpeed(identity)),
+          percentage => use(() => this.coordinator.requestFanSpeed(identity, percentage)), this.warn);
         const needsMarker = accessory.context.advantageAirThermostat !== true;
         accessory.context.advantageAirThermostat = true;
-        if (cached && needsMarker) {
+        if (cached && (needsMarker || needsFan)) {
           this.api.updatePlatformAccessories([accessory]);
         }
         if (!cached) {
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
           this.accessories.set(uuid, accessory);
         }
-        this.handlers.set(identity, handler);
+        this.handlers.set(identity, { update: () => {
+          handler.update();
+          fan.update();
+        } });
         if (!cached) {
           try {
             this.onCreated?.(accessory.displayName);
