@@ -1,5 +1,7 @@
 import { planFanSpeed, fanSetting } from './fanCommand.js';
 import type { FanSpeed } from './fanCommand.js';
+import { modeFanIsOn, planModeFan, ModeFanCommandError } from './modeFanCommand.js';
+import type { FanMode, ModeFanPlan } from './modeFanCommand.js';
 import type { ControllerPollState } from './controllerPoller.js';
 import type { SystemData } from './systemData.js';
 import { discoverDevices } from '../discovery/discoverDevices.js';
@@ -13,6 +15,7 @@ import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestModeFanPatch?(aircon: string, patch: Extract<ModeFanPlan, { kind: 'command' }>['patch'], signal?: AbortSignal): Promise<unknown>;
   requestFanSpeed?(aircon: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown>;
   requestThermostatPatch?(aircon: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown>;
   getSystemData(signal?: AbortSignal): Promise<SystemData>;
@@ -30,6 +33,7 @@ export type ControllerCommandConfirmation = {
 
 type Request = { kind: 'zone'; on: boolean }
   | { kind: 'mode'; mode: ThermostatMode }
+  | { kind: 'modeFan'; mode: FanMode; on: boolean }
   | { kind: 'temperature'; temperature: number }
   | { kind: 'fan'; percentage: number };
 
@@ -152,8 +156,58 @@ export class ControllerCoordinator {
     if (pending?.kind === 'mode') {
       return pending.mode;
     }
+    if (pending?.kind === 'modeFan') {
+      const plan = planModeFan(this.aircon(this.state.data!, identity).data, pending.mode, pending.on);
+      if (pending.on || plan.kind === 'command') {
+        return 'off';
+      }
+    }
     this.checkThermostatFault(key);
     return thermostatTargetMode(this.aircon(this.state.data!, identity).data);
+  }
+
+  readModeFan(identity: string, mode: FanMode): boolean {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity).data;
+    // Validate the requested mode even when another mode has a pending intent.
+    planModeFan(aircon, mode, true);
+    const key = this.key(identity, 'mode');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'mode') {
+      return false;
+    }
+    if (pending?.kind === 'modeFan') {
+      if (pending.on) {
+        return pending.mode === mode;
+      }
+      if (planModeFan(aircon, pending.mode, false).kind === 'command') {
+        return false;
+      }
+    }
+    if (this.faults.has(key)) {
+      throw new ModeFanCommandError('The mode command could not be confirmed.');
+    }
+    return modeFanIsOn(aircon, mode);
+  }
+
+  requestModeFan(identity: string, mode: FanMode, on: boolean): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    planModeFan(aircon.data, mode, on);
+    if (!this.client.requestModeFanPatch) {
+      throw new ModeFanCommandError('Ventilation and dry transport is unavailable.');
+    }
+    const pending = this.desired.get(this.key(identity, 'mode'));
+    if (!on && pending && (pending.kind === 'mode' || pending.kind === 'modeFan' && pending.mode !== mode)) {
+      // An inactive mode's Off must not replace a different pending selection.
+      try {
+        this.onConfirmation?.({ kind: 'modeFan', mode, on, name: aircon.device.name, outcome: 'unchanged', superseded: false });
+      } catch {
+        // A logging callback must not interrupt other accepted requests.
+      }
+      return;
+    }
+    this.admit(identity, aircon.device.name, { kind: 'modeFan', mode, on });
   }
 
   readThermostatTemperature(identity: string): number {
@@ -196,7 +250,7 @@ export class ControllerCoordinator {
   }
 
   private key(identity: string, kind: Request['kind']): string {
-    return JSON.stringify([identity, kind]);
+    return JSON.stringify([identity, kind === 'modeFan' ? 'mode' : kind]);
   }
 
   private admit(identity: string, name: string, request: Request): void {
@@ -204,6 +258,7 @@ export class ControllerCoordinator {
     const previous = this.desired.get(key);
     if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on)
       || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
+      || (request.kind === 'modeFan' && previous.kind === 'modeFan' && request.mode === previous.mode && request.on === previous.on)
       || (request.kind === 'fan' && previous.kind === 'fan' && request.percentage === previous.percentage)
       || (request.kind === 'temperature' && previous.kind === 'temperature' && request.temperature === previous.temperature))) {
       return;
@@ -272,6 +327,20 @@ export class ControllerCoordinator {
       };
     }
     const aircon = this.aircon(data, intent.identity);
+    if (intent.kind === 'modeFan') {
+      const plan = planModeFan(aircon.data, intent.mode, intent.on);
+      if (plan.kind === 'unchanged') {
+        return plan;
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestModeFanPatch!(aircon.device.airconKey, plan.patch, signal),
+        matches: current => {
+          const info = this.aircon(current, intent.identity).data.info;
+          return intent.on ? info.state === 'on' && info.mode === intent.mode : info.state === 'off';
+        },
+      };
+    }
     if (intent.kind === 'fan') {
       const plan = planFanSpeed(aircon.data, intent.percentage);
       if (plan.unchanged) {
@@ -356,9 +425,10 @@ export class ControllerCoordinator {
     this.finish(intent);
     try {
       const request: Request = intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
-        : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
-          : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
-            : { kind: 'temperature', temperature: intent.temperature };
+        : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
+          : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
+            : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+              : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -367,8 +437,9 @@ export class ControllerCoordinator {
 
   private describe(intent: Intent): string {
     return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-      : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
-        : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+      : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
+        : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
+          : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -380,7 +451,7 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      const control = intent.kind === 'zone' ? 'Zone' : intent.kind === 'fan' ? 'Fan' : 'Thermostat';
+      const control = intent.kind === 'zone' ? 'Zone' : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
       this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.
@@ -485,7 +556,7 @@ export class ControllerCoordinator {
       if (this.stopped) {
         return;
       }
-      this.fail(intent, error instanceof ZoneCommandError || error instanceof ThermostatCommandError
+      this.fail(intent, error instanceof ZoneCommandError || error instanceof ThermostatCommandError || error instanceof ModeFanCommandError
         ? error.message : 'The controller did not confirm the requested state.');
       if (sent) {
         // Do not apply dependent intentions after an unreconciled physical write.

@@ -111,6 +111,131 @@ async function setup(t, options = {}) {
     max: () => maximum };
 }
 
+test('Vent and Dry share desired mode state and confirm power plus mode without altering other settings', async t => {
+  const c = await setup(t, { delay: 6500 });
+  const original = globalThis.structuredClone(c.data.aircons.ac1);
+  for (const mode of ['vent', 'dry']) {
+    c.coordinator.requestModeFan(identity, mode, true);
+    assert.equal(c.coordinator.readModeFan(identity, mode), true);
+    assert.equal(c.coordinator.readModeFan(identity, mode === 'vent' ? 'dry' : 'vent'), false);
+    assert.equal(c.coordinator.readThermostatMode(identity), 'off');
+    await c.advance(7100);
+    assert.deepEqual(c.writes.at(-1), { ac1: { info: { state: 'on', mode } } });
+    assert.equal(c.events.at(-1).kind, 'modeFan');
+    assert.equal(c.events.at(-1).outcome, 'confirmed');
+    assert.deepEqual(c.data.aircons.ac1, { ...original, info: { ...original.info, state: 'on', mode } });
+  }
+  assert.equal(c.max(), 1);
+  assert.deepEqual(c.warnings, []);
+});
+
+test('unsent thermostat, Vent and Dry selections replace each other in the shared mode slot', async t => {
+  const c = await setup(t);
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  c.coordinator.requestThermostatMode(identity, 'heat');
+  assert.equal(c.coordinator.readModeFan(identity, 'dry'), false);
+  assert.equal(c.coordinator.readThermostatMode(identity), 'heat');
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  await c.advance(1100);
+  assert.deepEqual(c.writes, [{ ac1: { info: { state: 'on', mode: 'vent' } } }]);
+  assert.equal(c.coordinator.readModeFan(identity, 'vent'), true);
+});
+
+test('inactive mode Off cannot cancel a pending thermostat or other fan mode', async t => {
+  const c = await setup(t);
+  c.coordinator.requestThermostatMode(identity, 'cool');
+  c.coordinator.requestModeFan(identity, 'vent', false);
+  c.coordinator.requestModeFan(identity, 'dry', false);
+  assert.equal(c.coordinator.readThermostatMode(identity), 'cool');
+  await c.advance(1100);
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  c.coordinator.requestModeFan(identity, 'vent', false);
+  assert.equal(c.coordinator.readModeFan(identity, 'dry'), true);
+  await c.advance(1100);
+  assert.deepEqual(c.writes, [
+    { ac1: { info: { state: 'on', mode: 'cool' } } },
+    { ac1: { info: { state: 'on', mode: 'dry' } } },
+  ]);
+});
+
+test('in-flight mode changes retain the newest selection and leave temperature requests independent', async t => {
+  const c = await setup(t, { delay: 3000 });
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  await flush();
+  assert.equal(c.writes.length, 1);
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  c.coordinator.requestThermostatMode(identity, 'heat');
+  c.coordinator.requestThermostatTemperature(identity, 25);
+  await c.advance(3100);
+  assert.equal(c.coordinator.readThermostatMode(identity), 'heat');
+  assert.equal(c.coordinator.readModeFan(identity, 'vent'), false);
+  assert.equal(c.events[0].superseded, true);
+  await c.advance(6100);
+  assert.equal(c.writes.length, 3);
+  assert.deepEqual(c.writes[1], { ac1: { info: { state: 'on', mode: 'heat' } } });
+  assert.equal(c.data.aircons.ac1.info.setTemp, 25);
+  assert.equal(c.data.aircons.ac1.info.mode, 'heat');
+  assert.deepEqual(c.warnings, []);
+});
+
+test('mode Off is replanned against fresh state and never powers down a different mode', async t => {
+  const c = await setup(t);
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  await c.advance(1100);
+  c.coordinator.requestModeFan(identity, 'vent', false);
+  // Tablet changes mode after local admission but before the fresh preflight read.
+  c.data.aircons.ac1.info.mode = 'cool';
+  await flush();
+  assert.equal(c.writes.length, 1);
+  assert.equal(c.events.at(-1).outcome, 'unchanged');
+  assert.equal(c.coordinator.readThermostatMode(identity), 'cool');
+  assert.equal(c.coordinator.readModeFan(identity, 'vent'), false);
+});
+
+test('same-mode reversal before dispatch cancels the start; after dispatch it sends a confirmed Off', async t => {
+  const c = await setup(t);
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  c.coordinator.requestModeFan(identity, 'dry', false);
+  await flush();
+  assert.equal(c.writes.length, 0);
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  await flush();
+  c.coordinator.requestModeFan(identity, 'dry', false);
+  await c.advance(2100);
+  assert.deepEqual(c.writes, [{ ac1: { info: { state: 'on', mode: 'dry' } } }, { ac1: { info: { state: 'off' } } }]);
+  assert.equal(c.data.aircons.ac1.info.mode, 'dry');
+  assert.equal(c.coordinator.readModeFan(identity, 'dry'), false);
+});
+
+test('mode-only readback cannot confirm a powered-on Dry request and faults the shared mode controls', async t => {
+  const c = await setup(t, { modeOnly: true });
+  c.coordinator.requestModeFan(identity, 'dry', true);
+  await c.advance(15100);
+  assert.equal(c.writes.length, 1);
+  assert.equal(c.events.length, 0);
+  assert.equal(c.warnings.length, 1);
+  assert.match(c.warnings[0], /Fan command failed.*Dry Mode On/);
+  assert.throws(() => c.coordinator.readModeFan(identity, 'dry'), /could not be confirmed/);
+  assert.throws(() => c.coordinator.readThermostatMode(identity), /could not be confirmed/);
+  assert.equal(c.coordinator.readZone(zoneIdentity), true);
+});
+
+test('duplicate mode requests coalesce and stopped coordinators reject mode fan operations', async t => {
+  const c = await setup(t);
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  await c.advance(1100);
+  assert.equal(c.writes.length, 1);
+  c.coordinator.requestModeFan(identity, 'vent', true);
+  await flush();
+  assert.equal(c.events.at(-1).outcome, 'unchanged');
+  assert.equal(c.writes.length, 1);
+  c.coordinator.stop();
+  assert.throws(() => c.coordinator.requestModeFan(identity, 'dry', true));
+  assert.throws(() => c.coordinator.readModeFan(identity, 'vent'));
+});
+
 test('mode admission is immediate, desired state survives busy reads, and heat requires power plus mode confirmation', async t => {
   const c = await setup(t, { delay: 6500 });
   assert.equal(c.coordinator.requestThermostatMode(identity, 'heat'), undefined);

@@ -97,6 +97,125 @@ function unavailable(c) {
   return error => error === c.api.hap.HAPStatus.SERVICE_COMMUNICATION_FAILURE;
 }
 
+function modeControl(c, mode, characteristic = 'On') {
+  const accessory = [...c.platform.accessories.values()].find(item => item.context.advantageAirModeFan === mode);
+  return accessory.getService(c.api.hap.Service.Fan).getCharacteristic(c.api.hap.Characteristic[characteristic]);
+}
+
+test('separate Ventilation and Dry fans select exclusive modes and retain stable services', async t => {
+  const c = await setup(t);
+  assert.equal(c.platform.accessories.size, 7);
+  assert.equal(c.messages.info.filter(line => /Created accessory: Aircon (Fan|Dry Mode)$/.test(line)).length, 2);
+  assert.equal(await modeControl(c, 'vent').handleGetRequest(), false);
+  await modeControl(c, 'vent').handleSetRequest(true, {});
+  assert.equal(await modeControl(c, 'vent').handleGetRequest(), true);
+  assert.equal(await modeControl(c, 'dry').handleGetRequest(), false);
+  await c.advance(7200);
+  assert.deepEqual(c.writes[0], { ac1: { info: { state: 'on', mode: 'vent' } } });
+  await modeControl(c, 'dry').handleSetRequest(true, {});
+  assert.equal(await modeControl(c, 'vent').handleGetRequest(), false);
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.info.mode, 'dry');
+  await modeControl(c, 'vent').handleSetRequest(false, {});
+  await flush();
+  assert.equal(c.writes.length, 2);
+  await modeControl(c, 'dry').handleSetRequest(false, {});
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.info.state, 'off');
+  assert.equal(c.data.aircons.ac1.info.mode, 'dry');
+  assert.equal(c.registered.length, 7);
+  assert.deepEqual(c.messages.warn, []);
+});
+
+test('separate fan speed shares the legacy speed setting without turning on a mode', async t => {
+  const c = await setup(t);
+  await modeControl(c, 'dry', 'RotationSpeed').handleSetRequest(60, {});
+  assert.equal(await modeControl(c, 'vent', 'RotationSpeed').handleGetRequest(), 50);
+  assert.equal(await c.fan('RotationSpeed').handleGetRequest(), 50);
+  assert.equal(await modeControl(c, 'dry').handleGetRequest(), false);
+  await c.advance(7200);
+  assert.deepEqual(c.writes, [{ ac1: { info: { fan: 'medium' } } }]);
+  assert.equal(c.data.aircons.ac1.info.state, 'off');
+  assert.equal(c.data.aircons.ac1.info.mode, 'cool');
+});
+
+test('cached mode fans fault until first read, restore without duplicates, and stop on shutdown', async t => {
+  const c = await setup(t, { paused: true });
+  const identity = JSON.stringify(['AdvantageAir', 'controller', 'unit', 'aircon']);
+  const restored = [];
+  for (const mode of ['vent', 'dry']) {
+    const uuid = c.api.hap.uuid.generate(JSON.stringify([identity, 'mode-fan', mode]));
+    const accessory = new c.api.platformAccessory('Saved ' + mode, uuid);
+    accessory.context.advantageAirModeFan = mode;
+    accessory.addService(c.api.hap.Service.Fan, accessory.displayName)
+      .setCharacteristic(c.api.hap.Characteristic.On, true);
+    c.platform.configureAccessory(accessory);
+    restored.push(accessory);
+    await assert.rejects(modeControl(c, mode).handleGetRequest(), unavailable(c));
+    await assert.rejects(modeControl(c, mode).handleSetRequest(true, {}), unavailable(c));
+  }
+  c.api.emit('didFinishLaunching');
+  await flush();
+  for (const accessory of restored) {
+    assert.equal(c.platform.accessories.get(accessory.UUID), accessory);
+    assert.equal(accessory.services.filter(s => s.UUID === c.api.hap.Service.Fan.UUID).length, 1);
+  }
+  assert.equal(c.registered.length, 5);
+  assert.equal(await modeControl(c, 'vent').handleGetRequest(), false);
+  c.api.emit('shutdown');
+  await assert.rejects(modeControl(c, 'dry').handleGetRequest(), unavailable(c));
+  await assert.rejects(modeControl(c, 'vent').handleSetRequest(true, {}), unavailable(c));
+  assert.equal(c.writes.length, 0);
+});
+
+test('thermostat and separate fans update each other without changing the linked speed-only On', async t => {
+  const c = await setup(t);
+  await modeControl(c, 'vent').handleSetRequest(true, {});
+  await c.advance(7200);
+  assert.equal(await c.char('TargetHeatingCoolingState').handleGetRequest(), 0);
+  await c.char('TargetHeatingCoolingState').handleSetRequest(2, {});
+  assert.equal(await modeControl(c, 'vent').handleGetRequest(), false);
+  assert.equal(await modeControl(c, 'dry').handleGetRequest(), false);
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.info.mode, 'cool');
+  assert.equal(await c.fan('On').handleGetRequest(), true);
+});
+
+test('mode accessories follow addressing changes and fault while their identity is missing', async t => {
+  const c = await setup(t);
+  const aircon = c.data.aircons.ac1;
+  c.data.aircons = { ac2: aircon };
+  await c.advance(30100);
+  await modeControl(c, 'dry').handleSetRequest(true, {});
+  await c.advance(7200);
+  assert.deepEqual(c.writes[0], { ac2: { info: { state: 'on', mode: 'dry' } } });
+  c.data.aircons = {};
+  c.data.system.noOfAircons = 0;
+  c.data.system.hasAircons = false;
+  await c.advance(30100);
+  await assert.rejects(modeControl(c, 'dry').handleGetRequest(), unavailable(c));
+  await assert.rejects(modeControl(c, 'vent').handleSetRequest(true, {}), unavailable(c));
+  c.data.aircons = { ac2: aircon };
+  c.data.system.noOfAircons = 1;
+  c.data.system.hasAircons = true;
+  await c.advance(30100);
+  assert.equal(await modeControl(c, 'dry').handleGetRequest(), true);
+  assert.equal(c.registered.length, 7);
+});
+
+test('failed mode commands fault power independently of speed and recover on the next valid read', async t => {
+  const c = await setup(t);
+  c.model.reject = true;
+  await modeControl(c, 'dry').handleSetRequest(true, {});
+  await flush();
+  await assert.rejects(modeControl(c, 'dry').handleGetRequest(), unavailable(c));
+  assert.equal(await modeControl(c, 'dry', 'RotationSpeed').handleGetRequest(), 25);
+  assert.match(c.messages.warn[0], /Dry Mode On.*rejected/);
+  await c.advance(30100);
+  assert.equal(await modeControl(c, 'dry').handleGetRequest(), false);
+  assert.equal(c.writes.length, 1);
+});
+
 test('legacy fan boundaries map to stable speed bands and reject invalid inputs', () => {
   for (const [value, fan, percentage] of [[0, 'low', 25], [33, 'low', 25], [34, 'medium', 50],
     [67, 'medium', 50], [68, 'high', 90], [99, 'high', 90], [100, 'autoAA', 100]]) {
@@ -111,7 +230,7 @@ test('linked speed reuses the thermostat accessory and never controls power thro
   const c = await setup(t);
   const service = c.accessory().getServiceById(c.api.hap.Service.Fan, 'fan-speed');
   assert.ok(c.accessory().getService(c.api.hap.Service.Thermostat).linkedServices.includes(service));
-  assert.equal(c.platform.accessories.size, 5);
+  assert.equal(c.platform.accessories.size, 7);
   assert.equal(await c.fan('On').handleGetRequest(), true);
   assert.equal(await c.fan('RotationSpeed').handleGetRequest(), 25);
   await c.fan('On').handleSetRequest(false, {});

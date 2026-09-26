@@ -94,7 +94,7 @@ function unavailable(c) {
 
 test('platform creates one Celsius thermostat with only Off Heat Cool, alongside existing zone accessories', async t => {
   const c = await setup(t);
-  assert.equal(c.platform.accessories.size, 5);
+  assert.equal(c.platform.accessories.size, 7);
   assert.equal(c.registered.filter(a => a.context.advantageAirThermostat).length, 1);
   assert.deepEqual(c.char('TargetHeatingCoolingState').props.validValues, [0, 1, 2]);
   assert.equal(c.char('TargetTemperature').props.minValue, 16);
@@ -109,7 +109,7 @@ test('platform creates one Celsius thermostat with only Off Heat Cool, alongside
   await c.advance(30000);
   assert.equal(c.writes.length, 0);
   assert.equal(c.messages.info.filter(line => line === 'Controller Created accessory: Aircon').length, 1);
-  assert.equal(c.registered.length, 5);
+  assert.equal(c.registered.length, 7);
   assert.deepEqual(c.messages.error, []);
 });
 
@@ -224,7 +224,7 @@ test('cached thermostat is unavailable before discovery, restores once, and reta
   assert.equal(c.accessory(), c.cached);
   assert.equal(c.accessory().getService(c.api.hap.Service.Thermostat), service);
   assert.equal(await c.char('TargetTemperature').handleGetRequest(), 24);
-  assert.equal(c.registered.length, 4);
+  assert.equal(c.registered.length, 6);
   assert.equal(c.messages.info.filter(line => line === 'Controller Created accessory: Aircon').length, 0);
 });
 
@@ -238,7 +238,7 @@ test('thermostat identity survives renamed and readdressed aircon without regist
   await c.char('TargetHeatingCoolingState').handleSetRequest(2);
   await c.advance(7200);
   assert.equal(c.accessory(), accessory);
-  assert.equal(c.registered.length, 5);
+  assert.equal(c.registered.length, 7);
   assert.deepEqual(c.writes, [{ ac2: { info: { state: 'on', mode: 'cool' } } }]);
 });
 
@@ -249,7 +249,7 @@ test('missing aircon is retained but cannot read or accept thermostat writes', a
   await c.advance(30100);
   await assert.rejects(c.char('TargetTemperature').handleGetRequest(), unavailable(c));
   await assert.rejects(c.char('TargetHeatingCoolingState').handleSetRequest(1), unavailable(c));
-  assert.equal(c.platform.accessories.size, 5);
+  assert.equal(c.platform.accessories.size, 7);
   assert.equal(c.writes.length, 0);
 });
 
@@ -292,7 +292,7 @@ test('invalid discovery faults the retained thermostat until valid identity data
   c.data.system.mid = 'controller';
   await c.advance(30100);
   assert.equal(await c.char('TargetTemperature').handleGetRequest(), 24);
-  assert.equal(c.registered.length, 5);
+  assert.equal(c.registered.length, 7);
 });
 
 test('a rejected command faults its target without replacing observed readings and later recovers', async t => {
