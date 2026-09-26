@@ -1,3 +1,7 @@
+import type { FanSpeed } from './fanCommand.js';
+import type { ModeFanPlan } from './modeFanCommand.js';
+import { validateThermostatPatch } from './thermostatPatch.js';
+import type { ThermostatPatch } from './thermostatPatch.js';
 import { validateSystemData } from './systemData.js';
 import type { SystemData } from './systemData.js';
 
@@ -26,7 +30,9 @@ export class AdvantageAirRequestError extends Error {
   }
 }
 
-export class ZoneCommandRejectedError extends AdvantageAirRequestError {}
+export class AirconCommandRejectedError extends AdvantageAirRequestError {}
+
+export class ZoneCommandRejectedError extends AirconCommandRejectedError {}
 
 export class AdvantageAirClient {
   private readonly endpoint: URL;
@@ -114,6 +120,64 @@ export class AdvantageAirClient {
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
       throw new ZoneCommandRejectedError('Controller rejected the zone command.');
+    }
+    return response;
+  }
+
+  /** One absolute thermostat write; readback is coordinated separately. */
+  async requestThermostatPatch(airconKey: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)) {
+      throw new AdvantageAirRequestError('Invalid air conditioner address.');
+    }
+    validateThermostatPatch(patch);
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: patch }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the thermostat command.');
+    }
+    return response;
+  }
+
+  async requestFanSpeed(airconKey: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || !['low', 'medium', 'high', 'autoAA'].includes(fan)) {
+      throw new AdvantageAirRequestError('Invalid fan speed command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info: { fan } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the fan command.');
+    }
+    return response;
+  }
+
+  /** Send one planned mode change; the coordinator owns safety checks and confirmation. */
+  async requestModeFanPatch(
+    airconKey: string,
+    patch: Extract<ModeFanPlan, { kind: 'command' }>['patch'],
+    signal?: AbortSignal,
+  ): Promise<unknown> {
+    const info = patch?.info;
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || !patch || typeof patch !== 'object' || Array.isArray(patch)
+      || Object.keys(patch).length !== 1 || !Object.hasOwn(patch, 'info')
+      || !info || typeof info !== 'object' || Array.isArray(info)
+      || !Object.hasOwn(info, 'state')
+      || !(info.state === 'off' && Object.keys(info).length === 1
+        || info.state === 'on' && Object.keys(info).length === 2 && Object.hasOwn(info, 'mode')
+        && (info.mode === 'vent' || info.mode === 'dry'))) {
+      throw new AdvantageAirRequestError('Invalid ventilation or dry command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: patch }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the ventilation or dry command.');
     }
     return response;
   }

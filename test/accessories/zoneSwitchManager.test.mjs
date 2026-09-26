@@ -50,6 +50,27 @@ function setup(t) {
   return { api, accessories, registrations, model, coordinator, manager, on };
 }
 
+test('cached sensor-zone switch reconnects while its sensor is absent without creating other switches', async t => {
+  const c = setup(t);
+  c.manager.update(snapshot());
+  const accessory = [...c.accessories.values()][0];
+  const api = new HomebridgeAPI();
+  const registrations = [];
+  t.mock.method(api, 'registerPlatformAccessories', (...args) => registrations.push(args));
+  const accessories = new Map([[accessory.UUID, accessory]]);
+  ZoneSwitchManager.prepareCachedAccessory(api, accessory);
+  await assert.rejects(c.on().handleGetRequest());
+  const manager = new ZoneSwitchManager(api, accessories, c.coordinator, () => {});
+  const offline = snapshot();
+  offline.data.aircons.ac1.zones.z01.type = 0;
+  manager.update(offline);
+  assert.equal(await c.on().handleGetRequest(), true);
+  await c.on().handleSetRequest(false);
+  assert.equal(await c.on().handleGetRequest(), false);
+  assert.equal(accessories.size, 1);
+  assert.equal(registrations.length, 0);
+});
+
 test('manager discovers only sensor-zone switches and uses coordinator state', async t => {
   const c = setup(t);
   c.manager.update(snapshot());

@@ -1,12 +1,23 @@
+import { planFanSpeed, fanSetting } from './fanCommand.js';
+import type { FanSpeed } from './fanCommand.js';
+import { modeFanIsOn, planModeFan, ModeFanCommandError } from './modeFanCommand.js';
+import type { FanMode, ModeFanPlan } from './modeFanCommand.js';
 import type { ControllerPollState } from './controllerPoller.js';
 import type { SystemData } from './systemData.js';
 import { discoverDevices } from '../discovery/discoverDevices.js';
 import { planZoneSwitch, ZoneCommandError } from './zoneCommand.js';
-import { zoneIsOpen } from '../accessories/legacyState.js';
+import { planThermostatMode, planThermostatTemperature, ThermostatCommandError } from './thermostatCommand.js';
+import { temperatureConfirmation } from './thermostatPatch.js';
+import type { ThermostatPatch } from './thermostatPatch.js';
+import type { ThermostatMode } from '../accessories/legacyState.js';
+import { fanSpeedPercentage, thermostatCurrentTemperature, thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
 import { ControllerBusyError } from './systemData.js';
-import { ZoneCommandRejectedError } from './advantageAirClient.js';
+import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestModeFanPatch?(aircon: string, patch: Extract<ModeFanPlan, { kind: 'command' }>['patch'], signal?: AbortSignal): Promise<unknown>;
+  requestFanSpeed?(aircon: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown>;
+  requestThermostatPatch?(aircon: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown>;
   getSystemData(signal?: AbortSignal): Promise<SystemData>;
   getFreshSystemData(signal?: AbortSignal): Promise<SystemData>;
   requestZoneState(aircon: string, zone: string, state: 'open' | 'close', signal?: AbortSignal): Promise<unknown>;
@@ -14,22 +25,33 @@ export interface ControllerClient {
 
 export type ControllerUpdateReason = 'read' | 'failure' | 'state';
 
-export interface ZoneCommandConfirmation {
+export type ControllerCommandConfirmation = {
   name: string;
-  on: boolean;
   outcome: 'confirmed' | 'unchanged';
   superseded: boolean;
-}
+} & Request;
 
-interface Intent {
+type Request = { kind: 'zone'; on: boolean }
+  | { kind: 'mode'; mode: ThermostatMode }
+  | { kind: 'modeFan'; mode: FanMode; on: boolean }
+  | { kind: 'temperature'; temperature: number }
+  | { kind: 'fan'; percentage: number };
+
+type ExecutionPlan = { kind: 'unchanged' } | {
+  kind: 'command';
+  send: (signal: AbortSignal) => Promise<unknown>;
+  matches: (data: SystemData) => boolean;
+};
+
+type Intent = Request & {
   identity: string;
-  on: boolean;
+  key: string;
   generation: number;
   name: string;
   expires: number;
   finished: boolean;
   timer: ReturnType<typeof setTimeout>;
-}
+};
 
 /** One owner for polling, desired state and physical command execution. */
 export class ControllerCoordinator {
@@ -48,7 +70,8 @@ export class ControllerCoordinator {
     private readonly client: ControllerClient,
     private readonly onUpdate: (state: ControllerPollState, reason: ControllerUpdateReason) => void,
     private readonly warn: (message: string) => void,
-    private readonly onConfirmation?: (event: ZoneCommandConfirmation) => void,
+    private readonly onConfirmation?: (event: ControllerCommandConfirmation) => void,
+    private readonly onSending?: (name: string, target: string) => void,
   ) {}
 
   start(): void {
@@ -72,11 +95,12 @@ export class ControllerCoordinator {
 
   readZone(identity: string): boolean {
     this.available();
-    const pending = this.desired.get(identity);
-    if (pending) {
+    const key = this.key(identity, 'zone');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'zone') {
       return pending.on;
     }
-    if (this.faults.has(identity)) {
+    if (this.faults.has(key)) {
       throw new ZoneCommandError('The zone command could not be confirmed.');
     }
     const zone = this.locate(this.state.data!, identity);
@@ -88,26 +112,173 @@ export class ControllerCoordinator {
     this.available();
     const zone = this.locate(this.state.data!, identity);
     planZoneSwitch(this.state.data!.aircons[zone.airconKey], zone.zoneKey, on);
-    if (this.desired.get(identity)?.on === on) {
+    this.admit(identity, `${zone.name} Zone`, { kind: 'zone', on });
+  }
+
+  /** Legacy projection of observed power/mode, not measured compressor activity. */
+  readThermostatCurrentMode(identity: string): ThermostatMode {
+    this.available();
+    return thermostatTargetMode(this.aircon(this.state.data!, identity).data);
+  }
+
+  readThermostatCurrentTemperature(identity: string): number {
+    this.available();
+    return thermostatCurrentTemperature(this.aircon(this.state.data!, identity).data);
+  }
+
+  readFanSpeed(identity: string): number {
+    this.available();
+    const key = this.key(identity, 'fan');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'fan') {
+      return pending.percentage;
+    }
+    if (this.faults.has(key)) {
+      throw new ThermostatCommandError('The fan command could not be confirmed.');
+    }
+    return fanSpeedPercentage(this.aircon(this.state.data!, identity).data);
+  }
+
+  requestFanSpeed(identity: string, percentage: number): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    const plan = planFanSpeed(aircon.data, percentage);
+    if (!this.client.requestFanSpeed) {
+      throw new ThermostatCommandError('Fan transport is unavailable.');
+    }
+    this.admit(identity, aircon.device.name, { kind: 'fan', percentage: plan.percentage });
+  }
+
+  readThermostatMode(identity: string): ThermostatMode {
+    this.available();
+    const key = this.key(identity, 'mode');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'mode') {
+      return pending.mode;
+    }
+    if (pending?.kind === 'modeFan') {
+      const plan = planModeFan(this.aircon(this.state.data!, identity).data, pending.mode, pending.on);
+      if (pending.on || plan.kind === 'command') {
+        return 'off';
+      }
+    }
+    this.checkThermostatFault(key);
+    return thermostatTargetMode(this.aircon(this.state.data!, identity).data);
+  }
+
+  readModeFan(identity: string, mode: FanMode): boolean {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity).data;
+    // Validate the requested mode even when another mode has a pending intent.
+    planModeFan(aircon, mode, true);
+    const key = this.key(identity, 'mode');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'mode') {
+      return false;
+    }
+    if (pending?.kind === 'modeFan') {
+      if (pending.on) {
+        return pending.mode === mode;
+      }
+      if (planModeFan(aircon, pending.mode, false).kind === 'command') {
+        return false;
+      }
+    }
+    if (this.faults.has(key)) {
+      throw new ModeFanCommandError('The mode command could not be confirmed.');
+    }
+    return modeFanIsOn(aircon, mode);
+  }
+
+  requestModeFan(identity: string, mode: FanMode, on: boolean): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    planModeFan(aircon.data, mode, on);
+    if (!this.client.requestModeFanPatch) {
+      throw new ModeFanCommandError('Ventilation and dry transport is unavailable.');
+    }
+    const pending = this.desired.get(this.key(identity, 'mode'));
+    if (!on && pending && (pending.kind === 'mode' || pending.kind === 'modeFan' && pending.mode !== mode)) {
+      // An inactive mode's Off must not replace a different pending selection.
+      try {
+        this.onConfirmation?.({ kind: 'modeFan', mode, on, name: aircon.device.name, outcome: 'unchanged', superseded: false });
+      } catch {
+        // A logging callback must not interrupt other accepted requests.
+      }
       return;
     }
-    if (!this.desired.has(identity) && this.desired.size >= 64) {
-      throw new ZoneCommandError('Too many pending zone requests. Try again after they finish.');
+    this.admit(identity, aircon.device.name, { kind: 'modeFan', mode, on });
+  }
+
+  readThermostatTemperature(identity: string): number {
+    this.available();
+    const key = this.key(identity, 'temperature');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'temperature') {
+      return pending.temperature;
     }
-    const previous = this.desired.get(identity);
+    this.checkThermostatFault(key);
+    return thermostatTargetTemperature(this.aircon(this.state.data!, identity).data);
+  }
+
+  requestThermostatMode(identity: string, mode: ThermostatMode): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    planThermostatMode(aircon.data, mode);
+    this.requireThermostatTransport();
+    this.admit(identity, aircon.device.name, { kind: 'mode', mode });
+  }
+
+  requestThermostatTemperature(identity: string, temperature: number): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    planThermostatTemperature(aircon.data, temperature);
+    this.requireThermostatTransport();
+    this.admit(identity, aircon.device.name, { kind: 'temperature', temperature });
+  }
+
+  private checkThermostatFault(key: string): void {
+    if (this.faults.has(key)) {
+      throw new ThermostatCommandError('The thermostat command could not be confirmed.');
+    }
+  }
+
+  private requireThermostatTransport(): void {
+    if (!this.client.requestThermostatPatch) {
+      throw new ThermostatCommandError('Thermostat transport is unavailable.');
+    }
+  }
+
+  private key(identity: string, kind: Request['kind']): string {
+    return JSON.stringify([identity, kind === 'modeFan' ? 'mode' : kind]);
+  }
+
+  private admit(identity: string, name: string, request: Request): void {
+    const key = this.key(identity, request.kind);
+    const previous = this.desired.get(key);
+    if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on)
+      || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
+      || (request.kind === 'modeFan' && previous.kind === 'modeFan' && request.mode === previous.mode && request.on === previous.on)
+      || (request.kind === 'fan' && previous.kind === 'fan' && request.percentage === previous.percentage)
+      || (request.kind === 'temperature' && previous.kind === 'temperature' && request.temperature === previous.temperature))) {
+      return;
+    }
+    if (!this.desired.has(key) && this.desired.size >= 64) {
+      throw new ZoneCommandError('Too many pending controller requests. Try again after they finish.');
+    }
     if (previous) {
       clearTimeout(previous.timer);
     }
     const intent: Intent = {
-      identity, on, name: `${zone.name} Zone`, generation: ++this.generation,
+      ...request, identity, key, name, generation: ++this.generation,
       expires: Date.now() + 30000,
       finished: false,
       timer: setTimeout(() => this.expire(intent), 30000),
     };
-    this.desired.set(identity, intent);
+    this.desired.set(key, intent);
     // Map replacement preserves queue position, giving other rooms a turn.
-    this.queued.set(identity, intent);
-    this.faults.delete(identity);
+    this.queued.set(key, intent);
+    this.faults.delete(key);
     this.emit();
     clearTimeout(this.timer);
     // Defer execution until the HAP setter has accepted the desired value.
@@ -127,11 +298,84 @@ export class ControllerCoordinator {
     if (!zone || zone.kind !== 'zone') {
       throw new ZoneCommandError('The requested zone identity is unavailable.');
     }
-    const type = data.aircons[zone.airconKey].zones[zone.zoneKey].type;
-    if (typeof type !== 'number' || !Number.isInteger(type) || type <= 0) {
-      throw new ZoneCommandError('The zone no longer supports this switch layout.');
-    }
+    // Sensor availability does not determine whether a zone can open or close.
     return zone;
+  }
+
+  private aircon(data: SystemData, identity: string) {
+    const device = discoverDevices(data).find(item => item.kind === 'aircon' && item.identity === identity);
+    if (!device || device.kind !== 'aircon') {
+      throw new ThermostatCommandError('The requested air conditioner identity is unavailable.');
+    }
+    return { device, data: data.aircons[device.airconKey] };
+  }
+
+  private plan(data: SystemData, intent: Intent): ExecutionPlan {
+    if (intent.kind === 'zone') {
+      const zone = this.locate(data, intent.identity);
+      const plan = planZoneSwitch(data.aircons[zone.airconKey], zone.zoneKey, intent.on);
+      if (plan.kind === 'unchanged') {
+        return plan;
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestZoneState(zone.airconKey, zone.zoneKey, plan.requestedState, signal),
+        matches: current => {
+          const address = this.locate(current, intent.identity);
+          return zoneIsOpen(current.aircons[address.airconKey].zones[address.zoneKey]) === intent.on;
+        },
+      };
+    }
+    const aircon = this.aircon(data, intent.identity);
+    if (intent.kind === 'modeFan') {
+      const plan = planModeFan(aircon.data, intent.mode, intent.on);
+      if (plan.kind === 'unchanged') {
+        return plan;
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestModeFanPatch!(aircon.device.airconKey, plan.patch, signal),
+        matches: current => {
+          const info = this.aircon(current, intent.identity).data.info;
+          return intent.on ? info.state === 'on' && info.mode === intent.mode : info.state === 'off';
+        },
+      };
+    }
+    if (intent.kind === 'fan') {
+      const plan = planFanSpeed(aircon.data, intent.percentage);
+      if (plan.unchanged) {
+        return { kind: 'unchanged' };
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestFanSpeed!(aircon.device.airconKey, plan.fan, signal),
+        matches: current => fanSpeedPercentage(this.aircon(current, intent.identity).data) === plan.percentage,
+      };
+    }
+    if (intent.kind === 'mode') {
+      const plan = planThermostatMode(aircon.data, intent.mode);
+      if (plan.kind === 'unchanged') {
+        return plan;
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestThermostatPatch!(aircon.device.airconKey, plan.patch, signal),
+        matches: current => {
+          const info = this.aircon(current, intent.identity).data.info;
+          return intent.mode === 'off' ? info.state === 'off' : info.state === 'on' && info.mode === intent.mode;
+        },
+      };
+    }
+    const plan = planThermostatTemperature(aircon.data, intent.temperature);
+    if (plan.kind === 'unchanged') {
+      return plan;
+    }
+    const matches = temperatureConfirmation(aircon.data, plan.patch);
+    return {
+      kind: 'command',
+      send: signal => this.client.requestThermostatPatch!(aircon.device.airconKey, plan.patch, signal),
+      matches: current => matches(this.aircon(current, intent.identity).data),
+    };
   }
 
   private emit(reason: ControllerUpdateReason = 'state'): void {
@@ -157,45 +401,58 @@ export class ControllerCoordinator {
   }
 
   private expire(intent: Intent): void {
-    if (this.desired.get(intent.identity) !== intent || this.stopped) {
+    if (this.desired.get(intent.key) !== intent || this.stopped) {
       return;
     }
-    this.queued.delete(intent.identity);
-    this.fail(intent, 'The accepted zone request expired before completion.');
+    this.queued.delete(intent.key);
+    this.fail(intent, 'The accepted controller request expired before completion.');
   }
 
   private finish(intent: Intent): void {
     intent.finished = true;
-    if (this.desired.get(intent.identity) === intent) {
+    if (this.desired.get(intent.key) === intent) {
       clearTimeout(intent.timer);
-      this.desired.delete(intent.identity);
+      this.desired.delete(intent.key);
     }
     this.emit();
   }
 
-  private confirm(intent: Intent, outcome: ZoneCommandConfirmation['outcome']): void {
+  private confirm(intent: Intent, outcome: ControllerCommandConfirmation['outcome']): void {
     if (this.stopped || intent.finished) {
       return;
     }
-    const superseded = this.desired.get(intent.identity) !== intent;
+    const superseded = this.desired.get(intent.key) !== intent;
     this.finish(intent);
     try {
-      this.onConfirmation?.({ name: intent.name, on: intent.on, outcome, superseded });
+      const request: Request = intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
+        : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
+          : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
+            : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+              : { kind: 'temperature', temperature: intent.temperature };
+      this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
     }
+  }
+
+  private describe(intent: Intent): string {
+    return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
+      : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
+        : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
+          : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
     if (this.stopped || intent.finished) {
       return;
     }
-    if (this.desired.get(intent.identity) === intent) {
-      this.faults.add(intent.identity);
+    if (this.desired.get(intent.key) === intent) {
+      this.faults.add(intent.key);
     }
     this.finish(intent);
     try {
-      this.warn(`Zone command failed for "${intent.name}": ${reason}`);
+      const control = intent.kind === 'zone' ? 'Zone' : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
+      this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.
     }
@@ -212,8 +469,8 @@ export class ControllerCoordinator {
       }
       while (!this.stopped && this.queued.size > 0) {
         const intent = this.queued.values().next().value!;
-        this.queued.delete(intent.identity);
-        if (this.desired.get(intent.identity) === intent && Date.now() < intent.expires) {
+        this.queued.delete(intent.key);
+        if (this.desired.get(intent.key) === intent && Date.now() < intent.expires) {
           await this.execute(intent);
         }
       }
@@ -247,10 +504,9 @@ export class ControllerCoordinator {
         const data = await this.client.getFreshSystemData(signal);
         signal.throwIfAborted();
         this.observe(data);
-        const zone = this.locate(data, intent.identity);
-        const plan = planZoneSwitch(data.aircons[zone.airconKey], zone.zoneKey, intent.on);
+        const plan = this.plan(data, intent);
         // A newer unsent intent replaces this one even during preflight.
-        if (this.desired.get(intent.identity) !== intent) {
+        if (this.desired.get(intent.key) !== intent) {
           return;
         }
         if (plan.kind === 'unchanged') {
@@ -258,13 +514,19 @@ export class ControllerCoordinator {
           return;
         }
         signal.throwIfAborted();
+        try {
+          this.onSending?.(intent.name, this.describe(intent));
+        } catch {
+          // Logging must not interrupt physical commands.
+        }
+        signal.throwIfAborted();
         sent = true;
         // A failed/ambiguous transport must never result in resending the write.
         try {
-          await this.client.requestZoneState(zone.airconKey, zone.zoneKey, plan.requestedState, signal);
+          await plan.send(signal);
         } catch (error) {
-          if (error instanceof ZoneCommandRejectedError) {
-            throw new ZoneCommandError('Controller rejected the zone command.');
+          if (error instanceof AirconCommandRejectedError) {
+            throw new ZoneCommandError('Controller rejected the command.');
           }
           // Delivery is ambiguous. Reconcile by reading; never resend.
         }
@@ -279,12 +541,12 @@ export class ControllerCoordinator {
             if (error instanceof ControllerBusyError) {
               continue;
             }
-            throw new ZoneCommandError('Controller data could not be read while confirming the zone.');
+            throw new ZoneCommandError('Controller data could not be read while confirming the command.');
           }
           signal.throwIfAborted();
-          const currentZone = this.locate(current, intent.identity);
+          const matches = plan.matches(current);
           this.observe(current);
-          if (zoneIsOpen(current.aircons[currentZone.airconKey].zones[currentZone.zoneKey]) === intent.on) {
+          if (matches) {
             this.confirm(intent, 'confirmed');
             return;
           }
@@ -294,7 +556,8 @@ export class ControllerCoordinator {
       if (this.stopped) {
         return;
       }
-      this.fail(intent, error instanceof ZoneCommandError ? error.message : 'The controller did not confirm the requested zone state.');
+      this.fail(intent, error instanceof ZoneCommandError || error instanceof ThermostatCommandError || error instanceof ModeFanCommandError
+        ? error.message : 'The controller did not confirm the requested state.');
       if (sent) {
         // Do not apply dependent intentions after an unreconciled physical write.
         for (const queued of this.queued.values()) {

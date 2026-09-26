@@ -1,3 +1,4 @@
+import { fanSetting } from './api/fanCommand.js';
 import type {
   API,
   DynamicPlatformPlugin,
@@ -10,6 +11,8 @@ import { AdvantageAirClient } from './api/advantageAirClient.js';
 import { ControllerCoordinator } from './api/controllerCoordinator.js';
 import type { ControllerPollState } from './api/controllerPoller.js';
 import { ZoneSwitchManager } from './accessories/zoneSwitchManager.js';
+import { ThermostatManager } from './accessories/thermostatManager.js';
+import { ModeFanManager } from './accessories/modeFanManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
@@ -17,6 +20,8 @@ interface ConfiguredController {
   debug: boolean;
   poller: ControllerCoordinator;
   switchManager: ZoneSwitchManager;
+  thermostatManager: ThermostatManager;
+  modeFanManager: ModeFanManager;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -56,6 +61,8 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
       for (const controller of this.controllers) {
         controller.poller.stop();
         controller.switchManager.stop();
+        controller.thermostatManager.stop();
+        controller.modeFanManager.stop();
       }
     });
   }
@@ -65,6 +72,8 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     this.accessories.set(accessory.UUID, accessory);
     ZoneTemperatureManager.prepareCachedAccessory(this.api, accessory);
     ZoneSwitchManager.prepareCachedAccessory(this.api, accessory);
+    ThermostatManager.prepareCachedAccessory(this.api, accessory);
+    ModeFanManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -199,16 +208,19 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
         }, message => this.log.warn(name, message), (event) => {
-          const state = event.on ? 'Open' : 'Closed';
+          const state = event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
+            : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
+              : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
+                : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               this.log.debug(name, event.name,
                 event.superseded ? 'Earlier command confirmed:' : 'Already in requested state:', state);
             }
-          } else {
-            this.log.info(name, event.name, 'Controller confirmed:', state);
+          } else if (debug) {
+            this.log.debug(name, event.name, 'Controller confirmed:', state);
           }
-        });
+        }, (accessoryName, target) => this.log.info(name, accessoryName, 'Sending:', target));
 
         const switchManager = new ZoneSwitchManager(
           this.api,
@@ -219,7 +231,21 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         );
         updateManagers.unshift(state => switchManager.update(state));
 
-        this.controllers.push({ name, debug, poller, switchManager });
+        const thermostatManager = new ThermostatManager(
+          this.api,
+          this.accessories,
+          poller,
+          message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
+        );
+        updateManagers.push(state => thermostatManager.update(state));
+
+        const modeFanManager = new ModeFanManager(this.api, this.accessories, poller,
+          message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+        updateManagers.push(state => modeFanManager.update(state));
+
+        this.controllers.push({ name, debug, poller, switchManager, thermostatManager, modeFanManager });
       } catch (error) {
         const reason = error instanceof Error
           ? error.message

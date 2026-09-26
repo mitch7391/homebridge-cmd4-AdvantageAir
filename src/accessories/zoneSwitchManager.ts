@@ -80,15 +80,17 @@ export class ZoneSwitchManager {
           continue;
         }
         const zone = data.aircons[device.airconKey].zones[device.zoneKey];
-        // Legacy layout uses switches for temperature-controlled zones.
-        if (typeof zone.type !== 'number' || !Number.isInteger(zone.type) || zone.type <= 0) {
-          continue;
-        }
         if (this.handlers.has(device.identity)) {
           continue;
         }
         const uuid = this.api.hap.uuid.generate(JSON.stringify([device.identity, 'zone-switch']));
         const cached = this.accessories.get(uuid);
+        // Keep an existing switch usable when its temperature sensor disappears.
+        // Only newly discovered sensor zones receive this legacy switch layout.
+        if (cached?.context.advantageAirZoneSwitch !== true
+          && (typeof zone.type !== 'number' || !Number.isInteger(zone.type) || zone.type <= 0)) {
+          continue;
+        }
         const accessory = cached ?? new this.api.platformAccessory(`${device.name} Zone`, uuid);
         const handler = new ZoneSwitchAccessory(this.api, accessory, {
           getOn: () => this.read(device.identity),
