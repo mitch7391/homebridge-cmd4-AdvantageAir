@@ -23,6 +23,25 @@ function client() {
   return new AdvantageAirClient({ ipAddress: '127.0.0.1' });
 }
 
+test('an explicit fresh read queues a new request instead of sharing an old read', async (t) => {
+  const body = deferred();
+  let calls = 0;
+  t.mock.method(globalThis, 'fetch', async () => {
+    if (++calls === 1) {
+      return { ok: true, text: () => body.promise };
+    }
+    return response(data('new'));
+  });
+  const connection = client();
+  const oldRead = connection.getSystemData();
+  const newRead = connection.getFreshSystemData();
+  assert.notEqual(oldRead, newRead);
+  body.resolve(JSON.stringify(data('old')));
+  assert.equal((await oldRead).system.name, 'old');
+  assert.equal((await newRead).system.name, 'new');
+  assert.equal(calls, 2);
+});
+
 test('a read after a write is fresh and an older read cannot clear its shared promise', async (t) => {
   const firstBody = deferred();
   const writeBody = deferred();
@@ -126,23 +145,4 @@ test('invalid commands do not break read sharing or reach the network', async (t
   body.resolve(JSON.stringify(data('current')));
   await read;
   assert.equal(calls, 1);
-});
-
-test('an explicit fresh read queues a new request instead of sharing an old read', async (t) => {
-  const body = deferred();
-  let calls = 0;
-  t.mock.method(globalThis, 'fetch', async () => {
-    if (++calls === 1) {
-      return { ok: true, text: () => body.promise };
-    }
-    return response(data('new'));
-  });
-  const connection = client();
-  const oldRead = connection.getSystemData();
-  const newRead = connection.getFreshSystemData();
-  assert.notEqual(oldRead, newRead);
-  body.resolve(JSON.stringify(data('old')));
-  assert.equal((await oldRead).system.name, 'old');
-  assert.equal((await newRead).system.name, 'new');
-  assert.equal(calls, 2);
 });

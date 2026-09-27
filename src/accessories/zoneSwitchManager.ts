@@ -85,6 +85,11 @@ export class ZoneSwitchManager {
         }
         const uuid = this.api.hap.uuid.generate(JSON.stringify([device.identity, 'zone-switch']));
         const cached = this.accessories.get(uuid);
+        const percentageId = this.api.hap.uuid.generate(JSON.stringify([device.identity, 'zone-percentage']));
+        if (!cached && this.accessories.get(percentageId)?.context.advantageAirPercentageZone === true) {
+          // Retain an existing layout rather than creating a second zone control.
+          continue;
+        }
         // Keep an existing switch usable when its temperature sensor disappears.
         // Only newly discovered sensor zones receive this legacy switch layout.
         if (cached?.context.advantageAirZoneSwitch !== true

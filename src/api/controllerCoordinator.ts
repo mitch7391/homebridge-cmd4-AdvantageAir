@@ -6,6 +6,7 @@ import type { ControllerPollState } from './controllerPoller.js';
 import type { SystemData } from './systemData.js';
 import { discoverDevices } from '../discovery/discoverDevices.js';
 import { planZoneSwitch, ZoneCommandError } from './zoneCommand.js';
+import { planZonePercentage, requirePercentageZone, zonePercentage } from './zonePercentage.js';
 import { planThermostatMode, planThermostatTemperature, ThermostatCommandError } from './thermostatCommand.js';
 import { temperatureConfirmation } from './thermostatPatch.js';
 import type { ThermostatPatch } from './thermostatPatch.js';
@@ -15,6 +16,7 @@ import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestZonePercentage?(aircon: string, zone: string, value: number, signal?: AbortSignal): Promise<unknown>;
   requestModeFanPatch?(aircon: string, patch: Extract<ModeFanPlan, { kind: 'command' }>['patch'], signal?: AbortSignal): Promise<unknown>;
   requestFanSpeed?(aircon: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown>;
   requestThermostatPatch?(aircon: string, patch: ThermostatPatch, signal?: AbortSignal): Promise<unknown>;
@@ -31,7 +33,8 @@ export type ControllerCommandConfirmation = {
   superseded: boolean;
 } & Request;
 
-type Request = { kind: 'zone'; on: boolean }
+type Request = { kind: 'zone'; on: boolean; percentageOnly?: boolean }
+  | { kind: 'percentage'; percentage: number }
   | { kind: 'mode'; mode: ThermostatMode }
   | { kind: 'modeFan'; mode: FanMode; on: boolean }
   | { kind: 'temperature'; temperature: number }
@@ -113,6 +116,48 @@ export class ControllerCoordinator {
     const zone = this.locate(this.state.data!, identity);
     planZoneSwitch(this.state.data!.aircons[zone.airconKey], zone.zoneKey, on);
     this.admit(identity, `${zone.name} Zone`, { kind: 'zone', on });
+  }
+
+  readPercentageZoneState(identity: string): boolean {
+    this.available();
+    const zone = this.locate(this.state.data!, identity);
+    requirePercentageZone(this.state.data!.aircons[zone.airconKey].zones[zone.zoneKey]);
+    return this.readZone(identity);
+  }
+
+  requestPercentageZoneState(identity: string, on: boolean): void {
+    this.available();
+    const zone = this.locate(this.state.data!, identity);
+    const aircon = this.state.data!.aircons[zone.airconKey];
+    requirePercentageZone(aircon.zones[zone.zoneKey]);
+    planZoneSwitch(aircon, zone.zoneKey, on);
+    this.admit(identity, `${zone.name} Zone`, { kind: 'zone', on, percentageOnly: true });
+  }
+
+  readZonePercentage(identity: string): number {
+    this.available();
+    const zone = this.locate(this.state.data!, identity);
+    const value = this.state.data!.aircons[zone.airconKey].zones[zone.zoneKey];
+    requirePercentageZone(value);
+    const key = this.key(identity, 'percentage');
+    const pending = this.desired.get(key);
+    if (pending?.kind === 'percentage') {
+      return pending.percentage;
+    }
+    if (this.faults.has(key)) {
+      throw new ZoneCommandError('The zone percentage command could not be confirmed.');
+    }
+    return zonePercentage(value);
+  }
+
+  requestZonePercentage(identity: string, percentage: number): void {
+    this.available();
+    const zone = this.locate(this.state.data!, identity);
+    const plan = planZonePercentage(this.state.data!.aircons[zone.airconKey], zone.zoneKey, percentage);
+    if (!this.client.requestZonePercentage) {
+      throw new ZoneCommandError('Zone percentage transport is unavailable.');
+    }
+    this.admit(identity, `${zone.name} Zone`, { kind: 'percentage', percentage: plan.percentage });
   }
 
   /** Legacy projection of observed power/mode, not measured compressor activity. */
@@ -256,7 +301,9 @@ export class ControllerCoordinator {
   private admit(identity: string, name: string, request: Request): void {
     const key = this.key(identity, request.kind);
     const previous = this.desired.get(key);
-    if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on)
+    if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on
+      && request.percentageOnly === previous.percentageOnly)
+      || (request.kind === 'percentage' && previous.kind === 'percentage' && request.percentage === previous.percentage)
       || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
       || (request.kind === 'modeFan' && previous.kind === 'modeFan' && request.mode === previous.mode && request.on === previous.on)
       || (request.kind === 'fan' && previous.kind === 'fan' && request.percentage === previous.percentage)
@@ -313,6 +360,9 @@ export class ControllerCoordinator {
   private plan(data: SystemData, intent: Intent): ExecutionPlan {
     if (intent.kind === 'zone') {
       const zone = this.locate(data, intent.identity);
+      if (intent.percentageOnly) {
+        requirePercentageZone(data.aircons[zone.airconKey].zones[zone.zoneKey]);
+      }
       const plan = planZoneSwitch(data.aircons[zone.airconKey], zone.zoneKey, intent.on);
       if (plan.kind === 'unchanged') {
         return plan;
@@ -322,7 +372,25 @@ export class ControllerCoordinator {
         send: signal => this.client.requestZoneState(zone.airconKey, zone.zoneKey, plan.requestedState, signal),
         matches: current => {
           const address = this.locate(current, intent.identity);
+          if (intent.percentageOnly) {
+            requirePercentageZone(current.aircons[address.airconKey].zones[address.zoneKey]);
+          }
           return zoneIsOpen(current.aircons[address.airconKey].zones[address.zoneKey]) === intent.on;
+        },
+      };
+    }
+    if (intent.kind === 'percentage') {
+      const zone = this.locate(data, intent.identity);
+      const plan = planZonePercentage(data.aircons[zone.airconKey], zone.zoneKey, intent.percentage);
+      if (plan.unchanged) {
+        return { kind: 'unchanged' };
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestZonePercentage!(zone.airconKey, zone.zoneKey, plan.percentage, signal),
+        matches: current => {
+          const address = this.locate(current, intent.identity);
+          return zonePercentage(current.aircons[address.airconKey].zones[address.zoneKey]) === plan.percentage;
         },
       };
     }
@@ -425,10 +493,11 @@ export class ControllerCoordinator {
     this.finish(intent);
     try {
       const request: Request = intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
-        : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
-          : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
-            : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
-              : { kind: 'temperature', temperature: intent.temperature };
+        : intent.kind === 'percentage' ? { kind: 'percentage', percentage: intent.percentage }
+          : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
+            : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
+              : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+                : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -437,9 +506,10 @@ export class ControllerCoordinator {
 
   private describe(intent: Intent): string {
     return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-      : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
-        : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
-          : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+      : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
+        : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
+          : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
+            : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -451,7 +521,8 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      const control = intent.kind === 'zone' ? 'Zone' : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
+      const control = intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
+        : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
       this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.

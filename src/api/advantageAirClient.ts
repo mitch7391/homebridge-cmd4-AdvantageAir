@@ -182,6 +182,23 @@ export class AdvantageAirClient {
     return response;
   }
 
+  /** One value-only write; On/Off and confirmation belong to the coordinator. */
+  async requestZonePercentage(airconKey: string, zoneKey: string, value: number, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || typeof zoneKey !== 'string' || !/^z\d+$/.test(zoneKey)
+      || typeof value !== 'number' || !Number.isInteger(value) || value < 5 || value > 100 || value % 5 !== 0) {
+      throw new AdvantageAirRequestError('Invalid zone percentage command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { zones: { [zoneKey]: { value } } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the zone percentage command.');
+    }
+    return response;
+  }
+
   private requestJson(endpoint: URL, signal?: AbortSignal): Promise<unknown> {
     const request = this.requests.then(() => {
       if (signal?.aborted) {

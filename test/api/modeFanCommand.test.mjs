@@ -61,3 +61,4 @@ test('invalid requests and uncertain active state cannot produce a shutdown comm
     assert.deepEqual(planModeFan(snapshot('off', 'unknown'), mode, false), { kind: 'unchanged', mode, on: false });
   }
 });
+
