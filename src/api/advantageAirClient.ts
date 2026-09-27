@@ -199,6 +199,39 @@ export class AdvantageAirClient {
     return response;
   }
 
+  /** Select an already-enabled MyZone. Eligibility and confirmation belong to the coordinator. */
+  async requestMyZoneSelection(airconKey: string, zoneNumber: number, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || typeof zoneNumber !== 'number' || !Number.isSafeInteger(zoneNumber) || zoneNumber <= 0) {
+      throw new AdvantageAirRequestError('Invalid MyZone selection command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info: { myZone: zoneNumber } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the MyZone selection.');
+    }
+    return response;
+  }
+
+  /** Copy the selected zone target to the main target without rounding or changing zone targets. */
+  async requestMyZoneTarget(airconKey: string, temperature: number, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)
+      || typeof temperature !== 'number' || !Number.isFinite(temperature)
+      || temperature < 16 || temperature > 32) {
+      throw new AdvantageAirRequestError('Invalid MyZone target command.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info: { setTemp: temperature } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the MyZone target.');
+    }
+    return response;
+  }
+
   private requestJson(endpoint: URL, signal?: AbortSignal): Promise<unknown> {
     const request = this.requests.then(() => {
       if (signal?.aborted) {

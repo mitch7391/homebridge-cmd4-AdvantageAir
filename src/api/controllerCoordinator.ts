@@ -1,3 +1,4 @@
+import { planMyZoneSelection, MyZoneCommandError } from './myZoneCommand.js';
 import { planFanSpeed, fanSetting } from './fanCommand.js';
 import type { FanSpeed } from './fanCommand.js';
 import { modeFanIsOn, planModeFan, ModeFanCommandError } from './modeFanCommand.js';
@@ -16,6 +17,8 @@ import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestMyZoneSelection?(aircon: string, zoneNumber: number, signal?: AbortSignal): Promise<unknown>;
+  requestMyZoneTarget?(aircon: string, temperature: number, signal?: AbortSignal): Promise<unknown>;
   requestZonePercentage?(aircon: string, zone: string, value: number, signal?: AbortSignal): Promise<unknown>;
   requestModeFanPatch?(aircon: string, patch: Extract<ModeFanPlan, { kind: 'command' }>['patch'], signal?: AbortSignal): Promise<unknown>;
   requestFanSpeed?(aircon: string, fan: FanSpeed, signal?: AbortSignal): Promise<unknown>;
@@ -38,7 +41,8 @@ type Request = { kind: 'zone'; on: boolean; percentageOnly?: boolean }
   | { kind: 'mode'; mode: ThermostatMode }
   | { kind: 'modeFan'; mode: FanMode; on: boolean }
   | { kind: 'temperature'; temperature: number }
-  | { kind: 'fan'; percentage: number };
+  | { kind: 'fan'; percentage: number }
+  | { kind: 'myZone'; zoneIdentity: string; zoneName: string };
 
 type ExecutionPlan = { kind: 'unchanged' } | {
   kind: 'command';
@@ -282,6 +286,23 @@ export class ControllerCoordinator {
     this.admit(identity, aircon.device.name, { kind: 'temperature', temperature });
   }
 
+  /** Select another reference zone; this never enables or disables installer MyZone mode. */
+  requestMyZoneSelection(identity: string, zoneIdentity: string): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    const zone = this.locate(this.state.data!, zoneIdentity);
+    if (zone.airconKey !== aircon.device.airconKey) {
+      throw new MyZoneCommandError('The requested MyZone belongs to another air conditioner.');
+    }
+    planMyZoneSelection(aircon.data, zone.zoneKey);
+    if (!this.client.requestMyZoneSelection || !this.client.requestMyZoneTarget) {
+      throw new MyZoneCommandError('MyZone transport is unavailable.');
+    }
+    this.admit(identity, aircon.device.name, {
+      kind: 'myZone', zoneIdentity, zoneName: zone.name,
+    });
+  }
+
   private checkThermostatFault(key: string): void {
     if (this.faults.has(key)) {
       throw new ThermostatCommandError('The thermostat command could not be confirmed.');
@@ -306,6 +327,7 @@ export class ControllerCoordinator {
       || (request.kind === 'percentage' && previous.kind === 'percentage' && request.percentage === previous.percentage)
       || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
       || (request.kind === 'modeFan' && previous.kind === 'modeFan' && request.mode === previous.mode && request.on === previous.on)
+      || (request.kind === 'myZone' && previous.kind === 'myZone' && request.zoneIdentity === previous.zoneIdentity)
       || (request.kind === 'fan' && previous.kind === 'fan' && request.percentage === previous.percentage)
       || (request.kind === 'temperature' && previous.kind === 'temperature' && request.temperature === previous.temperature))) {
       return;
@@ -358,6 +380,9 @@ export class ControllerCoordinator {
   }
 
   private plan(data: SystemData, intent: Intent): ExecutionPlan {
+    if (intent.kind === 'myZone') {
+      throw new MyZoneCommandError('MyZone requires ordered execution.');
+    }
     if (intent.kind === 'zone') {
       const zone = this.locate(data, intent.identity);
       if (intent.percentageOnly) {
@@ -497,7 +522,8 @@ export class ControllerCoordinator {
           : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
             : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
               : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
-                : { kind: 'temperature', temperature: intent.temperature };
+                : intent.kind === 'myZone' ? { kind: 'myZone', zoneIdentity: intent.zoneIdentity, zoneName: intent.zoneName }
+                  : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -509,7 +535,8 @@ export class ControllerCoordinator {
       : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
         : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
           : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
-            : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+            : intent.kind === 'myZone' ? 'MyZone ' + intent.zoneName
+              : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -522,7 +549,8 @@ export class ControllerCoordinator {
     this.finish(intent);
     try {
       const control = intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
-        : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
+        : intent.kind === 'myZone' ? 'MyZone'
+          : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
       this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.
@@ -568,7 +596,146 @@ export class ControllerCoordinator {
     }
   }
 
+  private resolveMyZone(data: SystemData, intent: Extract<Intent, { kind: 'myZone' }>) {
+    const aircon = this.aircon(data, intent.identity);
+    const zone = this.locate(data, intent.zoneIdentity);
+    if (zone.airconKey !== aircon.device.airconKey) {
+      throw new MyZoneCommandError('The requested MyZone belongs to another air conditioner.');
+    }
+    return {
+      aircon,
+      zone,
+      plan: planMyZoneSelection(aircon.data, zone.zoneKey),
+    };
+  }
+
+  /** Keep the legacy open -> select -> target sequence within the controller queue. */
+  private async executeMyZone(intent: Extract<Intent, { kind: 'myZone' }>): Promise<void> {
+    let sent = false;
+    let complete = false;
+    const dispatched = new Set<string>();
+    try {
+      while (!complete && !this.stopped && !intent.finished) {
+        await this.bounded(Math.min(15000, intent.expires - Date.now()), async signal => {
+          const data = await this.client.getFreshSystemData(signal);
+          signal.throwIfAborted();
+          this.observe(data);
+
+          // Only wholly unsent selections can be replaced. Finish an in-flight
+          // sequence before executing the newer selection queued behind it.
+          if (!sent && this.desired.get(intent.key) !== intent) {
+            complete = true;
+            return;
+          }
+
+          const before = this.resolveMyZone(data, intent);
+          const plan = before.plan;
+          if (plan.action === 'unchanged') {
+            this.confirm(intent, sent ? 'confirmed' : 'unchanged');
+            complete = true;
+            return;
+          }
+
+          if (dispatched.has(plan.action)) {
+            throw new MyZoneCommandError('MyZone state changed after a confirmed step; the step will not be resent.');
+          }
+
+          signal.throwIfAborted();
+          try {
+            this.onSending?.(intent.name, this.describe(intent) + ': ' + plan.action);
+          } catch {
+            // Logging must not interrupt physical commands.
+          }
+          signal.throwIfAborted();
+          dispatched.add(plan.action);
+          sent = true;
+
+          try {
+            if (plan.action === 'open') {
+              await this.client.requestZoneState(
+                before.zone.airconKey, before.zone.zoneKey, 'open', signal,
+              );
+            } else if (plan.action === 'select') {
+              await this.client.requestMyZoneSelection!(
+                before.aircon.device.airconKey, plan.zoneNumber, signal,
+              );
+            } else {
+              await this.client.requestMyZoneTarget!(
+                before.aircon.device.airconKey, plan.temperature, signal,
+              );
+            }
+          } catch (error) {
+            if (error instanceof AirconCommandRejectedError) {
+              throw new MyZoneCommandError('Controller rejected the MyZone command.');
+            }
+            // Delivery is ambiguous. Read back this step without resending it.
+          }
+          signal.throwIfAborted();
+
+          while (true) {
+            await this.wait(signal);
+            let current: SystemData;
+            try {
+              current = await this.client.getFreshSystemData(signal);
+            } catch (error) {
+              signal.throwIfAborted();
+              if (error instanceof ControllerBusyError) {
+                continue;
+              }
+              throw new MyZoneCommandError('Controller data could not be read while confirming MyZone.');
+            }
+            signal.throwIfAborted();
+
+            const after = this.resolveMyZone(current, intent);
+            if (after.plan.zoneNumber !== plan.zoneNumber) {
+              throw new MyZoneCommandError('The requested MyZone number changed while confirming the command.');
+            }
+
+            const open = after.aircon.data.zones[after.zone.zoneKey].state === 'open';
+            const selected = after.aircon.data.info.myZone === plan.zoneNumber;
+            if (plan.action === 'temperature' && after.plan.temperature !== plan.temperature) {
+              throw new MyZoneCommandError('The selected zone target changed while confirming the MyZone target.');
+            }
+
+            const matches = plan.action === 'open' ? open
+              : plan.action === 'select' ? open && selected
+                : open && selected && after.aircon.data.info.setTemp === plan.temperature;
+
+            this.observe(current);
+            if (matches) {
+              // This plan comes from the actual readback, not the assumed effect
+              // of our write. Controller-side target alignment may finish early.
+              if (after.plan.action === 'unchanged') {
+                this.confirm(intent, 'confirmed');
+                complete = true;
+              }
+              return;
+            }
+          }
+        });
+      }
+    } catch (error) {
+      if (this.stopped) {
+        return;
+      }
+      this.fail(intent, error instanceof MyZoneCommandError || error instanceof ZoneCommandError
+        || error instanceof ThermostatCommandError
+        ? error.message : 'The controller did not confirm the requested MyZone.');
+      if (sent) {
+        // Preserve the existing policy after an unreconciled physical write.
+        for (const queued of this.queued.values()) {
+          this.fail(queued, 'Cancelled because a preceding controller command could not be confirmed.');
+        }
+        this.queued.clear();
+      }
+    }
+  }
+
   private async execute(intent: Intent): Promise<void> {
+    if (intent.kind === 'myZone') {
+      await this.executeMyZone(intent);
+      return;
+    }
     let sent = false;
     try {
       await this.bounded(Math.min(15000, intent.expires - Date.now()), async signal => {
