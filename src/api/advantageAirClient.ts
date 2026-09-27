@@ -1,3 +1,4 @@
+import { myZoneTarget } from './myZoneCommand.js';
 import type { FanSpeed } from './fanCommand.js';
 import type { ModeFanPlan } from './modeFanCommand.js';
 import { validateThermostatPatch } from './thermostatPatch.js';
@@ -195,6 +196,37 @@ export class AdvantageAirClient {
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
       throw new AirconCommandRejectedError('Controller rejected the zone percentage command.');
+    }
+    return response;
+  }
+
+  /** Select an existing installer-enabled MyZone; orchestration owns eligibility checks. */
+  async requestMyZoneSelection(airconKey: string, zoneNumber: number, signal?: AbortSignal): Promise<unknown> {
+    if (typeof zoneNumber !== 'number' || !Number.isSafeInteger(zoneNumber) || zoneNumber <= 0) {
+      throw new AdvantageAirRequestError('Invalid MyZone number.');
+    }
+    return this.requestMyZoneInfo(airconKey, { myZone: zoneNumber }, signal);
+  }
+
+  /** Copy only the main target, preserving fractional values and all zone targets. */
+  async requestMyZoneTarget(airconKey: string, temperature: number, signal?: AbortSignal): Promise<unknown> {
+    return this.requestMyZoneInfo(airconKey, { setTemp: myZoneTarget(temperature) }, signal);
+  }
+
+  private async requestMyZoneInfo(
+    airconKey: string,
+    info: { myZone: number } | { setTemp: number },
+    signal?: AbortSignal,
+  ): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)) {
+      throw new AdvantageAirRequestError('Invalid air conditioner address.');
+    }
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the MyZone command.');
     }
     return response;
   }

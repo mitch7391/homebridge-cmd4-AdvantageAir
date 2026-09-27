@@ -216,7 +216,8 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             : event.kind === 'percentage' ? 'zone percentage ' + event.percentage + '%'
               : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
                 : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
-                  : event.kind === 'mode' ? event.mode : String(event.temperature) + ' °C';
+                  : event.kind === 'mode' ? event.mode
+                    : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               this.log.debug(name, event.name,
@@ -225,7 +226,12 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           } else if (debug) {
             this.log.debug(name, event.name, 'Controller confirmed:', state);
           }
-        }, (accessoryName, target) => this.log.info(name, accessoryName, 'Sending:', target));
+        }, (accessoryName, target) => this.log.info(name, accessoryName, 'Sending:', target), (event) => {
+          if (debug) {
+            this.log.debug(name, event.name, 'MyZone', event.zoneName,
+              event.step + ' step:', event.outcome, event.reason ?? '');
+          }
+        });
 
         const switchManager = new ZoneSwitchManager(
           this.api,
