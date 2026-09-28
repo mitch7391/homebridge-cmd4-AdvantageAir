@@ -65,9 +65,15 @@ Homebridge storage and pairing. Do not use a reset to test persistence.
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    & .\dev\lab\myzone.ps1 -Action Reset
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\dev\lab\myzone.ps1 -Action Reset
+    if ($LASTEXITCODE -ne 0) { throw 'MyZone reset failed. Stop here.' }
 }
 ```
+
+The execution-policy override applies only to that PowerShell process; it does not
+change machine/user policy. Organization-enforced policy may still block execution;
+if it does, stop rather than changing permanent policy. Each invocation checks the
+child process exit code so later steps cannot continue after a failed script.
 
 This script uses the same `lab.mjs` manager as `lab.cmd`: stop Homebridge only,
 start/check the managed simulator, require running status, reset, load MyZone,
@@ -99,7 +105,8 @@ Completed Apple Home checks (do not repeat solely for this workflow correction):
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    & .\dev\lab\myzone.ps1 -Action RestartHomebridge
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\dev\lab\myzone.ps1 -Action RestartHomebridge
+    if ($LASTEXITCODE -ne 0) { throw 'MyZone persistence test failed. Stop here.' }
 }
 ```
 
@@ -149,7 +156,8 @@ Operator control-flow check (no real lab is started):
 ```powershell
 & {
     $ErrorActionPreference = 'Stop'
-    & .\test\lab\myzoneOperator.test.ps1
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\test\lab\myzoneOperator.test.ps1
+    if ($LASTEXITCODE -ne 0) { throw 'Operator control-flow checks failed.' }
 }
 ```
 
@@ -157,6 +165,11 @@ This executes the exact operator script with mocked CLI and HTTP boundaries. It
 checks missing/starting processes, failed native commands, wrong fixture identity,
 unstable reads and the rule that failed preconditions prevent Homebridge startup.
 Report it separately from real process-management and Apple Home validation.
+
+`test/api/labStartup.test.mjs` exercises the actual manager with mocked process,
+network and clock boundaries. It covers transient control timeouts, the shared
+30-second startup deadline, and refusal of unmanaged or mismatched processes.
+It runs with the normal test suite; it is not a real Windows startup timing test.
 
 Keep test output visible: run `npm run lint` and `npm test` normally. If also using
 `tee` to save a log, enable Bash `pipefail` so test failures are still failures.

@@ -38,6 +38,11 @@ start does not launch duplicates or reload the fixture. A running status confirm
 the managed process, not that an iPhone has reached it. An individual simulator
 stop leaves Homebridge running with unavailable simulated accessories.
 
+After spawning a worker, the manager retries transient control/status timeouts
+within one 30-second startup deadline. Authentication and process-identity errors
+still fail immediately. If startup expires, inspect status and logs: a worker may
+finish later. The manager does not kill that worker or another process on timeout.
+
 ## Components and data flow
 
 Apple Home → isolated Homebridge/HAP → v4 accessory/coordinator → HTTP
@@ -154,3 +159,8 @@ and cannot establish persistence of the prior simulated state. Keep all pairing 
 
 Homebridge warnings use stderr and are in `homebridge-error.log`; `lab.cmd logs`
 currently follows `homebridge.log` (stdout) only. Check both when diagnosing a refusal.
+
+The linked MyZone procedure invokes `.ps1` files through `powershell.exe -NoProfile
+-ExecutionPolicy Bypass -File ...` and checks the exit code. This permits the script
+for that process without changing permanent machine/user policy. Enforced Group Policy
+can still prevent execution; stop if blocked rather than changing policy globally.

@@ -29,10 +29,10 @@ if (!['lab', 'simulator', 'homebridge'].includes(kind) || !['start', 'stop', 'st
   process.exit(1);
 }
 
-async function control(component, record, operation) {
+async function control(component, record, operation, timeoutMs = 2000) {
   const response = await fetch(`http://127.0.0.1:${components[component].control}/${operation}`, {
     method: operation === 'stop' ? 'POST' : 'GET', headers: { Authorization: `Bearer ${record.token}` },
-    signal: AbortSignal.timeout(2000),
+    signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) {
     throw new Error(`${component}: control authentication failed; nothing was stopped.`);
@@ -44,18 +44,18 @@ async function control(component, record, operation) {
   return data;
 }
 
-async function listening(port) {
+async function listening(port, timeoutMs = 500) {
   return new Promise(resolve => {
     const socket = net.connect({ host: '127.0.0.1', port });
-    socket.setTimeout(500);
+    socket.setTimeout(timeoutMs);
     socket.once('connect', () => {
-      socket.destroy(); resolve(true); 
+      socket.destroy(); resolve(true);
     });
     socket.once('error', () => {
-      socket.destroy(); resolve(false); 
+      socket.destroy(); resolve(false);
     });
     socket.once('timeout', () => {
-      socket.destroy(); resolve(true); 
+      socket.destroy(); resolve(true);
     });
   });
 }
@@ -94,16 +94,34 @@ async function start(component) {
   fs.closeSync(out);
   fs.closeSync(err);
   await new Promise((resolve, reject) => {
-    child.once('spawn', resolve); child.once('error', reject); 
+    child.once('spawn', resolve); child.once('error', reject);
   });
   const record = { token, pid: child.pid, home, kind: component };
   fs.writeFileSync(recordPath(component), JSON.stringify(record, null, 2), { mode: 0o600 });
   child.unref();
-  for (let attempt = 0; attempt < 60; attempt++) {
-    await wait(500);
-    if (await listening(components[component].control)) {
-      const current = await control(component, record, 'status');
-      if (current.state === 'running') {
+  const deadline = Date.now() + 30000;
+  while (Date.now() < deadline) {
+    await wait(Math.min(500, deadline - Date.now()));
+    if (Date.now() >= deadline) {
+      break;
+    }
+    if (await listening(components[component].control, Math.min(500, deadline - Date.now()))) {
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) {
+        break;
+      }
+      let current;
+      try {
+        current = await control(component, record, 'status', Math.min(2000, remaining));
+      } catch (error) {
+        // Fetch reports TimeoutError before headers, or AbortError while reading a timed-out body.
+        // This control request has only its own timeout signal. Identity/auth errors are never retried.
+        if (error.name === 'TimeoutError' || error.name === 'AbortError') {
+          continue;
+        }
+        throw error;
+      }
+      if (current.state === 'running' && Date.now() < deadline) {
         console.log(`${component}: running (PID ${current.pid}, port ${components[component].port})`);
         return;
       }
@@ -141,11 +159,11 @@ try {
     const owner = Number(fs.readFileSync(lock, 'utf8'));
     let alive = true;
     try {
-      process.kill(owner, 0); 
+      process.kill(owner, 0);
     } catch (error) {
       if (error.code === 'ESRCH') {
-        alive = false; 
-      } 
+        alive = false;
+      }
     }
     if (alive) {
       throw new Error('Another lab command is active; retry after it finishes.');
