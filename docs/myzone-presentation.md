@@ -6,7 +6,8 @@ zone open/close switches, temperature sensors, thermostat or fans.
 
 HAP supports repeated Switch services with distinct subtypes. Apple Home decides
 the tile layout and grouping controls; this is not a native radio-button selector.
-The grouping is provisional until the maintainer validates it in Apple Home.
+The maintainer observed a tile showing "1 On / 1 Off", opening to two side-by-side
+switches. Selection and cache restoration have been live-validated.
 An aggregate group-On action can submit several selections: the existing backend
 coalesces unsent selections and the last accepted selection wins. Prefer the named
 zone switches. Aggregate Off cannot disable MyZone and leaves a reference selected.
@@ -54,41 +55,39 @@ and aircon identities and its existing percentage zone. It adds:
 | Living Reference (`z01`) | 1, selected | open | 24 C |
 | Bedroom Reference (`z02`) | 7 | closed | 22 C |
 
-The existing simulator already supports the three backend writes. Its source and
-the lab worker are unchanged. Full simulator restarts still load `percentage.json`
-by default. Loading this fixture changes simulator memory, not the source fixture
-or Homebridge storage. Homebridge-only restarts retain the simulated selection.
+The simulator's `/load` appends to a queue; it does not replace the active fixture.
+The worker loads `percentage.json` on every fresh simulator start. Always `/reInit`
+before selecting MyZone. This deliberately discards simulator memory; it preserves
+Homebridge storage and pairing. Do not use a reset to test persistence.
 
-From PowerShell in the updated lab repository, with the usual paired runtime:
+**Scenario reset:** from PowerShell in the updated lab repository, with Node on PATH:
 
 ```powershell
-.\lab.cmd stop
-if ($LASTEXITCODE -ne 0) { throw 'Lab did not stop.' }
-.\lab.cmd simulator start
-if ($LASTEXITCODE -ne 0) { throw 'Simulator did not start.' }
-$fixturePath = (Resolve-Path -LiteralPath 'dev/lab/fixtures/myzone.json').Path
-$loadUrl = 'http://127.0.0.1:52025/?load=' + [uri]::EscapeDataString($fixturePath)
-Invoke-WebRequest -Uri $loadUrl -UseBasicParsing | Out-Null
-$snapshot = Invoke-RestMethod -Uri 'http://127.0.0.1:52025/getSystemData'
-if ($snapshot.aircons.ac1.info.myZone -ne 1 -or $snapshot.aircons.ac1.zones.z02.number -ne 7) {
-  throw 'MyZone fixture was not loaded; do not start Homebridge.'
+& {
+    $ErrorActionPreference = 'Stop'
+    & .\dev\lab\myzone.ps1 -Action Reset
 }
-.\lab.cmd homebridge start
-if ($LASTEXITCODE -ne 0) { throw 'Homebridge did not start.' }
-.\lab.cmd status
 ```
+
+This script uses the same `lab.mjs` manager as `lab.cmd`: stop Homebridge only,
+start/check the managed simulator, require running status, reset, load MyZone,
+verify controller/aircon identities, three zones, selection 1, Bedroom number 7
+and identical consecutive control-state reads, then start Homebridge. Each native
+exit status is checked and HTTP calls have five-second timeouts. Failed guards
+terminate the invocation. The simulator PID is also checked for continuity.
+Fail-fast execution does not roll back a lab reset that has already happened.
 
 Preserve `dev/lab/local.json`, the runtime directory, cache, username, PIN and all
 pairing files. Do not pair the bridge again. Existing accessories remain; the new
 references also have the existing separate zone-switch and sensor presentation.
 
-Minimum Apple Home checks:
+Completed Apple Home checks (do not repeat solely for this workflow correction):
 
 1. Locate **Simulator AC MyZone**. Record how Home groups the named services and
    whether it offers separate tiles. Living is selected; Bedroom is not. Do not
    confuse these with **Living Reference Zone** / **Bedroom Reference Zone**.
 2. Turn Bedroom MyZone On. Living MyZone becomes Off immediately. After confirmation,
-   inspect the snapshot below: `myZone = 7`, main target 22, Bedroom open. The
+   the controller snapshot showed `myZone = 7`, main target 22, Bedroom open. The
    percentage zone remains 40. Power/mode/fan remain off/heat/low.
 3. Turn selected Bedroom MyZone Off. It remains selected; the log explains why.
    Then select Living MyZone; selection returns to 1 and main target to 24.
@@ -98,21 +97,69 @@ Minimum Apple Home checks:
    must return in the same room, with Living still selected and no duplicates.
 
 ```powershell
-$snapshot = Invoke-RestMethod -Uri 'http://127.0.0.1:52025/getSystemData'
-$snapshot.aircons.ac1.info | Select-Object myZone, setTemp, state, mode, fan
-$snapshot.aircons.ac1.zones.z02 | Select-Object number, state, setTemp
-$snapshot.aircons.ac1.zones.z06 | Select-Object state, value
-
-.\lab.cmd homebridge stop
-if ($LASTEXITCODE -ne 0) { throw 'Homebridge did not stop.' }
-.\lab.cmd homebridge start
-if ($LASTEXITCODE -ne 0) { throw 'Homebridge did not restart.' }
+& {
+    $ErrorActionPreference = 'Stop'
+    & .\dev\lab\myzone.ps1 -Action RestartHomebridge
+}
 ```
 
-Use `lab.cmd logs` for Homebridge logs. End with `lab.cmd stop`; leave all pairing
-and storage intact. The fixture resets on a later simulator start; reload it before
-Homebridge starts when continuing MyZone testing. The original percentage fixture
-and existing test bridge remain available.
+**Separate persistence test:** wait for commands to be confirmed before that block.
+It never starts, resets or reloads the simulator. It requires the same running
+managed simulator across a Homebridge-only restart and compares control state.
+A missing/replaced simulator fails the test: its previous memory cannot be recovered
+by restarting it. Full `lab.cmd stop/start` reloads the default fixture and is not
+a persistence test. Neither procedure deletes cache, storage or pairing data.
+
+`lab.cmd logs` follows `homebridge.log` (stdout) only. Homebridge warnings, including
+"MyZone Off refused", are saved in `homebridge-error.log` (stderr) in the same
+runtime directory. The stdout follower prints that directory. Inspect the stderr
+file there; absence from stdout does not mean a warning was not emitted.
+
+To end a session:
+
+```powershell
+& {
+    $ErrorActionPreference = 'Stop'
+    .\lab.cmd stop
+    if ($LASTEXITCODE -ne 0) { throw 'Lab shutdown did not complete.' }
+}
+```
+
+## Regression checks and validation boundaries
+
+`npm test` includes a real HTTP fixture-queue regression. Loading percentage then
+MyZone reproduces the stale first read; reset then MyZone must give three correct
+consecutive reads. This check exercises HTTP behaviour, not worker startup.
+
+Explicit managed-lifecycle check, on a machine with free simulator ports:
+
+```bash
+node --test test/lab/managedSimulator.test.mjs
+```
+
+It invokes the actual `lab.mjs simulator start/status/stop` path with a new temporary
+runtime and refuses occupied ports 52025/52026. It checks the worker's default fixture,
+reset/load/read sequence and repeated start preserving memory. It starts no Homebridge
+bridge. It is outside `npm test` so ordinary tests do not compete with a running lab
+for fixed ports. Its small temporary runtime is retained for diagnostics. A spawn
+restriction is a blocked check, not a passed lifecycle test.
+
+Operator control-flow check (no real lab is started):
+
+```powershell
+& {
+    $ErrorActionPreference = 'Stop'
+    & .\test\lab\myzoneOperator.test.ps1
+}
+```
+
+This executes the exact operator script with mocked CLI and HTTP boundaries. It
+checks missing/starting processes, failed native commands, wrong fixture identity,
+unstable reads and the rule that failed preconditions prevent Homebridge startup.
+Report it separately from real process-management and Apple Home validation.
+
+Keep test output visible: run `npm run lint` and `npm test` normally. If also using
+`tee` to save a log, enable Bash `pipefail` so test failures are still failures.
 
 Simulator results prove the presentation and software path, not real MyZone
 firmware timing or fractional target normalization. The e-zone hardware cannot

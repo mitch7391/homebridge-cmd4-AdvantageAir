@@ -32,12 +32,35 @@ test('grouped MyZone switches operate through the unchanged lab simulator over H
     await new Promise((resolve, reject) => server.close(error => error ? reject(error) : resolve()));
   });
   const address = server.address();
-  const url = new URL(`http://127.0.0.1:${address.port}/`);
-  url.searchParams.set('load', fileURLToPath(new URL('../../dev/lab/fixtures/myzone.json', import.meta.url)));
-  const response = await globalThis.fetch(url);
-  assert.equal(response.status, 200);
-  await response.text();
+  const base = `http://127.0.0.1:${address.port}`;
+  const load = async name => {
+    const url = new URL(base + '/');
+    url.searchParams.set('load', fileURLToPath(new URL(`../../dev/lab/fixtures/${name}.json`, import.meta.url)));
+    const response = await globalThis.fetch(url);
+    assert.equal(response.status, 200);
+    await response.text();
+  };
   const client = new AdvantageAirClient({ ipAddress: '127.0.0.1', port: address.port });
+  await t.test('default fixture then reset and MyZone load gives stable first and subsequent reads', async () => {
+    // The worker preloads percentage.json. Loading another fixture appends; it does not replace it.
+    await load('percentage');
+    await load('myzone');
+    assert.equal((await client.getFreshSystemData()).aircons.ac1.info.myZone, 0);
+    assert.equal((await client.getFreshSystemData()).aircons.ac1.info.myZone, 1);
+    await load('percentage');
+    const reset = await globalThis.fetch(base + '/reInit');
+    assert.equal(reset.status, 200);
+    await reset.text();
+    await load('myzone');
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const data = await client.getFreshSystemData();
+      assert.equal(data.system.mid, 'aa-percentage-lab-controller');
+      assert.equal(data.aircons.ac1.info.uid, 'aa-percentage-lab-ac1');
+      assert.equal(data.aircons.ac1.info.myZone, 1);
+      assert.equal(data.aircons.ac1.zones.z02.number, 7);
+      assert.deepEqual(Object.keys(data.aircons.ac1.zones).sort(), ['z01', 'z02', 'z06']);
+    }
+  });
   const baseline = await client.getSystemData();
   const api = new HomebridgeAPI();
   const messages = [];
