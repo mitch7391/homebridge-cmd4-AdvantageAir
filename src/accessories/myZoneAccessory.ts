@@ -73,7 +73,7 @@ export class MyZoneAccessory {
         if (value) {
           this.options.select(identity);
         } else if (selected) {
-          this.warn(`MyZone Off refused for "${service.displayName}": select another reference zone; MyZone cannot be disabled.`);
+          this.warn(`${service.displayName} cannot be turned off; select another MyZone instead.`);
         }
         // Publish the other switches immediately; the coordinator owns desired/observed state.
         this.update();

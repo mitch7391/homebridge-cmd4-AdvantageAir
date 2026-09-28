@@ -139,7 +139,7 @@ test('selected MyZone Off returns true, explains refusal and sends nothing', asy
   await flush();
   assert.equal(c.on('z01').value, true);
   assert.deepEqual(c.writes, []);
-  assert.match(c.messages.warn.join('\n'), /MyZone Off refused.*select another reference zone/);
+  assert.match(c.messages.warn.join('\n'), /Living Reference MyZone cannot be turned off; select another MyZone instead\./);
   assert.equal(c.data.aircons.ac1.info.myZone, 1);
 });
 
