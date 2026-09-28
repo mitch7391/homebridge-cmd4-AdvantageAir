@@ -13,6 +13,7 @@ import type { ControllerPollState } from './api/controllerPoller.js';
 import { ZoneSwitchManager } from './accessories/zoneSwitchManager.js';
 import { ThermostatManager } from './accessories/thermostatManager.js';
 import { ModeFanManager } from './accessories/modeFanManager.js';
+import { MyZoneManager } from './accessories/myZoneManager.js';
 import { PercentageZoneManager } from './accessories/percentageZoneManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
@@ -23,6 +24,7 @@ interface ConfiguredController {
   switchManager: ZoneSwitchManager;
   thermostatManager: ThermostatManager;
   modeFanManager: ModeFanManager;
+  myZoneManager: MyZoneManager;
   percentageManager: PercentageZoneManager;
 }
 
@@ -65,6 +67,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         controller.switchManager.stop();
         controller.thermostatManager.stop();
         controller.modeFanManager.stop();
+        controller.myZoneManager.stop();
         controller.percentageManager.stop();
       }
     });
@@ -77,6 +80,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     ZoneSwitchManager.prepareCachedAccessory(this.api, accessory);
     ThermostatManager.prepareCachedAccessory(this.api, accessory);
     ModeFanManager.prepareCachedAccessory(this.api, accessory);
+    MyZoneManager.prepareCachedAccessory(this.api, accessory);
     PercentageZoneManager.prepareCachedAccessory(this.api, accessory);
   }
 
@@ -261,7 +265,12 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
         updateManagers.push(state => percentageManager.update(state));
 
-        this.controllers.push({ name, debug, poller, switchManager, thermostatManager, modeFanManager, percentageManager });
+        const myZoneManager = new MyZoneManager(this.api, this.accessories, poller,
+          message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+        updateManagers.push(state => myZoneManager.update(state));
+
+        this.controllers.push({ name, debug, poller, switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager });
       } catch (error) {
         const reason = error instanceof Error
           ? error.message
