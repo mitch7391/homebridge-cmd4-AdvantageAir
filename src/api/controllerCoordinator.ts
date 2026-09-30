@@ -1,3 +1,5 @@
+import { nativeTimer, planTimer, timerDuration, timerMatches } from './timerCommand.js';
+import type { TimerField } from './timerCommand.js';
 import { activeMyZoneNumber, planMyZoneSelection, MyZoneCommandError } from './myZoneCommand.js';
 import type { MyZoneProgress, MyZoneStep } from './myZoneCommand.js';
 import { planFanSpeed, fanSetting } from './fanCommand.js';
@@ -18,6 +20,7 @@ import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestTimer?(aircon: string, field: TimerField, minutes: number, signal?: AbortSignal): Promise<unknown>;
   requestMyZoneSelection?(aircon: string, zoneNumber: number, signal?: AbortSignal): Promise<unknown>;
   requestMyZoneTarget?(aircon: string, temperature: number, signal?: AbortSignal): Promise<unknown>;
   requestZonePercentage?(aircon: string, zone: string, value: number, signal?: AbortSignal): Promise<unknown>;
@@ -37,7 +40,8 @@ export type ControllerCommandConfirmation = {
   superseded: boolean;
 } & Request;
 
-type Request = { kind: 'zone'; on: boolean; percentageOnly?: boolean }
+type Request = { kind: 'timer'; active: boolean; seconds: number; replace: boolean }
+  | { kind: 'zone'; on: boolean; percentageOnly?: boolean }
   | { kind: 'percentage'; percentage: number }
   | { kind: 'mode'; mode: ThermostatMode }
   | { kind: 'modeFan'; mode: FanMode; on: boolean }
@@ -323,6 +327,32 @@ export class ControllerCoordinator {
     });
   }
 
+  readTimer(identity: string): { active: boolean; inUse: boolean; remaining: number } {
+    this.available();
+    const observed = nativeTimer(this.aircon(this.state.data!, identity).data);
+    const key = this.key(identity, 'timer');
+    const pending = this.desired.get(key);
+    if (!pending && this.faults.has(key)) {
+      throw new ZoneCommandError('The timer command could not be confirmed.');
+    }
+    return {
+      active: pending?.kind === 'timer' ? pending.active : observed.remaining > 0,
+      inUse: observed.remaining > 0,
+      remaining: observed.remaining,
+    };
+  }
+
+  requestTimer(identity: string, active: boolean, seconds: number, replace = false): void {
+    this.available();
+    const aircon = this.aircon(this.state.data!, identity);
+    const duration = timerDuration(seconds);
+    planTimer(aircon.data, active, duration, replace);
+    if (!this.client.requestTimer) {
+      throw new ZoneCommandError('Timer transport is unavailable.');
+    }
+    this.admit(identity, aircon.device.name, { kind: 'timer', active, seconds: duration, replace });
+  }
+
   private checkThermostatFault(key: string): void {
     if (this.faults.has(key)) {
       throw new ThermostatCommandError('The thermostat command could not be confirmed.');
@@ -344,6 +374,8 @@ export class ControllerCoordinator {
     const previous = this.desired.get(key);
     if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on
       && request.percentageOnly === previous.percentageOnly)
+      || (request.kind === 'timer' && previous.kind === 'timer' && request.active === previous.active
+        && request.seconds === previous.seconds && request.replace === previous.replace)
       || (request.kind === 'percentage' && previous.kind === 'percentage' && request.percentage === previous.percentage)
       || (request.kind === 'mode' && previous.kind === 'mode' && request.mode === previous.mode)
       || (request.kind === 'modeFan' && previous.kind === 'modeFan' && request.mode === previous.mode && request.on === previous.on)
@@ -440,6 +472,17 @@ export class ControllerCoordinator {
       };
     }
     const aircon = this.aircon(data, intent.identity);
+    if (intent.kind === 'timer') {
+      const plan = planTimer(aircon.data, intent.active, intent.seconds, intent.replace);
+      if (plan.kind === 'unchanged') {
+        return plan;
+      }
+      return {
+        kind: 'command',
+        send: signal => this.client.requestTimer!(aircon.device.airconKey, plan.field, plan.minutes, signal),
+        matches: current => timerMatches(this.aircon(current, intent.identity).data, plan.field, plan.minutes),
+      };
+    }
     if (intent.kind === 'modeFan') {
       const plan = planModeFan(aircon.data, intent.mode, intent.on);
       if (plan.kind === 'unchanged') {
@@ -537,14 +580,16 @@ export class ControllerCoordinator {
     const superseded = this.desired.get(intent.key) !== intent;
     this.finish(intent);
     try {
-      const request: Request = intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
-        : intent.kind === 'percentage' ? { kind: 'percentage', percentage: intent.percentage }
-          : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
-            : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
-              : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
-                : intent.kind === 'myZone'
-                  ? { kind: 'myZone', zoneIdentity: intent.zoneIdentity, zoneName: intent.zoneName }
-                  : { kind: 'temperature', temperature: intent.temperature };
+      const request: Request = intent.kind === 'timer'
+        ? { kind: 'timer', active: intent.active, seconds: intent.seconds, replace: intent.replace }
+        : intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
+          : intent.kind === 'percentage' ? { kind: 'percentage', percentage: intent.percentage }
+            : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
+              : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
+                : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+                  : intent.kind === 'myZone'
+                    ? { kind: 'myZone', zoneIdentity: intent.zoneIdentity, zoneName: intent.zoneName }
+                    : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -552,12 +597,13 @@ export class ControllerCoordinator {
   }
 
   private describe(intent: Intent): string {
-    return intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-      : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
-        : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
-          : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
-            : intent.kind === 'myZone' ? 'MyZone ' + intent.zoneName
-              : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+    return intent.kind === 'timer' ? (intent.active ? 'timer ' + intent.seconds / 60 + ' minutes' : 'timer cancelled')
+      : intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
+        : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
+          : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
+            : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
+              : intent.kind === 'myZone' ? 'MyZone ' + intent.zoneName
+                : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -569,7 +615,7 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      const control = intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
+      const control = intent.kind === 'timer' ? 'Timer' : intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
         : intent.kind === 'myZone' ? 'MyZone'
           : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
       this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
