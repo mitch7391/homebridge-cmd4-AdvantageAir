@@ -5,6 +5,7 @@ import { pathToFileURL, URL } from 'node:url';
 import test from 'node:test';
 import { AdvantageAirPlatform } from '../../dist/platform.js';
 import { TimerValveManager } from '../../dist/accessories/timerValveManager.js';
+import { discoverDevices } from '../../dist/discovery/discoverDevices.js';
 
 const require = createRequire(import.meta.url);
 const { HomebridgeAPI } = await import(new URL('./api.js', pathToFileURL(require.resolve('homebridge'))).href);
@@ -72,7 +73,15 @@ async function setup(t, edit) {
 
 test('native Timer creates one Generic Valve alongside existing layouts with correct seconds bounds', async t => {
   const c = await setup(t);
-  assert.equal(c.accessory().displayName, 'Simulator AC Timer');
+  assert.equal(c.accessory().displayName, 'Simulator AC Countdown');
+  const identity = discoverDevices(c.data).find(device => device.kind === 'aircon').identity;
+  assert.equal(c.accessory().UUID, c.api.hap.uuid.generate(JSON.stringify([identity, 'native-timer'])));
+  const valve = c.accessory().getService(c.api.hap.Service.Valve);
+  assert.equal(valve.displayName, 'Simulator AC Countdown');
+  assert.equal(valve.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Simulator AC Countdown');
+  const information = c.accessory().getService(c.api.hap.Service.AccessoryInformation);
+  assert.equal(information.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Simulator AC Countdown');
+  assert.equal(c.accessory().services.filter(service => service.UUID === c.api.hap.Service.Valve.UUID).length, 1);
   assert.equal(c.characteristic('ValveType').value, c.api.hap.Characteristic.ValveType.GENERIC_VALVE);
   assert.equal(c.characteristic('IsConfigured').value, 1);
   assert.equal(await c.characteristic('Active').handleGetRequest(), 0);
@@ -85,7 +94,7 @@ test('native Timer creates one Generic Valve alongside existing layouts with cor
   for (const marker of ['advantageAirMyZone', 'advantageAirThermostat', 'advantageAirPercentageZone']) {
     assert.ok([...c.platform.accessories.values()].some(a => a.context[marker]));
   }
-  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Simulator AC Timer')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Simulator AC Countdown')).length, 1);
 });
 
 test('inactive SetDuration only stores selection; activation and active duration changes use coordinator', async t => {
@@ -135,12 +144,22 @@ test('observed countdown ticks and native expiry do not shrink SetDuration or se
   assert.deepEqual(c.writes, []);
 });
 
-test('timer cache serialization retains selected duration, UUID and service without fresh registration', async t => {
+test('cached Timer becomes Countdown while retaining context, duration, UUID and service without fresh registration', async t => {
   const c = await setup(t);
   await c.characteristic('SetDuration').handleSetRequest(43200, {});
   const old = c.accessory();
+  old.displayName = 'Simulator AC Timer';
+  const oldValve = old.getService(c.api.hap.Service.Valve);
+  oldValve.displayName = old.displayName;
+  oldValve.setCharacteristic(c.api.hap.Characteristic.Name, old.displayName);
+  old.getService(c.api.hap.Service.AccessoryInformation).setCharacteristic(c.api.hap.Characteristic.Name, old.displayName);
+  old.context.unrelatedSentinel = 'preserve';
+  const savedContext = globalThis.structuredClone(old.context);
   const restored = c.api.platformAccessory.deserialize(JSON.parse(JSON.stringify(c.api.platformAccessory.serialize(old))));
   const api = new HomebridgeAPI();
+  const serviceCount = restored.services.length;
+  const updates = [];
+  t.mock.method(api, 'updatePlatformAccessories', accessories => updates.push(...accessories));
   TimerValveManager.prepareCachedAccessory(api, restored);
   const valve = restored.getService(api.hap.Service.Valve);
   await assert.rejects(valve.getCharacteristic(api.hap.Characteristic.Active).handleGetRequest());
@@ -156,6 +175,24 @@ test('timer cache serialization retains selected duration, UUID and service with
   assert.equal(valve.getCharacteristic(api.hap.Characteristic.RemainingDuration).value, 60);
   assert.equal(valve.getCharacteristic(api.hap.Characteristic.SetDuration).value, 43200);
   assert.equal(restored.UUID, old.UUID);
+  assert.equal(restored.displayName, 'Simulator AC Countdown');
+  assert.equal(restored.getService(api.hap.Service.Valve), valve);
+  assert.equal(valve.displayName, 'Simulator AC Countdown');
+  assert.equal(valve.getCharacteristic(api.hap.Characteristic.Name).value, 'Simulator AC Countdown');
+  const information = restored.getService(api.hap.Service.AccessoryInformation);
+  assert.equal(information.getCharacteristic(api.hap.Characteristic.Name).value, 'Simulator AC Countdown');
+  assert.deepEqual(restored.context, savedContext);
+  assert.equal(restored.services.length, serviceCount);
+  assert.deepEqual(updates, [restored]);
+  manager.update({ data: c.data, lastAttemptFailed: false });
+  assert.deepEqual(updates, [restored]);
+  const saved = api.platformAccessory.serialize(restored);
+  assert.equal(saved.displayName, 'Simulator AC Countdown');
+  const next = api.platformAccessory.deserialize(JSON.parse(JSON.stringify(saved)));
+  assert.equal(next.displayName, 'Simulator AC Countdown');
+  assert.equal(next.UUID, old.UUID);
+  assert.deepEqual(next.context, savedContext);
+  assert.equal(next.getService(api.hap.Service.Valve).getCharacteristic(api.hap.Characteristic.SetDuration).value, 43200);
   assert.equal(restored.services.filter(s => s.UUID === api.hap.Service.Valve.UUID).length, 1);
   assert.deepEqual(registered, []);
   manager.stop();

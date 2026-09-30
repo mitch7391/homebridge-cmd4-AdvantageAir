@@ -1,6 +1,6 @@
 # Native timer as a legacy Valve
 
-This adds one `<aircon name> Timer` accessory with a Generic Valve service per
+This adds one `<aircon name> Countdown` accessory with a Generic Valve service per
 air conditioner reporting valid native countdown fields. It is the native
 one-shot timer, not v3's separate fan/cool/heat software timers.
 
@@ -103,6 +103,15 @@ its service and chosen duration, and is retained unavailable if capability or
 identity disappears. It is not deleted or replaced. No migration of other roles
 is attempted.
 
+On first attachment to fresh valid controller data, both new and restored
+accessories use `<aircon name> Countdown`. The accessory display name, Accessory
+Information Name and existing Valve service display name/Name are aligned and a
+changed cached name is saved once. The UUID input, service instance, context and
+selected duration are unchanged. This is a naming change for the unreleased
+feature, not a general migration mechanism. Countdown avoids the observed Siri
+Clock-timer wording collision; actual Siri accessory targeting remains a live
+check. Apple Home may retain its own user-assigned name independently.
+
 Creation and command dispatch use normal logs; confirmations/no-ops use the
 existing debug path. Admission refusal and command failure remain warnings.
 
@@ -127,10 +136,13 @@ covered both power directions, inactive duration selection, active replacement,
 cancellation without power changes, unchanged unrelated controls, and paired
 cache/SetDuration restoration. That campaign does not need repeating.
 
-After the minute-policy update, the only new HomeKit check is to select 45 minutes
-and confirm exact 45-minute native readback (rather than the former 60-minute
-normalization), then cancel. Check that Home advertises the one-minute minimum
-and preserves the existing selected duration. A brief one-minute activation and
-prompt cancellation, if practical, validates the new minimum through HomeKit;
-there is no need to wait for expiry or repeat the native evidence campaign.
-The original live-validated lifecycle, identity and cache behaviour are unchanged.
+Minute-policy live validation is complete on commit
+`d0b09ee4fd978624844322b33428af6dd94ca741`: Home's 45-minute selection
+produced exact native 45-minute readback and the tablet displayed On in 45min.
+Valve Off cancelled the countdown and AC power remained off. The HAP metadata
+and Home duration-picker investigation are also complete and are not reopened
+by this naming change.
+
+The remaining live check for the Countdown name is only whether Siri targets
+the Home accessory instead of creating a Clock timer. No duration, expiry,
+cache or power-direction campaign needs repeating.

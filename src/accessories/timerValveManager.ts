@@ -74,7 +74,10 @@ export class TimerValveManager {
       return;
     }
     const cached = this.accessories.get(uuid);
-    const accessory = cached ?? new this.api.platformAccessory(`${name} Timer`, uuid);
+    const displayName = `${name} Countdown`;
+    const accessory = cached ?? new this.api.platformAccessory(displayName, uuid);
+    const renamed = accessory.displayName !== displayName;
+    accessory.displayName = displayName;
     const use = <T>(operation: () => T): T => {
       if (this.stopped || !this.present.has(identity)) {
         throw new TimerCommandError('The native timer is unavailable.');
@@ -87,9 +90,18 @@ export class TimerValveManager {
       persist: () => this.api.updatePlatformAccessories([accessory]),
       warn: this.warn,
     });
+    const valve = accessory.getService(this.api.hap.Service.Valve)!;
+    const information = accessory.getService(this.api.hap.Service.AccessoryInformation)!;
+    const nameCharacteristic = this.api.hap.Characteristic.Name;
+    const needsNames = renamed || valve.displayName !== displayName
+      || valve.getCharacteristic(nameCharacteristic).value !== displayName
+      || information.getCharacteristic(nameCharacteristic).value !== displayName;
+    valve.displayName = displayName;
+    valve.setCharacteristic(nameCharacteristic, displayName);
+    information.setCharacteristic(nameCharacteristic, displayName);
     const needsMarker = accessory.context.advantageAirTimer !== true;
     accessory.context.advantageAirTimer = true;
-    if (cached && needsMarker) {
+    if (cached && (needsMarker || needsNames)) {
       this.api.updatePlatformAccessories([accessory]);
     }
     if (!cached) {
