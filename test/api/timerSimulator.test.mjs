@@ -71,11 +71,11 @@ test('native Timer Valve uses real HTTP with an evidence-based test controller, 
   await active.handleSetRequest(1, {});
   await until(() => events.some(line => line.includes('Controller confirmed: timer 30 minutes')));
   assert.equal(await remaining.handleGetRequest(), 1800);
-  await duration.handleSetRequest(12600, {});
-  await until(() => events.some(line => line.includes('Controller confirmed: timer 240 minutes')));
+  await duration.handleSetRequest(2700, {});
+  await until(() => events.some(line => line.includes('Controller confirmed: timer 45 minutes')));
   const running = await client.getFreshSystemData();
   const field = baseline.aircons.ac1.info.state === 'on' ? 'countDownToOff' : 'countDownToOn';
-  assert.equal(running.aircons.ac1.info[field], 240);
+  assert.equal(running.aircons.ac1.info[field], 45);
   await active.handleSetRequest(0, {});
   await until(() => events.some(line => line.includes('Controller confirmed: timer cancelled')));
   const cancelled = await client.getFreshSystemData();
@@ -85,12 +85,12 @@ test('native Timer Valve uses real HTTP with an evidence-based test controller, 
     assert.equal(cancelled.aircons.ac1.info[key], baseline.aircons.ac1.info[key]);
   }
   assert.deepEqual(cancelled.aircons.ac1.zones, baseline.aircons.ac1.zones);
-  assert.equal(await duration.handleGetRequest(), 14400);
+  assert.equal(await duration.handleGetRequest(), 2700);
   assert.equal(await remaining.handleGetRequest(), 0);
   assert.equal(events.some(line => line.includes('command failed')), false);
   assert.deepEqual(writes, [
     { ac1: { info: { [field]: 30 } } },
-    { ac1: { info: { [field]: 240 } } },
+    { ac1: { info: { [field]: 45 } } },
     { ac1: { info: { [field]: 0 } } },
   ]);
 });

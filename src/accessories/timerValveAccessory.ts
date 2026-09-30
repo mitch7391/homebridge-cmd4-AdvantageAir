@@ -1,5 +1,5 @@
 import type { API, Characteristic, PlatformAccessory } from 'homebridge';
-import { TIMER_DEFAULT_SECONDS, TIMER_MAX_SECONDS, timerDuration } from '../api/timerCommand.js';
+import { TIMER_DEFAULT_SECONDS, TIMER_MIN_SECONDS, TIMER_MAX_SECONDS, timerDuration } from '../api/timerCommand.js';
 import { ZoneCommandError } from '../api/zoneCommand.js';
 
 export interface TimerValveOptions {
@@ -25,12 +25,12 @@ export class TimerValveAccessory {
     if (duration.value === 0) {
       duration.updateValue(TIMER_DEFAULT_SECONDS);
     }
-    duration.setProps({ minValue: TIMER_DEFAULT_SECONDS, maxValue: TIMER_MAX_SECONDS, minStep: 60 });
+    duration.setProps({ minValue: TIMER_MIN_SECONDS, maxValue: TIMER_MAX_SECONDS, minStep: 60 });
     let selected = TIMER_DEFAULT_SECONDS;
     try {
       selected = timerDuration(accessory.context.advantageAirTimerDuration);
     } catch {
-      // A new or old cache without a valid selection starts at the native minimum.
+      // A new or old cache without a valid selection keeps the 30-minute default.
     }
     this.readings = [
       [active, () => options.read().active ? 1 : 0],

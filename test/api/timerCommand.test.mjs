@@ -1,21 +1,21 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { nativeTimer, planTimer, timerDuration, timerMatches } from '../../dist/api/timerCommand.js';
+import { nativeTimer, planTimer, timerDuration, timerMatches, validateTimerWrite } from '../../dist/api/timerCommand.js';
 import { AdvantageAirClient, AirconCommandRejectedError } from '../../dist/api/advantageAirClient.js';
 
 const aircon = (info = {}) => ({ info: { state: 'on', countDownToOn: 0, countDownToOff: 0, ...info }, zones: {} });
 
-test('timer duration uses proven tablet selections, ceiling normalization and a 12-hour bound', () => {
-  for (const [input, expected] of [[1, 1800], [1800, 1800], [1801, 3600], [9000, 9000], [10800, 10800],
-    [10801, 14400], [12600, 14400], [43199, 43200], [43200, 43200]]) {
+test('timer duration accepts integer minutes from 1 to 720 and rounds partial minutes upward', () => {
+  for (const [input, expected] of [[60, 60], [61, 120], [90, 120], [1740, 1740], [1800, 1800], [1801, 1860],
+    [2700, 2700], [10801, 10860], [12600, 12600], [43199, 43200], [43200, 43200]]) {
     assert.equal(timerDuration(input), expected);
   }
-  for (const bad of [0, -1, 43201, 1800.5, NaN, Infinity, '1800', undefined]) {
+  for (const bad of [0, 1, 59, -1, 43201, 1800.5, NaN, Infinity, '1800', undefined]) {
     assert.throws(() => timerDuration(bad));
   }
 });
 
-test('timer reads whole remaining minutes including below the selectable minimum', () => {
+test('timer reads observed whole remaining minutes including one minute and zero', () => {
   assert.deepEqual(nativeTimer(aircon()), { field: undefined, remaining: 0 });
   assert.deepEqual(nativeTimer(aircon({ countDownToOff: 1 })), { field: 'countDownToOff', remaining: 60 });
   assert.deepEqual(nativeTimer(aircon({ state: 'off', countDownToOn: 73 })), { field: 'countDownToOn', remaining: 4380 });
@@ -68,8 +68,8 @@ test('timer transport is countdown-only, serialized, validates before sending an
   const client = new AdvantageAirClient({ ipAddress: '192.0.2.1' });
   await Promise.all([client.requestTimer('ac2', 'countDownToOn', 720), client.requestTimer('ac2', 'countDownToOn', 0)]);
   assert.deepEqual(writes, [{ ac2: { info: { countDownToOn: 720 } } }, { ac2: { info: { countDownToOn: 0 } } }]);
-  for (const [ac, field, minutes] of [['bad', 'countDownToOn', 30], ['ac1', 'state', 0], ['ac1', 'countDownToOff', 1],
-    ['ac1', 'countDownToOff', 210], ['ac1', 'countDownToOff', 721], ['ac1', 'countDownToOff', '30']]) {
+  for (const [ac, field, minutes] of [['bad', 'countDownToOn', 30], ['ac1', 'state', 0], ['ac1', 'countDownToOff', -1],
+    ['ac1', 'countDownToOff', 1.5], ['ac1', 'countDownToOff', 721], ['ac1', 'countDownToOff', '30']]) {
     await assert.rejects(client.requestTimer(ac, field, minutes));
   }
   const cancelled = new globalThis.AbortController();
@@ -79,4 +79,38 @@ test('timer transport is countdown-only, serialized, validates before sending an
   reply = 'false';
   await assert.rejects(client.requestTimer('ac1', 'countDownToOff', 30), AirconCommandRejectedError);
   assert.equal(writes.length, 3);
+});
+
+test('timer policy supports each integer minute and preserves cancellation as a separate command', () => {
+  for (let minutes = 1; minutes <= 720; minutes++) {
+    assert.equal(timerDuration(minutes * 60), minutes * 60);
+    validateTimerWrite('countDownToOn', minutes);
+    validateTimerWrite('countDownToOff', minutes);
+  }
+  validateTimerWrite('countDownToOff', 0);
+  assert.throws(() => timerDuration(0));
+  assert.throws(() => validateTimerWrite('countDownToOff', 1440));
+});
+
+test('one-minute start requires a positive countdown in the selected direction; zero confirms cancellation only', () => {
+  for (const [state, field] of [['on', 'countDownToOff'], ['off', 'countDownToOn']]) {
+    assert.equal(timerMatches(aircon({ state, [field]: 1 }), field, 1), true);
+    assert.equal(timerMatches(aircon({ state }), field, 1), false);
+    assert.equal(timerMatches(aircon({ state }), field, 0), true);
+    assert.equal(timerMatches(aircon({ state, [field]: 1 }), field, 2), true);
+    assert.deepEqual(planTimer(aircon({ state }), true, 60), { kind: 'command', field, minutes: 1 });
+  }
+});
+
+test('timer transport sends exact off-picker native durations without normalization', async t => {
+  const writes = [];
+  t.mock.method(globalThis, 'fetch', async url => {
+    writes.push(JSON.parse(url.searchParams.get('json')));
+    return { ok: true, status: 200, text: async () => '{}' };
+  });
+  const client = new AdvantageAirClient({ ipAddress: '192.0.2.1' });
+  for (const minutes of [1, 29, 45, 210, 720, 0]) {
+    await client.requestTimer('ac1', 'countDownToOff', minutes);
+  }
+  assert.deepEqual(writes, [1, 29, 45, 210, 720, 0].map(minutes => ({ ac1: { info: { countDownToOff: minutes } } })));
 });

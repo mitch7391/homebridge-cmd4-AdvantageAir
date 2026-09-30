@@ -79,6 +79,8 @@ test('native Timer creates one Generic Valve alongside existing layouts with cor
   assert.equal(await c.characteristic('InUse').handleGetRequest(), 0);
   assert.equal(await c.characteristic('SetDuration').handleGetRequest(), 1800);
   assert.equal(c.characteristic('SetDuration').props.maxValue, 43200);
+  assert.equal(c.characteristic('SetDuration').props.minValue, 60);
+  assert.equal(c.characteristic('SetDuration').props.minStep, 60);
   assert.equal(c.characteristic('RemainingDuration').props.maxValue, 43200);
   for (const marker of ['advantageAirMyZone', 'advantageAirThermostat', 'advantageAirPercentageZone']) {
     assert.ok([...c.platform.accessories.values()].some(a => a.context[marker]));
@@ -88,19 +90,19 @@ test('native Timer creates one Generic Valve alongside existing layouts with cor
 
 test('inactive SetDuration only stores selection; activation and active duration changes use coordinator', async t => {
   const c = await setup(t);
-  assert.equal(await c.characteristic('SetDuration').handleSetRequest(12600, {}), 14400);
+  assert.equal(await c.characteristic('SetDuration').handleSetRequest(2700, {}), 2700);
   assert.deepEqual(c.writes, []);
-  assert.equal(c.accessory().context.advantageAirTimerDuration, 14400);
+  assert.equal(c.accessory().context.advantageAirTimerDuration, 2700);
   assert.ok(c.updates.includes(c.accessory()));
   assert.equal(await c.characteristic('Active').handleSetRequest(1, {}), 1);
   assert.equal(await c.characteristic('InUse').handleGetRequest(), 0);
   await c.advance(1500);
   assert.equal(await c.characteristic('InUse').handleGetRequest(), 1);
-  assert.equal(await c.characteristic('RemainingDuration').handleGetRequest(), 14400);
+  assert.equal(await c.characteristic('RemainingDuration').handleGetRequest(), 2700);
   await c.characteristic('SetDuration').handleSetRequest(3600, {});
   await c.advance(1500);
-  assert.deepEqual(c.writes, [{ ac1: { info: { countDownToOff: 240 } } }, { ac1: { info: { countDownToOff: 60 } } }]);
-  assert.ok(c.messages.info.some(line => line.includes('Sending: timer 240 minutes')));
+  assert.deepEqual(c.writes, [{ ac1: { info: { countDownToOff: 45 } } }, { ac1: { info: { countDownToOff: 60 } } }]);
+  assert.ok(c.messages.info.some(line => line.includes('Sending: timer 45 minutes')));
   assert.ok(c.messages.debug.some(line => line.includes('Controller confirmed: timer 60 minutes')));
 });
 
@@ -195,4 +197,19 @@ test('timer is not created from absent capability; stale reads and shutdown reje
   c.api.emit('shutdown');
   await assert.rejects(c.characteristic('Active').handleSetRequest(1));
   assert.deepEqual(c.writes, []);
+});
+
+test('Valve accepts minute minimum and partial-minute ceiling; zero cannot cancel through SetDuration', async t => {
+  const c = await setup(t);
+  const duration = c.characteristic('SetDuration');
+  assert.equal(await duration.handleSetRequest(60, {}), 60);
+  assert.equal(await duration.handleSetRequest(61, {}), 120);
+  await c.characteristic('Active').handleSetRequest(1, {});
+  await c.advance(1500);
+  assert.equal(c.writes.at(-1).ac1.info.countDownToOff, 2);
+  const count = c.writes.length;
+  await assert.rejects(duration.handleSetRequest(0, {}));
+  assert.equal(c.writes.length, count);
+  assert.equal(await c.characteristic('Active').handleGetRequest(), 1);
+  assert.equal(await duration.handleGetRequest(), 120);
 });

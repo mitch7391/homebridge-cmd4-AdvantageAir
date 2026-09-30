@@ -239,3 +239,21 @@ test('timer preflight follows an earlier thermostat power command without corrup
   assert.equal(c.data.aircons.ac1.info.setTemp, 24);
   assert.equal(c.data.aircons.ac1.info.mode, 'cool');
 });
+
+test('one-minute timer confirms once when positive and never confirms a zero/no-timer readback', async t => {
+  const c = await setup(t);
+  c.coordinator.requestTimer(identity, true, 60);
+  await c.advance(1500);
+  assert.equal(c.events.length, 1);
+  assert.equal(c.events[0].outcome, 'confirmed');
+  assert.deepEqual(c.writes[0].patch, { countDownToOff: 1 });
+  c.coordinator.requestTimer(identity, false, 60);
+  await c.advance(1500);
+  const confirmed = c.events.length;
+  c.model.never = true;
+  c.coordinator.requestTimer(identity, true, 60);
+  await c.advance(16000);
+  assert.equal(c.events.length, confirmed);
+  assert.equal(c.writes.length, 3);
+  assert.match(c.warnings.at(-1), /expired/);
+});

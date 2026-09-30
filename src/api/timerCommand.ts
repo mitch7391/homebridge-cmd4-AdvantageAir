@@ -4,22 +4,22 @@ import { ZoneCommandError } from './zoneCommand.js';
 export class TimerCommandError extends ZoneCommandError {}
 
 export type TimerField = 'countDownToOn' | 'countDownToOff';
+export const TIMER_MIN_SECONDS = 60;
 export const TIMER_MAX_SECONDS = 43200;
 export const TIMER_DEFAULT_SECONDS = 1800;
-const selections = [30, 60, 90, 120, 150, 180, 240, 300, 360, 420, 480, 540, 600, 660, 720];
 
-/** Conservative write selections proven on the native tablet, not an inferred API limit. */
+/** Native integer minutes; tablet picker steps do not restrict API durations. */
 export function timerDuration(seconds: number): number {
-  if (typeof seconds !== 'number' || !Number.isInteger(seconds) || seconds <= 0 || seconds > TIMER_MAX_SECONDS) {
-    throw new TimerCommandError('Timer duration must be positive whole seconds, at most 12 hours.');
+  if (typeof seconds !== 'number' || !Number.isInteger(seconds) || seconds < TIMER_MIN_SECONDS || seconds > TIMER_MAX_SECONDS) {
+    throw new TimerCommandError('Timer duration must be whole seconds from 1 minute to 12 hours.');
   }
-  return selections.find(minutes => minutes * 60 >= seconds)! * 60;
+  return Math.ceil(seconds / 60) * 60;
 }
 
 export function validateTimerWrite(field: TimerField, minutes: number): void {
   if ((field !== 'countDownToOn' && field !== 'countDownToOff')
     || typeof minutes !== 'number' || !Number.isInteger(minutes)
-    || (minutes !== 0 && !selections.includes(minutes))) {
+    || minutes < 0 || minutes > 720) {
     throw new TimerCommandError('Invalid native timer command.');
   }
 }
@@ -57,5 +57,7 @@ export function timerMatches(aircon: AirconData, field: TimerField, minutes: num
   if (minutes === 0) {
     return observed.remaining === 0;
   }
-  return observed.field === field && (observed.remaining === minutes * 60 || observed.remaining === (minutes - 1) * 60);
+  // Zero can confirm cancellation only, never a one-minute start.
+  return observed.remaining > 0 && observed.field === field
+    && (observed.remaining === minutes * 60 || minutes > 1 && observed.remaining === (minutes - 1) * 60);
 }
