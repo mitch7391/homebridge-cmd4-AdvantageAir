@@ -74,7 +74,7 @@ export class TimerValveManager {
       return;
     }
     const cached = this.accessories.get(uuid);
-    const displayName = `${name} Countdown`;
+    const displayName = `${name} Timer`;
     const accessory = cached ?? new this.api.platformAccessory(displayName, uuid);
     const renamed = accessory.displayName !== displayName;
     accessory.displayName = displayName;

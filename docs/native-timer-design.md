@@ -1,6 +1,6 @@
 # Native timer as a legacy Valve
 
-This adds one `<aircon name> Countdown` accessory with a Generic Valve service per
+This adds one `<aircon name> Timer` accessory with a Generic Valve service per
 air conditioner reporting valid native countdown fields. It is the native
 one-shot timer, not v3's separate fan/cool/heat software timers.
 
@@ -104,13 +104,19 @@ identity disappears. It is not deleted or replaced. No migration of other roles
 is attempted.
 
 On first attachment to fresh valid controller data, both new and restored
-accessories use `<aircon name> Countdown`. The accessory display name, Accessory
+accessories use `<aircon name> Timer`. The accessory display name, Accessory
 Information Name and existing Valve service display name/Name are aligned and a
 changed cached name is saved once. The UUID input, service instance, context and
 selected duration are unchanged. This is a naming change for the unreleased
-feature, not a general migration mechanism. Countdown avoids the observed Siri
-Clock-timer wording collision; actual Siri accessory targeting remains a live
-check. Apple Home may retain its own user-assigned name independently.
+feature, not a general migration mechanism. Timer matches the native tablet.
+Apple Home may retain its own user-assigned name independently.
+
+The live naming experiment found that Countdown did not avoid Siri's Clock
+intent: "Set AC Countdown to 45 minutes" still invoked Clock. Adding "in Apple
+Home" successfully targeted the Home accessory and set a real 45-minute native
+timer. The corresponding final-name phrase to test is "Set AC Timer in Apple
+Home to 45 minutes"; that exact Timer phrasing has not yet been live-validated.
+Siri interpretation may change across iOS versions and is not guaranteed.
 
 Creation and command dispatch use normal logs; confirmations/no-ops use the
 existing debug path. Admission refusal and command failure remain warnings.
@@ -143,6 +149,6 @@ Valve Off cancelled the countdown and AC power remained off. The HAP metadata
 and Home duration-picker investigation are also complete and are not reopened
 by this naming change.
 
-The remaining live check for the Countdown name is only whether Siri targets
-the Home accessory instead of creating a Clock timer. No duration, expiry,
-cache or power-direction campaign needs repeating.
+The remaining naming-only live check is whether the explicit AC Timer in Apple
+Home phrase targets the Home accessory instead of creating a Clock timer. No
+duration, expiry, cache or power-direction campaign needs repeating.
