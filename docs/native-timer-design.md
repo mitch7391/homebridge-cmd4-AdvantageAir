@@ -111,12 +111,17 @@ selected duration are unchanged. This is a naming change for the unreleased
 feature, not a general migration mechanism. Timer matches the native tablet.
 Apple Home may retain its own user-assigned name independently.
 
-The live naming experiment found that Countdown did not avoid Siri's Clock
-intent: "Set AC Countdown to 45 minutes" still invoked Clock. Adding "in Apple
-Home" successfully targeted the Home accessory and set a real 45-minute native
-timer. The corresponding final-name phrase to test is "Set AC Timer in Apple
-Home to 45 minutes"; that exact Timer phrasing has not yet been live-validated.
-Siri interpretation may change across iOS versions and is not guaranteed.
+Repeated live tests with AC Timer reliably controlled the Valve's Active state
+using "Turn on AC Timer" and "Turn off AC Timer". Duration-setting commands were
+unreliable and could invoke iPhone Clock timers or fail to control the Home
+accessory. Temporary names including AC Countdown and Mitch did not make
+duration-setting voice control reliable, so the issue is not simply the word
+Timer. The final accessory name remains `<aircon name> Timer`.
+
+For reliable operation, choose the desired duration in Apple Home, then use
+Siri to turn the Timer on or off. Apple Home duration selection correctly sets
+exact native durations. Siri behaviour may vary across iOS/Siri versions; no
+duration-setting voice phrase is guaranteed.
 
 Creation and command dispatch use normal logs; confirmations/no-ops use the
 existing debug path. Admission refusal and command failure remain warnings.
@@ -149,6 +154,5 @@ Valve Off cancelled the countdown and AC power remained off. The HAP metadata
 and Home duration-picker investigation are also complete and are not reopened
 by this naming change.
 
-The remaining naming-only live check is whether the explicit AC Timer in Apple
-Home phrase targets the Home accessory instead of creating a Clock timer. No
-duration, expiry, cache or power-direction campaign needs repeating.
+The live Siri investigation is complete; the on/off guidance above reflects
+its results. No duration, expiry, cache or power-direction campaign needs repeating.
