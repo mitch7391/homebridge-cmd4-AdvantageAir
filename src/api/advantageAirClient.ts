@@ -1,3 +1,5 @@
+import { validateTimerWrite } from './timerCommand.js';
+import type { TimerField } from './timerCommand.js';
 import { myZoneTarget } from './myZoneCommand.js';
 import type { FanSpeed } from './fanCommand.js';
 import type { ModeFanPlan } from './modeFanCommand.js';
@@ -227,6 +229,22 @@ export class AdvantageAirClient {
     const response = await this.requestJson(endpoint, signal);
     if (response === false) {
       throw new AirconCommandRejectedError('Controller rejected the MyZone command.');
+    }
+    return response;
+  }
+
+  /** One countdown-only write; never changes AC power or schedules a local power command. */
+  async requestTimer(airconKey: string, field: TimerField, minutes: number, signal?: AbortSignal): Promise<unknown> {
+    if (typeof airconKey !== 'string' || !/^ac\d+$/.test(airconKey)) {
+      throw new AdvantageAirRequestError('Invalid air conditioner address.');
+    }
+    validateTimerWrite(field, minutes);
+    const endpoint = new URL('/setAircon', this.endpoint);
+    endpoint.searchParams.set('json', JSON.stringify({ [airconKey]: { info: { [field]: minutes } } }));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the timer command.');
     }
     return response;
   }

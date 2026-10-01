@@ -1,3 +1,4 @@
+import { TimerValveManager } from './accessories/timerValveManager.js';
 import { fanSetting } from './api/fanCommand.js';
 import type {
   API,
@@ -26,6 +27,7 @@ interface ConfiguredController {
   modeFanManager: ModeFanManager;
   myZoneManager: MyZoneManager;
   percentageManager: PercentageZoneManager;
+  timerManager: TimerValveManager;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -69,6 +71,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         controller.modeFanManager.stop();
         controller.myZoneManager.stop();
         controller.percentageManager.stop();
+        controller.timerManager.stop();
       }
     });
   }
@@ -82,6 +85,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     ModeFanManager.prepareCachedAccessory(this.api, accessory);
     MyZoneManager.prepareCachedAccessory(this.api, accessory);
     PercentageZoneManager.prepareCachedAccessory(this.api, accessory);
+    TimerValveManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -216,12 +220,13 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
         }, message => this.log.warn(name, message), (event) => {
-          const state = event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
-            : event.kind === 'percentage' ? 'zone percentage ' + event.percentage + '%'
-              : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
-                : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
-                  : event.kind === 'mode' ? event.mode
-                    : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
+          const state = event.kind === 'timer' ? (event.active ? 'timer ' + event.seconds / 60 + ' minutes' : 'timer cancelled')
+            : event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
+              : event.kind === 'percentage' ? 'zone percentage ' + event.percentage + '%'
+                : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
+                  : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
+                    : event.kind === 'mode' ? event.mode
+                      : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               this.log.debug(name, event.name,
@@ -270,7 +275,14 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
         updateManagers.push(state => myZoneManager.update(state));
 
-        this.controllers.push({ name, debug, poller, switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager });
+        const timerManager = new TimerValveManager(this.api, this.accessories, poller,
+          message => this.log.warn(name, message),
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+        updateManagers.push(state => timerManager.update(state));
+
+        this.controllers.push({
+          name, debug, poller, switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager, timerManager,
+        });
       } catch (error) {
         const reason = error instanceof Error
           ? error.message
