@@ -46,10 +46,21 @@ myZone protection. Before sending, the coordinator obtains fresh data and
 rechecks stable identity, zone capability and protection. A matching fresh state
 needs no write. Otherwise it sends exactly one encoded state-only request.
 
-Confirmation reads are spaced one second apart. An exact empty-object response
-is considered temporarily busy during confirmation. Other invalid responses
-fail the operation. Ordinary polls defer while commands are running, and valid
-confirmation snapshots update temperature accessories as well as switches.
+An exact empty-object read response is considered temporarily busy. Preflight,
+MyZone snapshots between ordered steps, confirmation and ordinary/startup polls
+retry only this known busy condition at one-second intervals within their existing
+budgets. Commands retain their single 15-second execution budget (shortened by
+intent expiry); polls retain their 10-second budget. Busy reads do not extend either.
+Other validation, HTTP, connection and response-body errors retain their failure
+handling. No physical write is retried.
+
+Preflight waits for valid fresh data and replans from it, including detecting a
+no-op. Unsent superseded requests stop waiting; shutdown prevents later dispatch.
+MyZone continues from its confirmed step without replay or rollback. A poll that
+recovers within its budget publishes normally without a failure/recovery event;
+exhausted polls retain the existing last-good-data/freshness policy. Ordinary polls
+defer while commands are running, and valid confirmation snapshots update
+temperature accessories as well as switches.
 
 An explicit controller rejection fails the command. An ambiguous transport
 failure is reconciled by reads within the operation budget, without resending.
