@@ -651,9 +651,11 @@ export class ControllerCoordinator {
   private async poll(): Promise<void> {
     try {
       await this.bounded(10000, async signal => {
-        const data = await this.client.getSystemData(signal);
+        const data = await this.readWhenReady(() => this.client.getSystemData(signal), signal);
         signal.throwIfAborted();
-        this.observe(data);
+        if (data) {
+          this.observe(data);
+        }
       });
     } catch {
       if (!this.stopped) {
@@ -692,8 +694,12 @@ export class ControllerCoordinator {
           }
         };
         const snapshot = async () => {
-          const data = await this.client.getFreshSystemData(signal);
+          const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
+            () => !intent.finished && (sent || this.desired.get(intent.key) === intent));
           live();
+          if (!data) {
+            return;
+          }
           // Publish observations before checking whether they confirm our request.
           // A partial outcome or changed reference must never restore an older snapshot.
           this.observe(data);
@@ -714,6 +720,9 @@ export class ControllerCoordinator {
           step = next;
           const before = await snapshot();
           live();
+          if (!before) {
+            return;
+          }
           if (!sent && this.desired.get(intent.key) !== intent) {
             return;
           }
@@ -773,6 +782,9 @@ export class ControllerCoordinator {
               throw new MyZoneCommandError('Controller data could not be read while confirming this step.');
             }
             live();
+            if (!after) {
+              return;
+            }
             if (step === 'target' && after.plan.temperature !== target) {
               throw new MyZoneCommandError('The selected zone target changed during target synchronization.');
             }
@@ -817,8 +829,12 @@ export class ControllerCoordinator {
     let sent = false;
     try {
       await this.bounded(Math.min(15000, intent.expires - Date.now()), async signal => {
-        const data = await this.client.getFreshSystemData(signal);
+        const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
+          () => !intent.finished && this.desired.get(intent.key) === intent);
         signal.throwIfAborted();
+        if (!data) {
+          return;
+        }
         this.observe(data);
         const plan = this.plan(data, intent);
         // A newer unsent intent replaces this one even during preflight.
@@ -881,6 +897,34 @@ export class ControllerCoordinator {
         }
         this.queued.clear();
       }
+    }
+  }
+
+  /** Retry only known busy reads under the caller's existing budget; never retry a write. */
+  private async readWhenReady(
+    read: () => Promise<SystemData>,
+    signal: AbortSignal,
+    isCurrent: () => boolean = () => true,
+  ): Promise<SystemData | undefined> {
+    while (true) {
+      signal.throwIfAborted();
+      if (!isCurrent()) {
+        return;
+      }
+      try {
+        const data = await read();
+        signal.throwIfAborted();
+        return data;
+      } catch (error) {
+        signal.throwIfAborted();
+        if (!(error instanceof ControllerBusyError)) {
+          throw error;
+        }
+      }
+      if (!isCurrent()) {
+        return;
+      }
+      await this.wait(signal);
     }
   }
 
