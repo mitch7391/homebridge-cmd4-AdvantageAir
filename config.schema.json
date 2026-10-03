@@ -9,7 +9,8 @@
     "additionalProperties": false,
     "properties": {
       "name": {
-        "title": "Name",
+        "title": "Platform log name",
+        "description": "Label for this platform in Homebridge logs. Accessory names come from the controller.",
         "type": "string",
         "default": "Homebridge Advantage Air"
       },
@@ -23,9 +24,9 @@
           "additionalProperties": false,
           "properties": {
             "name": {
-              "title": "Controller name",
+              "title": "Controller log label (optional)",
               "type": "string",
-              "default": "Aircon"
+              "description": "Defaults to Controller 1, Controller 2, etc. This label does not rename Home accessories."
             },
             "ipAddress": {
               "title": "IP address",
@@ -34,7 +35,8 @@
               "format": "ipv4"
             },
             "port": {
-              "title": "Port",
+              "title": "Controller API port",
+              "description": "Leave at 2025 unless your controller uses a different API port. This is not the Homebridge bridge port.",
               "type": "integer",
               "minimum": 1,
               "maximum": 65535,
@@ -42,7 +44,7 @@
             },
             "debug": {
               "title": "Detailed debug logging",
-              "description": "Log controller read summaries without including full responses.",
+              "description": "Include sanitised request timing, read summaries and command confirmations. Also enable Homebridge debug logging.",
               "type": "boolean",
               "default": false
             }
