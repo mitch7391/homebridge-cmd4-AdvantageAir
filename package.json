@@ -24,6 +24,8 @@
   ],
   "main": "dist/index.js",
   "files": [
+  "AdvAir.sh",
+  "docs/v3-migration.md",
   "dist/",
   "config.schema.json",
   "LICENSE",
