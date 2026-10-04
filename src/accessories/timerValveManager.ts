@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
@@ -52,7 +53,7 @@ export class TimerValveManager {
       });
       this.present = new Set(devices.map(device => device.identity));
       for (const device of devices) {
-        this.attach(device.identity, device.name);
+        this.attach(device.identity, device.name, state.data.system.sysType);
       }
     } catch (error) {
       this.present.clear();
@@ -68,9 +69,13 @@ export class TimerValveManager {
     this.updateHandlers();
   }
 
-  private attach(identity: string, name: string): void {
+  private attach(identity: string, name: string, sysType: unknown): void {
     const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'native-timer']));
     if (this.handlers.has(uuid)) {
+      const accessory = this.accessories.get(uuid);
+      if (accessory) {
+        updateAccessoryInformation(this.api, accessory, sysType, true);
+      }
       return;
     }
     const cached = this.accessories.get(uuid);
@@ -99,9 +104,10 @@ export class TimerValveManager {
     valve.displayName = displayName;
     valve.setCharacteristic(nameCharacteristic, displayName);
     information.setCharacteristic(nameCharacteristic, displayName);
+    const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
     const needsMarker = accessory.context.advantageAirTimer !== true;
     accessory.context.advantageAirTimer = true;
-    if (cached && (needsMarker || needsNames)) {
+    if (cached && (needsMarker || needsNames || metadataChanged)) {
       this.api.updatePlatformAccessories([accessory]);
     }
     if (!cached) {

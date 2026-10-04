@@ -100,6 +100,23 @@ One immediate tablet-to-Home overlapping command timed out after valid
 preflight and one write. It was not reproduced in three controlled repeats.
 Its cause remains undetermined; recurrence should be investigated separately.
 
+## Accessory Information
+
+Native accessories report Advantage Air as Manufacturer and the controller's
+valid `system.sysType` as Model, exactly as reported (for example e-zone or
+MyAir5). A missing, empty or invalid model leaves existing metadata intact;
+before any valid model is received, Homebridge's default remains.
+
+Serial Number is `AA-` followed by the existing accessory UUID without hyphens.
+It identifies the virtual accessory without exposing raw controller identifiers.
+Firmware Revision is the installed plugin package version, not a controller
+component's firmware revision. Name follows the existing accessory display name.
+Linked fan-speed and grouped MyZone services share their parent's information.
+
+Metadata is refreshed from valid discovery data without changing accessory
+UUIDs, services, saved Timer duration or pairing. No additional controller
+requests are made. Apple Home may cache or choose not to display some fields.
+
 ## Logs and diagnostics
 
 Normal logs show startup, first data, accessory creation, commands being sent,
