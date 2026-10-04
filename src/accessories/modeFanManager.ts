@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
@@ -44,7 +45,7 @@ export class ModeFanManager {
       this.present = new Set(devices.map(device => device.identity));
       for (const device of devices) {
         for (const mode of ['vent', 'dry'] as const) {
-          this.attach(device.identity, device.name, mode);
+          this.attach(device.identity, device.name, mode, state.data.system.sysType);
         }
       }
     } catch (error) {
@@ -61,9 +62,13 @@ export class ModeFanManager {
     this.updateHandlers();
   }
 
-  private attach(identity: string, name: string, mode: FanMode): void {
+  private attach(identity: string, name: string, mode: FanMode, sysType: unknown): void {
     const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'mode-fan', mode]));
     if (this.handlers.has(uuid)) {
+      const accessory = this.accessories.get(uuid);
+      if (accessory) {
+        updateAccessoryInformation(this.api, accessory, sysType, true);
+      }
       return;
     }
     const cached = this.accessories.get(uuid);
@@ -81,9 +86,10 @@ export class ModeFanManager {
       setSpeed: percentage => use(() => this.coordinator.requestFanSpeed(identity, percentage)),
       warn: this.warn,
     });
+    const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
     const needsMarker = accessory.context.advantageAirModeFan !== mode;
     accessory.context.advantageAirModeFan = mode;
-    if (cached && needsMarker) {
+    if (cached && (needsMarker || metadataChanged)) {
       this.api.updatePlatformAccessories([accessory]);
     }
     if (!cached) {

@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -80,11 +81,14 @@ export class ZoneSwitchManager {
           continue;
         }
         const zone = data.aircons[device.airconKey].zones[device.zoneKey];
-        if (this.handlers.has(device.identity)) {
-          continue;
-        }
         const uuid = this.api.hap.uuid.generate(JSON.stringify([device.identity, 'zone-switch']));
         const cached = this.accessories.get(uuid);
+        if (this.handlers.has(device.identity)) {
+          if (cached) {
+            updateAccessoryInformation(this.api, cached, data.system.sysType, true);
+          }
+          continue;
+        }
         const percentageId = this.api.hap.uuid.generate(JSON.stringify([device.identity, 'zone-percentage']));
         if (!cached && this.accessories.get(percentageId)?.context.advantageAirPercentageZone === true) {
           // Retain an existing layout rather than creating a second zone control.
@@ -102,9 +106,10 @@ export class ZoneSwitchManager {
           setOn: on => this.coordinator.requestZone(device.identity, on),
           warn: this.warn,
         });
+        const metadataChanged = updateAccessoryInformation(this.api, accessory, data.system.sysType);
         const needsMarker = accessory.context.advantageAirZoneSwitch !== true;
         accessory.context.advantageAirZoneSwitch = true;
-        if (cached && needsMarker) {
+        if (cached && (needsMarker || metadataChanged)) {
           this.api.updatePlatformAccessories([accessory]);
         }
         if (!cached) {

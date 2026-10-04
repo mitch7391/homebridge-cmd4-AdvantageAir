@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -70,7 +71,7 @@ export class MyZoneManager {
         const cached = this.accessories.get(uuid);
         const accessory = cached ?? new this.api.platformAccessory(`${aircon.name} MyZone`, uuid);
         let handler = this.handlers.get(uuid);
-        let changed = false;
+        let changed = updateAccessoryInformation(this.api, accessory, state.data.system.sysType);
         if (!handler) {
           const use = <T>(identity: string, operation: () => T): T => {
             if (this.stopped || !this.eligible.has(identity)) {
@@ -83,7 +84,7 @@ export class MyZoneManager {
             select: identity => use(identity, () => this.coordinator.requestMyZoneSelection(aircon.identity, identity)),
             warn: this.warn,
           });
-          changed = accessory.context.advantageAirMyZone !== true;
+          changed = accessory.context.advantageAirMyZone !== true || changed;
           accessory.context.advantageAirMyZone = true;
           this.handlers.set(uuid, handler);
         }

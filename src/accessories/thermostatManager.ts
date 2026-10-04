@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import { FanSpeedAccessory } from './fanSpeedAccessory.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -70,12 +71,15 @@ export class ThermostatManager {
       }
       this.present = new Set(devices.map(device => device.identity));
       for (const device of devices) {
-        if (this.handlers.has(device.identity)) {
-          continue;
-        }
         const identity = device.identity;
         const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'thermostat']));
         const cached = this.accessories.get(uuid);
+        if (this.handlers.has(identity)) {
+          if (cached) {
+            updateAccessoryInformation(this.api, cached, state.data.system.sysType, true);
+          }
+          continue;
+        }
         const accessory = cached ?? new this.api.platformAccessory(device.name, uuid);
         const use = <T>(operation: () => T): T => {
           if (this.stopped || !this.present.has(identity)) {
@@ -96,9 +100,10 @@ export class ThermostatManager {
         const fan = new FanSpeedAccessory(this.api, accessory,
           () => use(() => this.coordinator.readFanSpeed(identity)),
           percentage => use(() => this.coordinator.requestFanSpeed(identity, percentage)), this.warn);
+        const metadataChanged = updateAccessoryInformation(this.api, accessory, state.data.system.sysType);
         const needsMarker = accessory.context.advantageAirThermostat !== true;
         accessory.context.advantageAirThermostat = true;
-        if (cached && (needsMarker || needsFan)) {
+        if (cached && (needsMarker || needsFan || metadataChanged)) {
           this.api.updatePlatformAccessories([accessory]);
         }
         if (!cached) {

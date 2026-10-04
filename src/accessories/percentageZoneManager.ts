@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
@@ -52,7 +53,7 @@ export class PercentageZoneManager {
           continue;
         }
         this.present.add(device.identity);
-        this.attach(device.identity, device.name);
+        this.attach(device.identity, device.name, state.data.system.sysType);
       }
     } catch (error) {
       this.present.clear();
@@ -68,11 +69,15 @@ export class PercentageZoneManager {
     this.updateHandlers();
   }
 
-  private attach(identity: string, name: string): void {
+  private attach(identity: string, name: string, sysType: unknown): void {
+    const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'zone-percentage']));
     if (this.handlers.has(identity)) {
+      const accessory = this.accessories.get(uuid);
+      if (accessory) {
+        updateAccessoryInformation(this.api, accessory, sysType, true);
+      }
       return;
     }
-    const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'zone-percentage']));
     const cached = this.accessories.get(uuid);
     const accessory = cached ?? new this.api.platformAccessory(`${name} Zone`, uuid);
     const use = <T>(operation: () => T): T => {
@@ -88,9 +93,10 @@ export class PercentageZoneManager {
       setPercentage: value => use(() => this.coordinator.requestZonePercentage(identity, value)),
       warn: this.warn,
     });
+    const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
     const needsMarker = accessory.context.advantageAirPercentageZone !== true;
     accessory.context.advantageAirPercentageZone = true;
-    if (cached && needsMarker) {
+    if (cached && (needsMarker || metadataChanged)) {
       this.api.updatePlatformAccessories([accessory]);
     }
     if (!cached) {

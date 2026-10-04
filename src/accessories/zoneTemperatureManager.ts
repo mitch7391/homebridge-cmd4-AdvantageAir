@@ -1,3 +1,4 @@
+import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -125,6 +126,10 @@ export class ZoneTemperatureManager {
         const existingBinding = this.bindings.get(uuid);
 
         if (existingBinding) {
+          const accessory = this.accessories.get(uuid);
+          if (accessory) {
+            updateAccessoryInformation(this.api, accessory, state.data.system.sysType, true);
+          }
           existingBinding.airconKey = device.airconKey;
           existingBinding.zoneKey = device.zoneKey;
           existingBinding.present = true;
@@ -157,10 +162,11 @@ export class ZoneTemperatureManager {
             : { ...this.state, data: undefined },
         });
 
+        const metadataChanged = updateAccessoryInformation(this.api, accessory, state.data.system.sysType);
         const needsMarker = accessory.context.advantageAirTemperature !== true;
         accessory.context.advantageAirTemperature = true;
 
-        if (cachedAccessory && needsMarker) {
+        if (cachedAccessory && (needsMarker || metadataChanged)) {
           this.api.updatePlatformAccessories([accessory]);
         }
 
