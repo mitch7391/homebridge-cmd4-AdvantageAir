@@ -1,3 +1,4 @@
+import { detailedDebug, HomeNames } from './discovery/homeNames.js';
 import { TimerValveManager } from './accessories/timerValveManager.js';
 import { fanSetting } from './api/fanCommand.js';
 import type {
@@ -19,6 +20,7 @@ import { PercentageZoneManager } from './accessories/percentageZoneManager.js';
 import { DuplicateControllerError, ZoneTemperatureManager } from './accessories/zoneTemperatureManager.js';
 
 interface ConfiguredController {
+  refreshAccessories: () => void;
   name: string;
   debug: boolean;
   poller: ControllerCoordinator;
@@ -38,6 +40,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
   public readonly accessories = new Map<string, PlatformAccessory>();
 
   private readonly controllers: ConfiguredController[] = [];
+  private readonly homeNames: HomeNames;
   private launched = false;
   private stopped = false;
 
@@ -46,6 +49,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     public readonly config: PlatformConfig,
     public readonly api: API,
   ) {
+    this.homeNames = new HomeNames(message => this.log.warn(message));
     this.configureControllers(this.config.devices);
 
     this.api.on('didFinishLaunching', () => {
@@ -114,6 +118,10 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           throw new Error('Controller name must be text.');
         }
 
+        if (device.homeName !== undefined && typeof device.homeName !== 'string') {
+          throw new Error('Home Name must be text.');
+        }
+
         if (device.debug !== undefined && typeof device.debug !== 'boolean') {
           throw new Error('Debug must be true or false.');
         }
@@ -124,7 +132,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           ? device.name.trim()
           : `Controller ${index + 1}`;
 
-        const debug = device.debug === true;
+        const debug = detailedDebug(this.config.debug, device.debug);
         const client = new AdvantageAirClient({
           ipAddress, port,
           onDiagnostic: debug
@@ -152,14 +160,15 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         const updateManagers: Array<(state: ControllerPollState) => void> = [
           state => temperatureManager.update(state),
         ];
-        const poller = new ControllerCoordinator(client, (state, reason) => {
+        let latestState: ControllerPollState = { lastAttemptFailed: false };
+        const refreshAccessories = (coordinator: ControllerCoordinator) => {
           let updateFailed = false;
           for (const update of updateManagers) {
             try {
-              update(state);
+              update(latestState);
             } catch (error) {
               if (error instanceof DuplicateControllerError) {
-                poller.stop();
+                coordinator.stop();
                 this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
                 return;
               }
@@ -174,6 +183,21 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
           accessoryUpdateFailed = updateFailed;
+        };
+        const poller = new ControllerCoordinator(client, (state, reason) => {
+          latestState = state;
+          const namesChanged = state.data && !state.lastAttemptFailed
+            ? this.homeNames.update(index, state.data) : false;
+          refreshAccessories(poller);
+          if (namesChanged) {
+            // All names have been validated before any manager sees a new name.
+            // Refresh earlier responders without another controller read or write.
+            for (const controller of this.controllers) {
+              if (controller.poller !== poller) {
+                controller.refreshAccessories();
+              }
+            }
+          }
           if (reason === 'state') {
             return;
           }
@@ -257,12 +281,13 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           poller,
           message => this.log.warn(name, message),
           accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
+          this.homeNames.resolve,
         );
         updateManagers.push(state => thermostatManager.update(state));
 
         const modeFanManager = new ModeFanManager(this.api, this.accessories, poller,
           message => this.log.warn(name, message),
-          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName), this.homeNames.resolve);
         updateManagers.push(state => modeFanManager.update(state));
 
         const percentageManager = new PercentageZoneManager(this.api, this.accessories, poller,
@@ -272,16 +297,18 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
 
         const myZoneManager = new MyZoneManager(this.api, this.accessories, poller,
           message => this.log.warn(name, message),
-          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName), this.homeNames.resolve);
         updateManagers.push(state => myZoneManager.update(state));
 
         const timerManager = new TimerValveManager(this.api, this.accessories, poller,
           message => this.log.warn(name, message),
-          accessoryName => this.log.info(name, 'Created accessory:', accessoryName));
+          accessoryName => this.log.info(name, 'Created accessory:', accessoryName), this.homeNames.resolve);
         updateManagers.push(state => timerManager.update(state));
 
+        this.homeNames.configure(index, name, device.homeName);
         this.controllers.push({
-          name, debug, poller, switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager, timerManager,
+          refreshAccessories: () => refreshAccessories(poller), name, debug, poller,
+          switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager, timerManager,
         });
       } catch (error) {
         const reason = error instanceof Error

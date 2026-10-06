@@ -274,7 +274,7 @@ test('multiple aircons get distinct thermostat identities and commands affect on
   const thermostats = c.registered.filter(a => a.context.advantageAirThermostat);
   assert.equal(thermostats.length, 2);
   assert.notEqual(thermostats[0].UUID, thermostats[1].UUID);
-  const upstairs = thermostats.find(a => a.displayName === 'Upstairs').getService(c.api.hap.Service.Thermostat);
+  const upstairs = thermostats.find(a => a.displayName === 'Aircon 2').getService(c.api.hap.Service.Thermostat);
   await upstairs.getCharacteristic(c.api.hap.Characteristic.TargetHeatingCoolingState).handleSetRequest(2);
   await c.advance(7200);
   assert.deepEqual(c.writes, [{ ac2: { info: { state: 'on', mode: 'cool' } } }]);

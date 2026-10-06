@@ -73,14 +73,14 @@ async function setup(t, edit) {
 
 test('native Timer creates one Generic Valve alongside existing layouts with correct seconds bounds', async t => {
   const c = await setup(t);
-  assert.equal(c.accessory().displayName, 'Simulator AC Timer');
+  assert.equal(c.accessory().displayName, 'Aircon Timer');
   const identity = discoverDevices(c.data).find(device => device.kind === 'aircon').identity;
   assert.equal(c.accessory().UUID, c.api.hap.uuid.generate(JSON.stringify([identity, 'native-timer'])));
   const valve = c.accessory().getService(c.api.hap.Service.Valve);
-  assert.equal(valve.displayName, 'Simulator AC Timer');
-  assert.equal(valve.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Simulator AC Timer');
+  assert.equal(valve.displayName, 'Aircon Timer');
+  assert.equal(valve.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Aircon Timer');
   const information = c.accessory().getService(c.api.hap.Service.AccessoryInformation);
-  assert.equal(information.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Simulator AC Timer');
+  assert.equal(information.getCharacteristic(c.api.hap.Characteristic.Name).value, 'Aircon Timer');
   assert.equal(c.accessory().services.filter(service => service.UUID === c.api.hap.Service.Valve.UUID).length, 1);
   assert.equal(c.characteristic('ValveType').value, c.api.hap.Characteristic.ValveType.GENERIC_VALVE);
   assert.equal(c.characteristic('IsConfigured').value, 1);
@@ -94,7 +94,7 @@ test('native Timer creates one Generic Valve alongside existing layouts with cor
   for (const marker of ['advantageAirMyZone', 'advantageAirThermostat', 'advantageAirPercentageZone']) {
     assert.ok([...c.platform.accessories.values()].some(a => a.context[marker]));
   }
-  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Simulator AC Timer')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Aircon Timer')).length, 1);
 });
 
 test('inactive SetDuration only stores selection; activation and active duration changes use coordinator', async t => {

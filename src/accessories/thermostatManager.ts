@@ -1,3 +1,5 @@
+import { airconAccessoryName, updateAccessoryName } from './accessoryName.js';
+import type { HomeNameResolver } from '../discovery/homeNames.js';
 import { updateAccessoryInformation } from './accessoryInformation.js';
 import { FanSpeedAccessory } from './fanSpeedAccessory.js';
 import type { API, PlatformAccessory } from 'homebridge';
@@ -26,6 +28,7 @@ export class ThermostatManager {
     private readonly coordinator: ThermostatController,
     private readonly warn: (message: string) => void,
     private readonly onCreated?: (name: string) => void,
+    private readonly resolveHomeName?: HomeNameResolver,
   ) {}
 
   static prepareCachedAccessory(api: API, accessory: PlatformAccessory): void {
@@ -74,13 +77,26 @@ export class ThermostatManager {
         const identity = device.identity;
         const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'thermostat']));
         const cached = this.accessories.get(uuid);
+        const name = airconAccessoryName(this.resolveHomeName, identity, device.name, '', cached);
+        if (name === undefined) {
+          continue;
+        }
+        const rename = (accessory: PlatformAccessory) =>
+          (!this.resolveHomeName || this.resolveHomeName(identity) !== undefined) && updateAccessoryName(this.api, accessory, name, [
+            [accessory.getService(this.api.hap.Service.Thermostat), name],
+            [accessory.getServiceById(this.api.hap.Service.Fan, 'fan-speed'), `${name} FanSpeed`],
+          ]);
         if (this.handlers.has(identity)) {
           if (cached) {
-            updateAccessoryInformation(this.api, cached, state.data.system.sysType, true);
+            const renamed = rename(cached);
+            const metadataChanged = updateAccessoryInformation(this.api, cached, state.data.system.sysType);
+            if (renamed || metadataChanged) {
+              this.api.updatePlatformAccessories([cached]);
+            }
           }
           continue;
         }
-        const accessory = cached ?? new this.api.platformAccessory(device.name, uuid);
+        const accessory = cached ?? new this.api.platformAccessory(name, uuid);
         const use = <T>(operation: () => T): T => {
           if (this.stopped || !this.present.has(identity)) {
             throw new ThermostatCommandError('The air conditioner is unavailable.');
@@ -100,10 +116,11 @@ export class ThermostatManager {
         const fan = new FanSpeedAccessory(this.api, accessory,
           () => use(() => this.coordinator.readFanSpeed(identity)),
           percentage => use(() => this.coordinator.requestFanSpeed(identity, percentage)), this.warn);
+        const namesChanged = rename(accessory);
         const metadataChanged = updateAccessoryInformation(this.api, accessory, state.data.system.sysType);
         const needsMarker = accessory.context.advantageAirThermostat !== true;
         accessory.context.advantageAirThermostat = true;
-        if (cached && (needsMarker || needsFan || metadataChanged)) {
+        if (cached && (needsMarker || needsFan || metadataChanged || namesChanged)) {
           this.api.updatePlatformAccessories([accessory]);
         }
         if (!cached) {

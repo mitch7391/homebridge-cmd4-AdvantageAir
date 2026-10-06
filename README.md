@@ -31,9 +31,10 @@ For a maintainer trial before publication, use the built, validated tarball
 and the existing isolated test environment. Do not enable npm publishing just
 to test installation.
 
-1. Open this plugin's settings and add your controller's IPv4 address.
+1. Open this plugin's settings and add your controller's IPv4 address and Home
+   base **Name** (default `Aircon`). Give each controller a distinct Name.
 2. Leave the controller API port at 2025 unless your installation uses another
-   port. Reserve the controller address in your router.
+   port, such as 10211 for Fujitsu anywAIR. Reserve the controller address in your router.
 3. Save and restart the plugin/Homebridge as prompted. Homebridge owns child
    bridge settings, pairing and network ports; they are not plugin options.
 4. Pair the bridge if necessary and arrange the discovered accessories in Home.
@@ -46,15 +47,38 @@ Minimal native platform configuration:
   "name": "Homebridge Advantage Air",
   "devices": [
     {
+      "homeName": "Aircon",
       "ipAddress": "192.168.1.100"
     }
   ]
 }
 ```
 
-Controller `name` is an optional log label, falling back to `Controller 1`,
-`Controller 2`, etc. It does not rename Home accessories: their initial names
-come from the controller's aircon and zone names.
+The visible **Name** is saved as `devices[].homeName`. Missing or blank values
+resolve to `Aircon`; explicit values are trimmed. Aircons are numbered within
+each controller in natural key order (ac1, ac2, ...): `Aircon`, `Aircon 2`,
+`Aircon 3`, or `Downstairs Aircon`, `Downstairs Aircon 2`, etc. Numbering starts
+over for each controller. Related Timer, Fan, Dry Mode, FanSpeed and MyZone
+names follow their aircon base. Zone names remain controller-supplied.
+
+Resolved aircon base names must be unique across the platform, ignoring case
+and surrounding whitespace. For example, a controller named `Aircon 2`
+conflicts with the second aircon on a controller named `Aircon`. The complete
+discovered set is checked before any rename; conflicts are logged and retain
+previously accepted accessory names and operation. No extra suffix is invented.
+On startup, renames and new aircon-related accessories wait until every valid
+configured controller has supplied a usable discovery inventory. Cached
+accessories can reconnect under their previous names during that wait.
+
+Changing Name does not change UUIDs, pairing, services or saved Timer duration.
+Apple Home may retain names customised there. Existing development accessories
+previously named from controller data (for example AC) now adopt this Name.
+
+The existing platform `name` and controller `devices[].name` remain hidden log
+labels and are preserved on settings saves. They are not Home naming inputs.
+Controller log labels still default to Controller 1, Controller 2, etc.
+The standard settings form uses controller tabs; all child-bridge controls
+remain Homebridge-owned.
 
 ## Existing legacy layout
 
@@ -122,7 +146,11 @@ requests are made. Apple Home may cache or choose not to display some fields.
 Normal logs show startup, first data, accessory creation, commands being sent,
 failures and recovery. Confirmations, no-op results, read summaries and sanitised
 HTTP timing are debug messages. To capture detailed controller diagnostics,
-enable that controller's `debug` option **and** Homebridge debug logging.
+enable that controller's Detailed debug logging option **or** the platform-wide
+Detailed debug logging for all controllers option, **and** Homebridge debug
+logging. Effective selection is `platform.debug === true || device.debug === true`.
+Turning the global option off and saving/restarting restores the saved individual
+selections; it never clears or rewrites those selections.
 
 Do not post raw controller responses: they may contain identifiers, location
 data, notification tokens or PINs.

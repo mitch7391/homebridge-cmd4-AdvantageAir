@@ -53,6 +53,12 @@ legacy setup.
 2. Add a **separate** native `AdvantageAir` platform configuration using the
    plugin settings or the README's minimal example. Do not overwrite the
    existing Cmd4 configuration or repurpose the old helper entry.
+   For the same naming convention, manually enter the base **Name** you configured
+   in v3 (historically defaulting to `Aircon`) into native v4's Name field.
+   This is saved separately as `homeName`; the retained legacy configuration
+   stays untouched. Additional aircons use Name 2, Name 3, etc. Arbitrary Cmd4
+   accessory renames made after ConfigCreator ran are not reconstructed.
+   The existing v3/Cmd4 accessories remain available as a reference during migration.
 3. Save/restart as prompted. Use Homebridge's own child-bridge controls if
    desired. Do not copy another bridge's username, port or pairing information.
 4. Compare the old and new accessory sets. Rename/move the new accessories in

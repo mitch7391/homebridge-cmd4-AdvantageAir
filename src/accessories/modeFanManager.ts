@@ -1,3 +1,5 @@
+import { airconAccessoryName, updateAccessoryName } from './accessoryName.js';
+import type { HomeNameResolver } from '../discovery/homeNames.js';
 import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -19,6 +21,7 @@ export class ModeFanManager {
     private readonly coordinator: Pick<ControllerCoordinator, 'readModeFan' | 'requestModeFan' | 'readFanSpeed' | 'requestFanSpeed'>,
     private readonly warn: (message: string) => void,
     private readonly onCreated: (name: string) => void,
+    private readonly resolveHomeName?: HomeNameResolver,
   ) {}
 
   static prepareCachedAccessory(api: API, accessory: PlatformAccessory): void {
@@ -64,15 +67,27 @@ export class ModeFanManager {
 
   private attach(identity: string, name: string, mode: FanMode, sysType: unknown): void {
     const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'mode-fan', mode]));
+    const cached = this.accessories.get(uuid);
+    const displayName = airconAccessoryName(this.resolveHomeName, identity, name,
+      ` ${mode === 'vent' ? 'Fan' : 'Dry Mode'}`, cached);
+    if (displayName === undefined) {
+      return;
+    }
+    const rename = (accessory: PlatformAccessory) =>
+      (!this.resolveHomeName || this.resolveHomeName(identity) !== undefined) && updateAccessoryName(this.api, accessory, displayName,
+        [[accessory.getService(this.api.hap.Service.Fan), displayName]]);
     if (this.handlers.has(uuid)) {
       const accessory = this.accessories.get(uuid);
       if (accessory) {
-        updateAccessoryInformation(this.api, accessory, sysType, true);
+        const renamed = rename(accessory);
+        const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
+        if (renamed || metadataChanged) {
+          this.api.updatePlatformAccessories([accessory]);
+        }
       }
       return;
     }
-    const cached = this.accessories.get(uuid);
-    const accessory = cached ?? new this.api.platformAccessory(`${name} ${mode === 'vent' ? 'Fan' : 'Dry Mode'}`, uuid);
+    const accessory = cached ?? new this.api.platformAccessory(displayName, uuid);
     const use = <T>(operation: () => T): T => {
       if (this.stopped || !this.present.has(identity)) {
         throw new ModeFanCommandError('The air conditioner is unavailable.');
@@ -86,10 +101,11 @@ export class ModeFanManager {
       setSpeed: percentage => use(() => this.coordinator.requestFanSpeed(identity, percentage)),
       warn: this.warn,
     });
+    const namesChanged = rename(accessory);
     const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
     const needsMarker = accessory.context.advantageAirModeFan !== mode;
     accessory.context.advantageAirModeFan = mode;
-    if (cached && (needsMarker || metadataChanged)) {
+    if (cached && (needsMarker || metadataChanged || namesChanged)) {
       this.api.updatePlatformAccessories([accessory]);
     }
     if (!cached) {
