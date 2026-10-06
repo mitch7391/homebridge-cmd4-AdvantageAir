@@ -145,10 +145,12 @@ requests are made. Apple Home may cache or choose not to display some fields.
 
 Normal logs show startup, first data, accessory creation, commands being sent,
 failures and recovery. Confirmations, no-op results, read summaries and sanitised
-HTTP timing are debug messages. To capture detailed controller diagnostics,
+HTTP timing are selected detailed diagnostics, marked `[Debug]` in the log. To capture detailed controller diagnostics,
 enable that controller's Detailed debug logging option **or** the platform-wide
-Detailed debug logging for all controllers option, **and** Homebridge debug
-logging. Effective selection is `platform.debug === true || device.debug === true`.
+Detailed debug logging for all controllers option. Homebridge/child-bridge Debug
+Mode (`-D`) is not required. Selected diagnostics use the normal visible log
+channel; Homebridge `-D` alone does not enable them. With both plugin options
+off, these controller diagnostics are suppressed. Effective selection is `platform.debug === true || device.debug === true`.
 Turning the global option off and saving/restarting restores the saved individual
 selections; it never clears or rewrites those selections.
 

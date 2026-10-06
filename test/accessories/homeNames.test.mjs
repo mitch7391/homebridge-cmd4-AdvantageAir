@@ -29,10 +29,14 @@ async function flush() {
     await Promise.resolve();
   }
 }
-function setup(t, devices, snapshots, { debug = false, cached = [] } = {}) {
+function setup(t, devices, snapshots, { debug = false, cached = [], homebridgeDebug = false } = {}) {
   const api = new HomebridgeAPI();
   const logs = { info: [], warn: [], error: [], debug: [] };
-  const log = Object.fromEntries(Object.keys(logs).map(level => [level, (...args) => logs[level].push(args.join(' '))]));
+  const log = Object.fromEntries(Object.keys(logs).map(level => [level, (...args) => {
+    if (level !== 'debug' || homebridgeDebug) {
+      logs[level].push(args.join(' '));
+    }
+  }]));
   const registered = [];
   const updated = [];
   const reads = [];
@@ -245,12 +249,56 @@ test('global debug enables all controllers and turning it off restores preserved
     await flush();
     for (const label of ['Downstairs log', 'Upstairs log']) {
       const enabled = label === 'Downstairs log' || debug;
-      assert.equal(c.logs.debug.some(s => s.includes(label) && s.includes('AA timing:')), enabled);
-      assert.equal(c.logs.debug.some(s => s.includes(label) && s.includes('Controller read:')), enabled);
+      assert.equal(c.logs.info.some(s => s.startsWith('[Debug]') && s.includes(label) && s.includes('AA timing:')), enabled);
+      assert.equal(c.logs.info.some(s => s.startsWith('[Debug]') && s.includes(label) && s.includes('Controller read:')), enabled);
     }
     assert.deepEqual(c.config, c.original);
     c.stop();
     t.mock.restoreAll();
   }
   assert.deepEqual(devices.map(d => d.debug), [true, false]);
+});
+
+test('plugin diagnostics are independent of Homebridge debug and leave normal logs unchanged', async t => {
+  t.mock.timers.enable({ apis: ['setTimeout', 'Date'], now: 1000 });
+  let normal;
+  for (const homebridgeDebug of [false, true]) {
+    for (const [debug, individual] of [[false, false], [false, true], [true, false]]) {
+      let fail = false;
+      const c = setup(t, [{ ipAddress: '192.0.2.1', debug: individual },
+        { ipAddress: 'invalid' }], { '192.0.2.1': () => {
+        if (fail) {
+          throw new Error('Private response');
+        }
+        return data();
+      } }, { debug, homebridgeDebug });
+      c.start();
+      await flush();
+      fail = true;
+      t.mock.timers.tick(30000);
+      await flush();
+      fail = false;
+      t.mock.timers.tick(30000);
+      await flush();
+      const detail = c.logs.info.filter(line => line.startsWith('[Debug]'));
+      assert.equal(detail.some(line => line.includes('AA timing:')), debug || individual);
+      assert.equal(detail.some(line => line.includes('Controller read:')), debug || individual);
+      assert.equal(c.logs.debug.some(line => /AA timing:|Controller read:/.test(line)), false);
+      const ordinary = { info: c.logs.info.filter(line => !line.startsWith('[Debug]')),
+        warn: c.logs.warn, error: c.logs.error };
+      assert.ok(ordinary.info.some(line => line.includes('Starting controller polling:')));
+      assert.ok(ordinary.info.some(line => line.includes('first valid controller response:')));
+      assert.ok(ordinary.info.some(line => line.includes('communication recovered:')));
+      assert.equal(ordinary.warn.length, 1);
+      assert.equal(ordinary.error.length, 1);
+      if (normal) {
+        assert.deepEqual(ordinary, normal);
+      } else {
+        normal = ordinary;
+      }
+      assert.deepEqual(c.config, c.original);
+      c.stop();
+      t.mock.restoreAll();
+    }
+  }
 });

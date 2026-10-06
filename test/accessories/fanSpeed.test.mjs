@@ -253,7 +253,7 @@ test('fan write acknowledges immediately, snaps to its band, and confirms only f
   before.aircons.ac1.info.fan = 'medium';
   assert.deepEqual(c.data, before);
   assert.ok(c.messages.info.includes('Controller Aircon Sending: fan speed medium'));
-  assert.ok(c.messages.debug.includes('Controller Aircon Controller confirmed: fan speed medium'));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).includes('[Debug] Controller Aircon Controller confirmed: fan speed medium'));
   assert.deepEqual(c.messages.warn, []);
 });
 
@@ -266,9 +266,9 @@ test('Auto sends legacy autoAA, accepts auto readback, and does not resend an eq
   await c.fan('RotationSpeed').handleSetRequest(100, {});
   await flush();
   assert.equal(c.writes.length, 1);
-  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: fan speed Auto Mode')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Already in requested state: fan speed Auto Mode')));
   assert.ok(c.messages.info.some(line => line.includes('Sending: fan speed Auto Mode')));
-  assert.ok(c.messages.debug.some(line => line.includes('Controller confirmed: fan speed Auto Mode')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Controller confirmed: fan speed Auto Mode')));
 });
 
 test('fan replacement and queued temperature preserve newest speed and independent controls', async t => {

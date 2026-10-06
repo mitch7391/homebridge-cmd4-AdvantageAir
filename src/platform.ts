@@ -133,10 +133,17 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           : `Controller ${index + 1}`;
 
         const debug = detailedDebug(this.config.debug, device.debug);
+        // Selected controller diagnostics must be visible without Homebridge's -D.
+        // Keep the gate here; normal status/warnings/errors use their existing paths.
+        const diagnostic = (...message: string[]) => {
+          if (debug) {
+            this.log.info('[Debug]', ...message);
+          }
+        };
         const client = new AdvantageAirClient({
           ipAddress, port,
           onDiagnostic: debug
-            ? event => this.log.debug(name, 'AA timing:', JSON.stringify(event))
+            ? event => diagnostic(name, 'AA timing:', JSON.stringify(event))
             : undefined,
         });
         const endpoint = `${ipAddress}:${port}`;
@@ -237,7 +244,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
               0,
             );
 
-            this.log.debug(
+            diagnostic(
               'Controller read:',
               name,
               `${aircons.length} air conditioner(s), ${zoneCount} zone(s).`,
@@ -253,15 +260,15 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
                       : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
-              this.log.debug(name, event.name,
+              diagnostic(name, event.name,
                 event.superseded ? 'Earlier command confirmed:' : 'Already in requested state:', state);
             }
           } else if (debug) {
-            this.log.debug(name, event.name, 'Controller confirmed:', state);
+            diagnostic(name, event.name, 'Controller confirmed:', state);
           }
         }, (accessoryName, target) => this.log.info(name, accessoryName, 'Sending:', target), (event) => {
           if (debug) {
-            this.log.debug(name, event.name, 'MyZone', event.zoneName,
+            diagnostic(name, event.name, 'MyZone', event.zoneName,
               event.step + ' step:', event.outcome, event.reason ?? '');
           }
         });

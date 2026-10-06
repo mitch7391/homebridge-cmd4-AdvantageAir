@@ -43,7 +43,7 @@ test('optional controller label and debug help reflect native runtime behaviour'
   assert.equal(controller.properties.debug.default, false);
   assert.match(controller.properties.name.description, /Controller 1/);
   assert.match(controller.properties.name.description, /does not rename/);
-  assert.match(controller.properties.debug.description, /Homebridge debug logging/);
+  assert.match(controller.properties.debug.description, /No Homebridge Debug Mode required/);
 });
 
 
@@ -58,7 +58,10 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
     { key: 'devices[].name', type: 'hidden', htmlClass: 'd-none' }, 'devices[].homeName', 'devices[].ipAddress',
     { key: 'devices[].port', type: 'number' }, 'devices[].debug',
   ]);
-  assert.equal(config.layout[2], 'debug');
+  assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
+  assert.deepEqual(config.layout[2], { type: 'fieldset', title: 'Plugin-wide diagnostics',
+    htmlClass: 'mt-4 border-top pt-3', items: ['debug'] });
+  assert.match(properties.debug.description, /No Homebridge Debug Mode required/);
   assert.equal(controller.properties.homeName.default, 'Aircon');
   assert.equal(properties.devices.maxItems, undefined);
   assert.equal(properties.debug.default, false);

@@ -150,7 +150,7 @@ test('unselected MyZone Off is a silent no-op; selecting an already-satisfied zo
   await flush();
   assert.deepEqual(c.writes, []);
   assert.deepEqual(c.messages.warn, []);
-  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: MyZone')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Already in requested state: MyZone')));
 });
 
 test('rapid unsent MyZone switch selections resolve to the latest selection without a redundant physical write', async t => {

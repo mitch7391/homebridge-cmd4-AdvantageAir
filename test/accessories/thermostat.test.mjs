@@ -137,7 +137,7 @@ test('a HomeKit mode write completes while busy and current mode changes only on
   await c.advance(1100);
   assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), 1);
   assert.deepEqual(c.writes, [{ ac1: { info: { state: 'on', mode: 'heat' } } }]);
-  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: heat')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.startsWith('[Debug]')).filter(line => line.includes('Controller confirmed: heat')).length, 1);
   assert.deepEqual(c.messages.warn, []);
   assert.deepEqual(warnings, []);
 });
@@ -166,8 +166,8 @@ test('rapid HomeKit mode reversals preserve the newest target while confirming b
   await c.advance(7200);
   assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), 0);
   assert.equal(c.writes.length, 2);
-  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: heat')).length, 0);
-  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed: off')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.startsWith('[Debug]')).filter(line => line.includes('Controller confirmed: heat')).length, 0);
+  assert.equal(c.messages.info.filter(line => line.startsWith('[Debug]')).filter(line => line.includes('Controller confirmed: off')).length, 1);
 });
 
 test('thermostat observes tablet changes and selects myZone temperature by its reported number', async t => {
@@ -317,7 +317,7 @@ test('shutdown makes thermostat controls unavailable and stops pending physical 
   await assert.rejects(c.char('TargetHeatingCoolingState').handleGetRequest(), unavailable(c));
   await assert.rejects(c.char('TargetTemperature').handleSetRequest(25), unavailable(c));
   assert.equal(c.writes.length, 1);
-  assert.equal(c.messages.debug.filter(line => line.includes('Controller confirmed:')).length, 0);
+  assert.equal(c.messages.info.filter(line => line.startsWith('[Debug]')).filter(line => line.includes('Controller confirmed:')).length, 0);
 });
 
 test('HomeKit rejects unsupported modes and out-of-range temperatures before any controller write', async t => {
@@ -344,8 +344,8 @@ test('live regression: integer write repairs fractional zone targets even when t
   await c.advance(7200);
   assert.deepEqual(c.writes, [{ ac1: { info: { setTemp: 24 }, zones: { z01: { setTemp: 24 }, z02: { setTemp: 24 } } } }]);
   assert.ok(c.messages.info.includes('Controller Aircon Sending: target temperature 24 °C'));
-  assert.ok(c.messages.debug.includes('Controller Aircon Controller confirmed: 24 °C'));
-  assert.equal(c.messages.info.some(line => line.includes('Controller confirmed:')), false);
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).includes('[Debug] Controller Aircon Controller confirmed: 24 °C'));
+  assert.equal(c.messages.info.filter(line => !line.startsWith('[Debug]')).some(line => line.includes('Controller confirmed:')), false);
   assert.deepEqual(c.messages.warn, []);
   assert.ok(Math.abs(await c.char('CurrentTemperature').handleGetRequest() - 23.1) < 1e-8);
 });

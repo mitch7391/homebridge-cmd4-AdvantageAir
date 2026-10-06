@@ -112,7 +112,7 @@ test('inactive SetDuration only stores selection; activation and active duration
   await c.advance(1500);
   assert.deepEqual(c.writes, [{ ac1: { info: { countDownToOff: 45 } } }, { ac1: { info: { countDownToOff: 60 } } }]);
   assert.ok(c.messages.info.some(line => line.includes('Sending: timer 45 minutes')));
-  assert.ok(c.messages.debug.some(line => line.includes('Controller confirmed: timer 60 minutes')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Controller confirmed: timer 60 minutes')));
 });
 
 test('duration and activation close together use the newest selection and cancellation preserves it', async t => {

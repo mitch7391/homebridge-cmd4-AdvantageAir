@@ -253,7 +253,7 @@ test('fresh no-op detection prevents redundant percentage writes', async t => {
   await flush();
   assert.equal(c.writes.length, 0);
   assert.equal(c.requests.length, 2);
-  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: zone percentage 40%')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Already in requested state: zone percentage 40%')));
   await c.light('z01', 'Brightness').handleSetRequest(55, {});
   c.data.aircons.ac1.zones.z01.value = 55;
   await flush();
@@ -317,7 +317,7 @@ test('ambiguous percentage delivery reconciles by readback without retrying the 
   assert.equal(c.writes.length, 1);
   assert.equal(await c.light('z01', 'Brightness').handleGetRequest(), 60);
   assert.deepEqual(c.messages.warn, []);
-  assert.ok(c.messages.debug.some(line => line.includes('Controller confirmed: zone percentage 60%')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Controller confirmed: zone percentage 60%')));
   assert.equal(JSON.stringify(c.messages).includes('Private transport'), false);
 });
 

@@ -49,7 +49,7 @@
             },
             "debug": {
               "title": "Detailed debug logging",
-              "description": "Include sanitised request timing, read summaries and command confirmations. Also enable Homebridge debug logging.",
+              "description": "Include sanitised request timing, read summaries and command confirmations for this controller. No Homebridge Debug Mode required.",
               "type": "boolean",
               "default": false
             },
@@ -64,7 +64,7 @@
       },
       "debug": {
         "title": "Detailed debug logging for all controllers",
-        "description": "Enable detailed diagnostics for every controller. Individual selections are preserved when this is turned off. Also enable Homebridge debug logging.",
+        "description": "Enable detailed diagnostics for every controller. Individual selections are preserved when this is turned off. No Homebridge Debug Mode required.",
         "type": "boolean",
         "default": false
       }
@@ -80,7 +80,7 @@
     {
       "key": "devices",
       "type": "tabarray",
-      "title": "{{ value.homeName || 'Aircon' }}",
+      "title": "{{ value.homeName || 'Controller' }}",
       "items": [
         {
           "key": "devices[].name",
@@ -96,6 +96,13 @@
         "devices[].debug"
       ]
     },
-    "debug"
+    {
+      "type": "fieldset",
+      "title": "Plugin-wide diagnostics",
+      "htmlClass": "mt-4 border-top pt-3",
+      "items": [
+        "debug"
+      ]
+    }
   ]
 }
