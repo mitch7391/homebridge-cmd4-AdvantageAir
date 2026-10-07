@@ -59,7 +59,7 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
     { key: 'devices[].port', type: 'number' }, 'devices[].debug',
   ]);
   assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
-  assert.deepEqual(config.layout[2], { type: 'fieldset', title: 'Plugin-wide diagnostics',
+  assert.deepEqual(config.layout[2], { type: 'fieldset', notitle: true,
     htmlClass: 'mt-4 border-top pt-3', items: ['debug'] });
   assert.match(properties.debug.description, /No Homebridge Debug Mode required/);
   assert.equal(controller.properties.homeName.default, 'Aircon');

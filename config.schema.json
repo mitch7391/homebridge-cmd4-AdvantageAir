@@ -98,7 +98,7 @@
     },
     {
       "type": "fieldset",
-      "title": "Plugin-wide diagnostics",
+      "notitle": true,
       "htmlClass": "mt-4 border-top pt-3",
       "items": [
         "debug"
