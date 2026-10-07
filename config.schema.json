@@ -70,7 +70,7 @@
       }
     }
   },
-  "headerDisplay": "![Homebridge and Advantage Air](https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/v4-beta/assets/settings-header.png)\n\n## Advantage Air Device Settings\n\nEnter the details of your Advantage Air controller(s).",
+  "headerDisplay": "<img src=\"https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/v4-beta/assets/settings-header.png\" alt=\"Homebridge and Advantage Air\" width=\"800\" class=\"d-block mx-auto img-fluid\">\n\n## Advantage Air Device Settings\n\nEnter the details of your Advantage Air controller(s).",
   "layout": [
     {
       "key": "name",
