@@ -16,8 +16,8 @@ test('native schema exposes controller setup without legacy or Homebridge-owned 
   assert.equal(config.singular, true);
   assert.equal(config.strictValidation, false);
   assert.equal(config.customUi, undefined);
-  assert.deepEqual(Object.keys(properties).sort(), ['devices', 'name']);
-  assert.deepEqual(Object.keys(controller.properties).sort(), ['debug', 'ipAddress', 'name', 'port']);
+  assert.deepEqual(Object.keys(properties).sort(), ['debug', 'devices', 'name']);
+  assert.deepEqual(Object.keys(controller.properties).sort(), ['debug', 'homeName', 'ipAddress', 'name', 'port']);
   assert.deepEqual(controller.required, ['ipAddress']);
   assert.equal(properties.devices.minItems, 1);
 });
@@ -43,5 +43,29 @@ test('optional controller label and debug help reflect native runtime behaviour'
   assert.equal(controller.properties.debug.default, false);
   assert.match(controller.properties.name.description, /Controller 1/);
   assert.match(controller.properties.name.description, /does not rename/);
-  assert.match(controller.properties.debug.description, /Homebridge debug logging/);
+  assert.match(controller.properties.debug.description, /No Homebridge Debug Mode required/);
+});
+
+
+test('standard layout hides retained labels, uses controller tabs and a numeric port, then global debug', () => {
+  assert.match(config.headerDisplay, /v4-beta\/assets\/settings-header.png/);
+  assert.match(config.headerDisplay, /Advantage Air Device Settings/);
+  assert.deepEqual(config.layout[0], { key: 'name', type: 'hidden', htmlClass: 'd-none' });
+  const tabs = config.layout[1];
+  assert.equal(tabs.type, 'tabarray');
+  assert.equal(tabs.key, 'devices');
+  assert.deepEqual(tabs.items, [
+    { key: 'devices[].name', type: 'hidden', htmlClass: 'd-none' }, 'devices[].homeName', 'devices[].ipAddress',
+    { key: 'devices[].port', type: 'number' }, 'devices[].debug',
+  ]);
+  assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
+  assert.deepEqual(config.layout[2], { type: 'fieldset', notitle: true,
+    htmlClass: 'mt-4 border-top pt-3', items: ['debug'] });
+  assert.match(properties.debug.description, /No Homebridge Debug Mode required/);
+  assert.equal(controller.properties.homeName.default, 'Aircon');
+  assert.equal(properties.devices.maxItems, undefined);
+  assert.equal(properties.debug.default, false);
+  assert.equal(controller.properties.name.default, undefined, 'Do not fill in an absent legacy controller label.');
+  assert.equal(properties.name.default, 'Homebridge Advantage Air');
+  assert.doesNotThrow(() => new AdvantageAirClient({ ipAddress: '192.0.2.1', port: 10211 }));
 });

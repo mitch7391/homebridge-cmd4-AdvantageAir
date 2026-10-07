@@ -1,3 +1,5 @@
+import { airconAccessoryName, updateAccessoryName } from './accessoryName.js';
+import type { HomeNameResolver } from '../discovery/homeNames.js';
 import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerCoordinator } from '../api/controllerCoordinator.js';
@@ -20,6 +22,7 @@ export class MyZoneManager {
     private readonly coordinator: Pick<ControllerCoordinator, 'readMyZoneSelection' | 'requestMyZoneSelection'>,
     private readonly warn: (message: string) => void,
     private readonly onCreated: (name: string) => void,
+    private readonly resolveHomeName?: HomeNameResolver,
   ) {}
 
   static prepareCachedAccessory(api: API, accessory: PlatformAccessory): void {
@@ -69,9 +72,15 @@ export class MyZoneManager {
         owners.set(aircon.identity, this);
         const uuid = this.api.hap.uuid.generate(JSON.stringify([aircon.identity, 'myzone']));
         const cached = this.accessories.get(uuid);
-        const accessory = cached ?? new this.api.platformAccessory(`${aircon.name} MyZone`, uuid);
+        const name = airconAccessoryName(this.resolveHomeName, aircon.identity, aircon.name, ' MyZone', cached);
+        if (name === undefined) {
+          continue;
+        }
+        const accessory = cached ?? new this.api.platformAccessory(name, uuid);
+        const namesChanged = (!this.resolveHomeName || this.resolveHomeName(aircon.identity) !== undefined)
+          && updateAccessoryName(this.api, accessory, name, []);
         let handler = this.handlers.get(uuid);
-        let changed = updateAccessoryInformation(this.api, accessory, state.data.system.sysType);
+        let changed = updateAccessoryInformation(this.api, accessory, state.data.system.sysType) || namesChanged;
         if (!handler) {
           const use = <T>(identity: string, operation: () => T): T => {
             if (this.stopped || !this.eligible.has(identity)) {

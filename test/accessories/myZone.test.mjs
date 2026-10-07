@@ -95,7 +95,7 @@ async function setup(t, options = {}) {
 test('MyZone creates one accessory with distinct named switches alongside the existing layouts', async t => {
   const c = await setup(t);
   const accessory = c.accessory();
-  assert.equal(accessory.displayName, 'Simulator AC MyZone');
+  assert.equal(accessory.displayName, 'Aircon MyZone');
   const switches = accessory.services.filter(service => service.UUID === c.api.hap.Service.Switch.UUID);
   assert.equal(switches.length, 2);
   assert.equal(new Set(switches.map(service => service.subtype)).size, 2);
@@ -110,7 +110,7 @@ test('MyZone creates one accessory with distinct named switches alongside the ex
   assert.equal(all.filter(a => a.context.advantageAirPercentageZone).length, 1);
   assert.equal(all.filter(a => a.context.advantageAirThermostat).length, 1);
   assert.equal(all.filter(a => a.context.advantageAirModeFan).length, 2);
-  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Simulator AC MyZone')).length, 1);
+  assert.equal(c.messages.info.filter(line => line.includes('Created accessory: Aircon MyZone')).length, 1);
 });
 
 test('MyZone HAP selection immediately updates every switch and dispatches the existing ordered backend', async t => {
@@ -150,7 +150,7 @@ test('unselected MyZone Off is a silent no-op; selecting an already-satisfied zo
   await flush();
   assert.deepEqual(c.writes, []);
   assert.deepEqual(c.messages.warn, []);
-  assert.ok(c.messages.debug.some(line => line.includes('Already in requested state: MyZone')));
+  assert.ok(c.messages.info.filter(line => line.startsWith('[Debug]')).some(line => line.includes('Already in requested state: MyZone')));
 });
 
 test('rapid unsent MyZone switch selections resolve to the latest selection without a redundant physical write', async t => {

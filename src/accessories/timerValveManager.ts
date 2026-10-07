@@ -1,3 +1,5 @@
+import { airconAccessoryName, updateAccessoryName } from './accessoryName.js';
+import type { HomeNameResolver } from '../discovery/homeNames.js';
 import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 import type { ControllerPollState } from '../api/controllerPoller.js';
@@ -18,6 +20,7 @@ export class TimerValveManager {
     private readonly coordinator: Pick<ControllerCoordinator, 'readTimer' | 'requestTimer'>,
     private readonly warn: (message: string) => void,
     private readonly onCreated: (name: string) => void,
+    private readonly resolveHomeName?: HomeNameResolver,
   ) {}
 
   static prepareCachedAccessory(api: API, accessory: PlatformAccessory): void {
@@ -71,18 +74,27 @@ export class TimerValveManager {
 
   private attach(identity: string, name: string, sysType: unknown): void {
     const uuid = this.api.hap.uuid.generate(JSON.stringify([identity, 'native-timer']));
+    const cached = this.accessories.get(uuid);
+    const displayName = airconAccessoryName(this.resolveHomeName, identity, name, ' Timer', cached);
+    if (displayName === undefined) {
+      return;
+    }
+    const rename = (accessory: PlatformAccessory) =>
+      (!this.resolveHomeName || this.resolveHomeName(identity) !== undefined)
+      && updateAccessoryName(this.api, accessory, displayName,
+        [[accessory.getService(this.api.hap.Service.Valve), displayName]]);
     if (this.handlers.has(uuid)) {
       const accessory = this.accessories.get(uuid);
       if (accessory) {
-        updateAccessoryInformation(this.api, accessory, sysType, true);
+        const renamed = rename(accessory);
+        const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
+        if (renamed || metadataChanged) {
+          this.api.updatePlatformAccessories([accessory]);
+        }
       }
       return;
     }
-    const cached = this.accessories.get(uuid);
-    const displayName = `${name} Timer`;
     const accessory = cached ?? new this.api.platformAccessory(displayName, uuid);
-    const renamed = accessory.displayName !== displayName;
-    accessory.displayName = displayName;
     const use = <T>(operation: () => T): T => {
       if (this.stopped || !this.present.has(identity)) {
         throw new TimerCommandError('The native timer is unavailable.');
@@ -95,15 +107,7 @@ export class TimerValveManager {
       persist: () => this.api.updatePlatformAccessories([accessory]),
       warn: this.warn,
     });
-    const valve = accessory.getService(this.api.hap.Service.Valve)!;
-    const information = accessory.getService(this.api.hap.Service.AccessoryInformation)!;
-    const nameCharacteristic = this.api.hap.Characteristic.Name;
-    const needsNames = renamed || valve.displayName !== displayName
-      || valve.getCharacteristic(nameCharacteristic).value !== displayName
-      || information.getCharacteristic(nameCharacteristic).value !== displayName;
-    valve.displayName = displayName;
-    valve.setCharacteristic(nameCharacteristic, displayName);
-    information.setCharacteristic(nameCharacteristic, displayName);
+    const needsNames = rename(accessory);
     const metadataChanged = updateAccessoryInformation(this.api, accessory, sysType);
     const needsMarker = accessory.context.advantageAirTimer !== true;
     accessory.context.advantageAirTimer = true;

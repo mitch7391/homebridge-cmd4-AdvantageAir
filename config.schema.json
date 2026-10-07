@@ -5,12 +5,15 @@
   "strictValidation": false,
   "schema": {
     "type": "object",
-    "required": ["name", "devices"],
+    "required": [
+      "name",
+      "devices"
+    ],
     "additionalProperties": false,
     "properties": {
       "name": {
         "title": "Platform log name",
-        "description": "Label for this platform in Homebridge logs. Accessory names come from the controller.",
+        "description": "Retained platform log label. This value is preserved when saving settings.",
         "type": "string",
         "default": "Homebridge Advantage Air"
       },
@@ -20,7 +23,9 @@
         "minItems": 1,
         "items": {
           "type": "object",
-          "required": ["ipAddress"],
+          "required": [
+            "ipAddress"
+          ],
           "additionalProperties": false,
           "properties": {
             "name": {
@@ -29,14 +34,14 @@
               "description": "Defaults to Controller 1, Controller 2, etc. This label does not rename Home accessories."
             },
             "ipAddress": {
-              "title": "IP address",
+              "title": "IP Address",
               "description": "The wall-mounted controller's IP address. A reserved address in your router is recommended.",
               "type": "string",
               "format": "ipv4"
             },
             "port": {
-              "title": "Controller API port",
-              "description": "Leave at 2025 unless your controller uses a different API port. This is not the Homebridge bridge port.",
+              "title": "Port",
+              "description": "Controller API port: normally 2025; Fujitsu anywAIR systems use 10211. This is not the Homebridge child-bridge port.",
               "type": "integer",
               "minimum": 1,
               "maximum": 65535,
@@ -44,13 +49,60 @@
             },
             "debug": {
               "title": "Detailed debug logging",
-              "description": "Include sanitised request timing, read summaries and command confirmations. Also enable Homebridge debug logging.",
+              "description": "Include sanitised request timing, read summaries and command confirmations for this controller. No Homebridge Debug Mode required.",
               "type": "boolean",
               "default": false
+            },
+            "homeName": {
+              "title": "Name",
+              "description": "Home accessory base name, e.g. Aircon or Downstairs Aircon. Additional aircons use Name 2, Name 3, etc. Use a distinct base for each controller. Zone names come from the controller.",
+              "type": "string",
+              "default": "Aircon"
             }
           }
         }
+      },
+      "debug": {
+        "title": "Detailed debug logging for all controllers",
+        "description": "Enable detailed diagnostics for every controller. Individual selections are preserved when this is turned off. No Homebridge Debug Mode required.",
+        "type": "boolean",
+        "default": false
       }
     }
-  }
+  },
+  "headerDisplay": "![Homebridge and Advantage Air](https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/v4-beta/assets/settings-header.png)\n\n## Advantage Air Device Settings\n\nEnter the details of your Advantage Air controller(s).",
+  "layout": [
+    {
+      "key": "name",
+      "type": "hidden",
+      "htmlClass": "d-none"
+    },
+    {
+      "key": "devices",
+      "type": "tabarray",
+      "title": "{{ value.homeName || 'Controller' }}",
+      "items": [
+        {
+          "key": "devices[].name",
+          "type": "hidden",
+          "htmlClass": "d-none"
+        },
+        "devices[].homeName",
+        "devices[].ipAddress",
+        {
+          "key": "devices[].port",
+          "type": "number"
+        },
+        "devices[].debug"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "notitle": true,
+      "htmlClass": "mt-4 border-top pt-3",
+      "items": [
+        "debug"
+      ]
+    }
+  ]
 }

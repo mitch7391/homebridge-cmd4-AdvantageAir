@@ -6,6 +6,12 @@
   "private": true,
   "description": "Standalone Homebridge integration for Advantage Air systems.",
   "author": "mitch7391",
+  "funding": [
+    {
+      "type": "paypal",
+      "url": "https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD"
+    }
+  ],
   "license": "Apache-2.0",
   "homepage": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir#readme",
   "repository": {
@@ -25,6 +31,7 @@
   "main": "dist/index.js",
   "files": [
   "AdvAir.sh",
+  "assets/",
   "docs/v3-migration.md",
   "dist/",
   "config.schema.json",

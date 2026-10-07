@@ -360,9 +360,11 @@ test('debug summaries are enabled per controller', async (t) => {
   api.emit('didFinishLaunching');
   await flushPromises();
 
-  assert.equal(messages.debug.length, 1);
-  assert.match(messages.debug[0], /Verbose/);
-  assert.match(messages.debug[0], /1 air conditioner\(s\), 1 zone\(s\)/);
+  const diagnostics = messages.info.filter(line => line.startsWith('[Debug]'));
+  assert.equal(diagnostics.length, 1);
+  assert.equal(messages.debug.length, 0);
+  assert.match(diagnostics[0], /Verbose/);
+  assert.match(diagnostics[0], /1 air conditioner\(s\), 1 zone\(s\)/);
 });
 
 test('retains restored accessories without registering new ones', (t) => {
