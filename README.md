@@ -160,15 +160,15 @@ data, notification tokens or PINs.
 ## Development and release gates
 
 Use `npm ci`, `npm run lint`, `npm run build` and `npm test`.
-Build before `npm pack`; package validation must inspect the resulting tarball,
-including the executable root `AdvAir.sh`. The simulator is maintainer tooling:
+`npm pack` now cleans and builds through `prepack`. Run `npm run check:package`
+to verify the actual tarball, runtime entry point and executable root `AdvAir.sh`. The simulator is maintainer tooling:
 see [the developer lab guide](docs/developer-lab.md).
 
 Before the first actual npm beta publication:
 
-- **Release blocker: deliberately reconcile `package.json`'s Apache-2.0 licence
-  declaration with the repository MIT licence and retained Apache-2.0 template
-  material. This PR does not resolve that mismatch.**
+- Package metadata uses MIT, matching the project licence and historical v3
+  releases. The separate Apache-2.0 template licence and attribution remain
+  included. See [package readiness](docs/package-readiness.md) for release gates.
 - Complete the real Homebridge UI/configuration and packaged migration checks.
 - Record the supported version combinations and remaining hardware limitations.
 - Address the previously identified dev-only dependency advisory separately.
