@@ -68,8 +68,9 @@ Before external beta publication:
    `npm audit fix` blindly or confuse development issues with runtime exposure.
 3. Record compatibility evidence separately from declared engine ranges. Existing
    real Homebridge 2.4.0 / Node 24.21.0 acceptance remains valid. Homebridge 1.8.5
-   with Node 22 still needs its planned compatibility check; no expanded claim is
-   made here. Current ranges remain Node `^22.10.0 || ^24.0.0` and Homebridge
+   with Node 22.23.3 passed the packaged startup/control/cache campaign.
+   See [compatibility evidence](homebridge1-compatibility.md); this does not
+   establish every permitted patch version. Current ranges remain Node `^22.10.0 || ^24.0.0` and Homebridge
    `^1.8.0 || ^2.0.0`.
 4. Choose an unused beta version using the registry, obtain explicit publication
    approval, then remove `private` in a separately reviewed release change. Publish

@@ -46,3 +46,47 @@ jobs:
 
       - name: Check package contents
         run: npm run check:package
+
+  homebridge1:
+    name: Homebridge 1.8.5 / Node 22
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '22.23.3'
+          cache: npm
+
+      - name: Install development dependencies
+        run: npm ci
+
+      - name: Check compatibility harness style
+        run: npx --no-install eslint dev/compatibility/homebridge1.mjs --max-warnings=0
+
+      - name: Validate package and run actual Homebridge
+        shell: bash
+        run: |
+          set -euo pipefail
+          npm run check:package | tee /tmp/aa-hb1-pack.log
+          package_dir="$(sed -n 's/^Archive and full file manifest: //p' /tmp/aa-hb1-pack.log | tail -n 1)"
+          test -n "$package_dir"
+          npm run check:homebridge1 -- "$package_dir/homebridge-cmd4-advantageair-4.0.0-beta.1.tgz"
+
+      - name: Print compatibility evidence and logs
+        if: always()
+        shell: bash
+        run: |
+          for directory in /tmp/aa-homebridge1-*; do
+            test -d "$directory" || continue
+            for file in "$directory"/evidence.json "$directory"/*.log; do
+              test -f "$file" || continue
+              printf '\n--- %s ---\n' "$file"
+              cat "$file"
+            done
+          done

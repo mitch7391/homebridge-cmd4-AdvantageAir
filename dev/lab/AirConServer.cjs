@@ -553,7 +553,7 @@ const requestListener = function (req, res)
                // Get The ac number specified in the "Set" statement
                // ".aircons.$ac.info.setTemp"
                // Isolated v4 trial: JSON payloads replace the old Cmd4 unquoted parser.
-               const setStatementObj = { aircons: JSON.parse(value) };
+               let setStatementObj = { aircons: JSON.parse(value) };
                const keys = Object.keys(setStatementObj.aircons);
                if (keys.length !== 1 || !/^ac[0-9]+$/.test(keys[0])) throw Error('Invalid simulator aircon');
                const ac = keys[0];
