@@ -66,7 +66,8 @@
     "watch": "npm run build && npm link && nodemon",
     "test": "npm run build && node --test test/api/*.test.mjs test/discovery/*.test.mjs test/accessories/*.test.mjs",
     "prepack": "npm run build",
-    "check:package": "node dev/package-check.mjs"
+    "check:package": "node dev/package-check.mjs",
+    "check:homebridge1": "node dev/compatibility/homebridge1.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
