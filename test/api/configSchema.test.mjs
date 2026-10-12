@@ -17,7 +17,7 @@ test('native schema exposes controller setup without legacy or Homebridge-owned 
   assert.equal(config.strictValidation, false);
   assert.equal(config.customUi, undefined);
   assert.deepEqual(Object.keys(properties).sort(), ['debug', 'devices', 'name']);
-  assert.deepEqual(Object.keys(controller.properties).sort(), ['debug', 'homeName', 'ipAddress', 'name', 'port']);
+  assert.deepEqual(Object.keys(controller.properties).sort(), ['debug', 'excludedLightIds', 'homeName', 'ipAddress', 'name', 'port']);
   assert.deepEqual(controller.required, ['ipAddress']);
   assert.equal(properties.devices.minItems, 1);
 });
@@ -56,7 +56,7 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
   assert.equal(tabs.key, 'devices');
   assert.deepEqual(tabs.items, [
     { key: 'devices[].name', type: 'hidden', htmlClass: 'd-none' }, 'devices[].homeName', 'devices[].ipAddress',
-    { key: 'devices[].port', type: 'number' }, 'devices[].debug',
+    { key: 'devices[].port', type: 'number' }, 'devices[].debug', 'devices[].excludedLightIds',
   ]);
   assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
   assert.deepEqual(config.layout[2], { type: 'fieldset', notitle: true,

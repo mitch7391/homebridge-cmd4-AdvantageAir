@@ -6,8 +6,14 @@ import { fileURLToPath } from 'node:url';
 export const directory = path.dirname(fileURLToPath(import.meta.url));
 export const repository = path.resolve(directory, '../..');
 const local = path.join(directory, 'local.json');
-export const home = path.resolve(repository, process.env.AA_LAB_HOME
+export const baseHome = path.resolve(repository, process.env.AA_LAB_HOME
   || (fs.existsSync(local) ? JSON.parse(fs.readFileSync(local, 'utf8')).runtimeDirectory : '../advantage-air-lab'));
+export const profile = process.env.AA_LAB_PROFILE || 'percentage';
+if (!['percentage', 'myplace-extras'].includes(profile)) {
+  throw new Error('Unknown lab profile.');
+}
+export const home = profile === 'myplace-extras' ? path.join(baseHome, 'myplace-extras') : baseHome;
+export const fixture = path.join(directory, 'fixtures', profile === 'myplace-extras' ? 'myplace-extras.json' : 'percentage.json');
 export const storage = path.join(home, 'storage');
 export const components = { simulator: { port: 52025, control: 52026 }, homebridge: { port: 51889, control: 52027 } };
 export const recordPath = kind => path.join(home, `${kind}-control.json`);

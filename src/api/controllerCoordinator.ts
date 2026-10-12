@@ -1,3 +1,4 @@
+import { observeLights, lightBrightness, LightCommandError } from './lightCommand.js';
 import { nativeTimer, planTimer, timerDuration, timerMatches } from './timerCommand.js';
 import type { TimerField } from './timerCommand.js';
 import { activeMyZoneNumber, planMyZoneSelection, MyZoneCommandError } from './myZoneCommand.js';
@@ -20,6 +21,7 @@ import { ControllerBusyError } from './systemData.js';
 import { AirconCommandRejectedError } from './advantageAirClient.js';
 
 export interface ControllerClient {
+  requestLight?(id: string, field: 'state' | 'value', value: boolean | number, signal?: AbortSignal): Promise<unknown>;
   requestTimer?(aircon: string, field: TimerField, minutes: number, signal?: AbortSignal): Promise<unknown>;
   requestMyZoneSelection?(aircon: string, zoneNumber: number, signal?: AbortSignal): Promise<unknown>;
   requestMyZoneTarget?(aircon: string, temperature: number, signal?: AbortSignal): Promise<unknown>;
@@ -40,7 +42,9 @@ export type ControllerCommandConfirmation = {
   superseded: boolean;
 } & Request;
 
-type Request = { kind: 'timer'; active: boolean; seconds: number; replace: boolean }
+type Request = { kind: 'lightOn'; on: boolean }
+  | { kind: 'lightBrightness'; brightness: number }
+  | { kind: 'timer'; active: boolean; seconds: number; replace: boolean }
   | { kind: 'zone'; on: boolean; percentageOnly?: boolean }
   | { kind: 'percentage'; percentage: number }
   | { kind: 'mode'; mode: ThermostatMode }
@@ -77,6 +81,7 @@ export class ControllerCoordinator {
   private readonly queued = new Map<string, Intent>();
   private readonly desired = new Map<string, Intent>();
   private readonly faults = new Set<string>();
+  private readonly lightCapabilities = new Map<string, 'relay' | 'dimmer'>();
 
   constructor(
     private readonly client: ControllerClient,
@@ -104,6 +109,49 @@ export class ControllerCoordinator {
     }
     this.desired.clear();
     this.queued.clear();
+  }
+
+  private light(data: SystemData, identity: string) {
+    const light = observeLights(data).find(item => item.identity === identity);
+    if (!light) {
+      throw new LightCommandError('Light data is missing or invalid.');
+    }
+    const capability = this.lightCapabilities.get(identity);
+    if (capability && light.capability !== 'unknown' && light.capability !== capability) {
+      throw new LightCommandError('Light capability conflicts with its established capability.');
+    }
+    return light;
+  }
+
+  readLight(identity: string, field: 'state' | 'value'): boolean | number {
+    this.available();
+    // Validate this light on every read: healthy AC reads cannot freshen a missing entry.
+    const light = this.light(this.state.data!, identity);
+    if (field === 'value' && light.capability !== 'dimmer') {
+      throw new LightCommandError('Fresh dimmer data is unavailable.');
+    }
+    const key = this.key(identity, field === 'state' ? 'lightOn' : 'lightBrightness');
+    if (this.faults.has(key)) {
+      throw new LightCommandError('The light command could not be confirmed.');
+    }
+    const pending = this.desired.get(key);
+    return pending?.kind === 'lightOn' ? pending.on : pending?.kind === 'lightBrightness' ? pending.brightness
+      : field === 'state' ? light.on : light.brightness!;
+  }
+
+  requestLight(identity: string, field: 'state' | 'value', value: boolean | number): void {
+    this.available();
+    const light = this.light(this.state.data!, identity);
+    if (!this.client.requestLight) {
+      throw new LightCommandError('Light transport unavailable.');
+    }
+    if (field === 'state' && typeof value === 'boolean') {
+      this.admit(identity, light.name, { kind: 'lightOn', on: value });
+    } else if (field === 'value' && light.capability === 'dimmer') {
+      this.admit(identity, light.name, { kind: 'lightBrightness', brightness: lightBrightness(value) });
+    } else {
+      throw new LightCommandError('Invalid light request or capability.');
+    }
   }
 
   readZone(identity: string): boolean {
@@ -372,7 +420,9 @@ export class ControllerCoordinator {
   private admit(identity: string, name: string, request: Request): void {
     const key = this.key(identity, request.kind);
     const previous = this.desired.get(key);
-    if (previous && ((request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on
+    if (previous && ((request.kind === 'lightOn' && previous.kind === 'lightOn' && request.on === previous.on)
+      || (request.kind === 'lightBrightness' && previous.kind === 'lightBrightness' && request.brightness === previous.brightness)
+      || (request.kind === 'zone' && previous.kind === 'zone' && request.on === previous.on
       && request.percentageOnly === previous.percentageOnly)
       || (request.kind === 'timer' && previous.kind === 'timer' && request.active === previous.active
         && request.seconds === previous.seconds && request.replace === previous.replace)
@@ -432,6 +482,24 @@ export class ControllerCoordinator {
   }
 
   private plan(data: SystemData, intent: Intent): ExecutionPlan {
+    if (intent.kind === 'lightOn' || intent.kind === 'lightBrightness') {
+      const light = this.light(data, intent.identity);
+      const field = intent.kind === 'lightOn' ? 'state' : 'value';
+      const value = intent.kind === 'lightOn' ? intent.on : intent.brightness;
+      if (field === 'value' && light.capability !== 'dimmer') {
+        throw new LightCommandError('Dimmer capability unavailable before dispatch.');
+      }
+      if ((field === 'state' ? light.on : light.brightness) === value) {
+        return { kind: 'unchanged' };
+      }
+      return { kind: 'command',
+        send: signal => this.client.requestLight!(light.id, field, value, signal),
+        matches: current => {
+          const observed = observeLights(current).find(item => item.identity === intent.identity);
+          return observed !== undefined && (field === 'state' ? observed.on : observed.brightness) === value
+            && (observed.capability === 'unknown' || observed.capability === light.capability);
+        } };
+    }
     if (intent.kind === 'myZone') {
       throw new MyZoneCommandError('MyZone selection requires ordered execution.');
     }
@@ -548,6 +616,11 @@ export class ControllerCoordinator {
     if (this.stopped) {
       return;
     }
+    for (const light of observeLights(data)) {
+      if (light.capability !== 'unknown' && !this.lightCapabilities.has(light.identity)) {
+        this.lightCapabilities.set(light.identity, light.capability);
+      }
+    }
     this.state = {
       data: structuredClone(data), lastAttemptAt: Date.now(),
       lastSuccessAt: Date.now(), lastAttemptFailed: false,
@@ -580,16 +653,18 @@ export class ControllerCoordinator {
     const superseded = this.desired.get(intent.key) !== intent;
     this.finish(intent);
     try {
-      const request: Request = intent.kind === 'timer'
-        ? { kind: 'timer', active: intent.active, seconds: intent.seconds, replace: intent.replace }
-        : intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
-          : intent.kind === 'percentage' ? { kind: 'percentage', percentage: intent.percentage }
-            : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
-              : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
-                : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
-                  : intent.kind === 'myZone'
-                    ? { kind: 'myZone', zoneIdentity: intent.zoneIdentity, zoneName: intent.zoneName }
-                    : { kind: 'temperature', temperature: intent.temperature };
+      const request: Request = intent.kind === 'lightOn' ? { kind: 'lightOn', on: intent.on }
+        : intent.kind === 'lightBrightness' ? { kind: 'lightBrightness', brightness: intent.brightness }
+          : intent.kind === 'timer'
+            ? { kind: 'timer', active: intent.active, seconds: intent.seconds, replace: intent.replace }
+            : intent.kind === 'zone' ? { kind: 'zone', on: intent.on }
+              : intent.kind === 'percentage' ? { kind: 'percentage', percentage: intent.percentage }
+                : intent.kind === 'modeFan' ? { kind: 'modeFan', mode: intent.mode, on: intent.on }
+                  : intent.kind === 'mode' ? { kind: 'mode', mode: intent.mode }
+                    : intent.kind === 'fan' ? { kind: 'fan', percentage: intent.percentage }
+                      : intent.kind === 'myZone'
+                        ? { kind: 'myZone', zoneIdentity: intent.zoneIdentity, zoneName: intent.zoneName }
+                        : { kind: 'temperature', temperature: intent.temperature };
       this.onConfirmation?.({ ...request, name: intent.name, outcome, superseded });
     } catch {
       // Logging must not turn a confirmed command into a failure.
@@ -597,13 +672,15 @@ export class ControllerCoordinator {
   }
 
   private describe(intent: Intent): string {
-    return intent.kind === 'timer' ? (intent.active ? 'timer ' + intent.seconds / 60 + ' minutes' : 'timer cancelled')
-      : intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
-        : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
-          : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
-            : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
-              : intent.kind === 'myZone' ? 'MyZone ' + intent.zoneName
-                : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
+    return intent.kind === 'lightOn' ? (intent.on ? 'On' : 'Off')
+      : intent.kind === 'lightBrightness' ? 'brightness ' + intent.brightness + '%'
+        : intent.kind === 'timer' ? (intent.active ? 'timer ' + intent.seconds / 60 + ' minutes' : 'timer cancelled')
+          : intent.kind === 'zone' ? (intent.on ? 'Open' : 'Closed')
+            : intent.kind === 'percentage' ? 'zone percentage ' + intent.percentage + '%'
+              : intent.kind === 'modeFan' ? (intent.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (intent.on ? ' On' : ' Off')
+                : intent.kind === 'fan' ? 'fan speed ' + (intent.percentage === 100 ? 'Auto Mode' : fanSetting(intent.percentage).fan)
+                  : intent.kind === 'myZone' ? 'MyZone ' + intent.zoneName
+                    : intent.kind === 'mode' ? 'mode ' + intent.mode : 'target temperature ' + intent.temperature + ' °C';
   }
 
   private fail(intent: Intent, reason: string): void {
@@ -615,9 +692,10 @@ export class ControllerCoordinator {
     }
     this.finish(intent);
     try {
-      const control = intent.kind === 'timer' ? 'Timer' : intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
-        : intent.kind === 'myZone' ? 'MyZone'
-          : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
+      const control = intent.kind === 'lightOn' || intent.kind === 'lightBrightness' ? 'Light'
+        : intent.kind === 'timer' ? 'Timer' : intent.kind === 'zone' || intent.kind === 'percentage' ? 'Zone'
+          : intent.kind === 'myZone' ? 'MyZone'
+            : intent.kind === 'fan' || intent.kind === 'modeFan' ? 'Fan' : 'Thermostat';
       this.warn(`${control} command failed for "${intent.name}" (${this.describe(intent)}): ${reason}`);
     } catch {
       // A logging callback must not interrupt cleanup or queued work.

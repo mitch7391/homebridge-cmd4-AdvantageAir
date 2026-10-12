@@ -1,0 +1,40 @@
+{
+  "system": {
+    "mid": "fixture-controller",
+    "sysType": "e-zone",
+    "hasAircons": false,
+    "noOfAircons": 0,
+    "hasLights": true
+  },
+  "aircons": {},
+  "myLights": {
+    "lights": {
+      "l000001": {
+        "id": "l000001",
+        "name": "Output 1",
+        "state": "off",
+        "value": 50
+      },
+      "l000002": {
+        "id": "l000002",
+        "name": "Output 2",
+        "state": "off",
+        "value": 90
+      },
+      "l000003": {
+        "id": "l000003",
+        "name": "Output 3",
+        "state": "off",
+        "value": 100
+      },
+      "l000004": {
+        "id": "l000004",
+        "name": "Output 4",
+        "state": "off",
+        "value": 90
+      }
+    },
+    "groups": {},
+    "groupsOrder": []
+  }
+}

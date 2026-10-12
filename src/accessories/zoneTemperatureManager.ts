@@ -1,3 +1,5 @@
+import { claimController } from '../discovery/controllerOwnership.js';
+export { DuplicateControllerError } from '../discovery/controllerOwnership.js';
 import { updateAccessoryInformation } from './accessoryInformation.js';
 import type { API, PlatformAccessory } from 'homebridge';
 
@@ -15,16 +17,7 @@ interface TemperatureBinding {
   present: boolean;
 }
 
-export class DuplicateControllerError extends Error {
-  constructor() {
-    super('This controller identity is already managed by another configured address.');
-    this.name = 'DuplicateControllerError';
-  }
-}
-
 export class ZoneTemperatureManager {
-  private static readonly controllerOwners = new WeakMap<API, Map<string, ZoneTemperatureManager>>();
-
   private state: ControllerPollState = {
     lastAttemptFailed: false,
   };
@@ -51,6 +44,7 @@ export class ZoneTemperatureManager {
     private readonly api: API,
     private readonly accessories: Map<string, PlatformAccessory>,
     private readonly onCreated?: (name: string) => void,
+    private readonly owner: object = {},
   ) {}
 
   update(state: ControllerPollState): void {
@@ -69,23 +63,7 @@ export class ZoneTemperatureManager {
       devices = discoverDevices(state.data);
 
       if (devices.length > 0) {
-        // Discovery has validated the controller ID. Claims last for this API
-        // instance so another address cannot replace an active read handler.
-        const controllerId = (state.data.system.mid as string).trim();
-        let owners = ZoneTemperatureManager.controllerOwners.get(this.api);
-
-        if (!owners) {
-          owners = new Map();
-          ZoneTemperatureManager.controllerOwners.set(this.api, owners);
-        }
-
-        const owner = owners.get(controllerId);
-
-        if (owner && owner !== this) {
-          throw new DuplicateControllerError();
-        }
-
-        owners.set(controllerId, this);
+        claimController(this.api, state.data, this.owner);
       }
     } catch (error) {
       for (const binding of this.bindings.values()) {

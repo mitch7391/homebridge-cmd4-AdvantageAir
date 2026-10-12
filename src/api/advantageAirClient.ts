@@ -1,3 +1,4 @@
+import { lightPayload } from './lightCommand.js';
 import { validateTimerWrite } from './timerCommand.js';
 import type { TimerField } from './timerCommand.js';
 import { myZoneTarget } from './myZoneCommand.js';
@@ -10,7 +11,7 @@ import type { SystemData } from './systemData.js';
 
 export interface RequestDiagnostic {
   id: number;
-  endpoint: '/getSystemData' | '/setAircon';
+  endpoint: '/getSystemData' | '/setAircon' | '/setLight';
   event: 'send' | 'headers' | 'body' | 'error';
   elapsedMs: number;
   status?: number;
@@ -71,6 +72,17 @@ export class AdvantageAirClient {
     this.endpoint = new URL(`http://${host}:${port}/getSystemData`);
     this.timeoutMs = timeoutMs;
     this.onDiagnostic = options.onDiagnostic;
+  }
+
+  async requestLight(id: string, field: 'state' | 'value', value: boolean | number, signal?: AbortSignal): Promise<unknown> {
+    const endpoint = new URL('/setLight', this.endpoint);
+    endpoint.searchParams.set('json', lightPayload(id, field, value));
+    this.inFlight = undefined;
+    const response = await this.requestJson(endpoint, signal);
+    if (response === false) {
+      throw new AirconCommandRejectedError('Controller rejected the light command.');
+    }
+    return response;
   }
 
   getSystemData(signal?: AbortSignal): Promise<SystemData> {
@@ -274,7 +286,7 @@ export class AdvantageAirClient {
     const diagnostic = (event: RequestDiagnostic['event'], details: Partial<RequestDiagnostic> = {}) => {
       try {
         this.onDiagnostic?.({
-          id, endpoint: endpoint.pathname === '/setAircon' ? '/setAircon' : '/getSystemData',
+          id, endpoint: endpoint.pathname === '/setLight' ? '/setLight' : endpoint.pathname === '/setAircon' ? '/setAircon' : '/getSystemData',
           event, elapsedMs: Math.round(performance.now() - started), ...details,
         });
       } catch {
@@ -347,7 +359,7 @@ export class AdvantageAirClient {
             : typeof data as 'boolean' | 'number' | 'string';
       diagnostic('body', {
         json,
-        ...(endpoint.pathname === '/setAircon' && data === false ? { rejected: true } : {}),
+        ...(endpoint.pathname !== '/getSystemData' && data === false ? { rejected: true } : {}),
       });
       return data;
     } catch (error) {

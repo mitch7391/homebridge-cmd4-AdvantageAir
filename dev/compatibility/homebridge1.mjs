@@ -12,17 +12,22 @@ import { fileURLToPath, URL } from 'node:url';
 
 const root = fileURLToPath(new URL('../../', import.meta.url));
 const { fetch, AbortSignal } = globalThis;
-assert.equal(process.versions.node.split('.')[0], '22', 'Use Node 22 for this campaign.');
-assert.equal(process.platform, 'linux', 'Run this isolated campaign in Linux/Codespaces.');
+const homebridgeVersion = process.argv[3] ?? '1.8.5';
+assert.ok(['1.8.5', '2.4.0'].includes(homebridgeVersion), 'Use an established compatibility version.');
+assert.ok(['22', '24'].includes(process.versions.node.split('.')[0]));
+if (homebridgeVersion === '1.8.5') {
+  assert.equal(process.versions.node.split('.')[0], '22', 'Use Node 22 for Homebridge 1.8.5.');
+  assert.equal(process.platform, 'linux', 'Run Homebridge 1.8.5 in Linux/Codespaces.');
+}
 assert.ok(process.env.npm_execpath, 'Run npm run check:homebridge1 -- /absolute/package.tgz');
-assert.equal(process.argv.length, 3, 'Supply exactly one validated plugin tarball.');
+assert.ok(process.argv.length === 3 || process.argv.length === 4, 'Supply a validated tarball and optional Homebridge version.');
 const archive = path.resolve(process.argv[2]);
 const home = fs.mkdtempSync(path.join(os.tmpdir(), 'aa-homebridge1-'));
 const storage = path.join(home, 'storage');
 fs.mkdirSync(storage);
 const name = 'homebridge-cmd4-advantageair';
 const pin = '031-45-154'; // Disposable, unpaired, loopback-only test bridge.
-const report = { node: process.version, homebridge: '1.8.5', archive,
+const report = { node: process.version, homebridge: homebridgeVersion, archive,
   archiveSha256: crypto.createHash('sha256').update(fs.readFileSync(archive)).digest('hex'), checks: [], status: 'running' };
 const children = [];
 let hb;
@@ -39,8 +44,8 @@ const capture = (command, args, target) => {
 const mark = message => {
   report.checks.push(message); console.log('PASS:', message);
 };
-const until = async (description, check) => {
-  const deadline = Date.now() + 30000;
+const until = async (description, check, timeout = 30000) => {
+  const deadline = Date.now() + timeout;
   let last;
   while (Date.now() < deadline) {
     for (const child of children) {
@@ -99,8 +104,8 @@ try {
   // Inspect only the supplied tarball; no linking to the repository plugin/dev Homebridge.
   const membersFile = path.join(home, 'archive-members.txt');
   capture('tar', ['-tzf', archive], membersFile);
-  const members = fs.readFileSync(membersFile, 'utf8').trim().split('\n');
-  assert.equal(members.length, 119, 'Expected the validated current v4 package.');
+  const members = fs.readFileSync(membersFile, 'utf8').trim().split(/\r?\n/);
+  assert.equal(members.length, 131, 'Expected the validated lights package.');
   assert.equal(new Set(members).size, members.length);
   assert.ok(members.every(file => file.startsWith('package/') && !file.split('/').includes('..')));
   run('tar', ['-xzf', archive, '-C', home]);
@@ -111,14 +116,14 @@ try {
   report.plugin = pkg.version;
   fs.writeFileSync(path.join(home, 'package.json'), '{"name":"aa-hb1-consumer","private":true}\n');
   run(process.execPath, [process.env.npm_execpath, 'install', '--save-exact', '--omit=dev', '--no-audit', '--no-fund',
-    '--package-lock=false', 'homebridge@1.8.5', archive]);
+    '--package-lock=false', `homebridge@${homebridgeVersion}`, archive]);
   const installed = path.join(home, 'node_modules', name);
   assert.equal(fs.lstatSync(installed).isSymbolicLink(), false);
-  assert.equal(read(path.join(home, 'node_modules/homebridge/package.json')).version, '1.8.5');
+  assert.equal(read(path.join(home, 'node_modules/homebridge/package.json')).version, homebridgeVersion);
   for (const member of members) {
     assert.deepEqual(fs.readFileSync(path.join(home, member)), fs.readFileSync(path.join(installed, member.slice(8))), member);
   }
-  mark('Homebridge 1.8.5 installed with the actual tarball; all 119 installed plugin files match.');
+  mark(`Homebridge ${homebridgeVersion} installed with the actual tarball; all ${members.length} installed plugin files match.`);
   const simPort = await freePort();
   let hapPort = await freePort();
   while (hapPort === simPort) {
@@ -134,7 +139,18 @@ try {
   launch([path.join(root, 'dev/lab/AirConServer.cjs')], path.join(home, 'simulator.log'), { ...process.env, PORT: String(simPort) });
   await until('Simulator startup', async () => (await fetch(sim + '/reInit')).ok);
   const load = new URL(sim + '/');
-  load.searchParams.set('load', path.join(root, 'dev/lab/fixtures/myzone.json'));
+  const fixture = read(path.join(root, 'dev/lab/fixtures/myzone.json'));
+  const outputs = read(path.join(root, 'dev/lab/fixtures/lights-large.json')).myLights.lights;
+  const relay = Object.values(outputs).find(light => light.relay === true);
+  const dimmer = Object.values(outputs).find(light => typeof light.value === 'number');
+  fixture.myLights = { lights: {
+    relay1: { ...relay, id: 'relay1', name: 'Relay Output', state: 'off' },
+    dimmer1: { ...dimmer, id: 'dimmer1', name: 'Dimmer Output', state: 'off', value: 50 },
+  } };
+  fixture.system.hasLights = true;
+  const fixtureFile = path.join(home, 'ac-lights-fixture.json');
+  fs.writeFileSync(fixtureFile, JSON.stringify(fixture));
+  load.searchParams.set('load', fixtureFile);
   assert.ok((await fetch(load)).ok);
   const state = async () => (await request(sim + '/getSystemData')).aircons.ac1;
   assert.equal((await state()).info.myZone, 1);
@@ -157,7 +173,7 @@ try {
     hb.homebridge = true;
     return until('Homebridge discovery', async () => {
       const data = await hap('/accessories');
-      return data.accessories.length === 11 && data.accessories;
+      return data.accessories.length === 13 && data.accessories;
     });
   };
   const short = type => type.replace(/-0000-1000-8000-0026BB765291$/i, '').replace(/^0+/, '').toUpperCase();
@@ -194,7 +210,7 @@ try {
   const timer = select(first, 'Aircon Timer', 'D0');
   const myzone = select(first, 'Aircon MyZone', '49', 'Bedroom Reference MyZone');
   assert.ok(thermostat.service.linked?.includes(speed.service.iid), 'FanSpeed must remain linked to the thermostat.');
-  mark('Actual Homebridge startup discovered all 10 native accessories and both platform aliases.');
+  mark('Actual Homebridge startup discovered all 12 native accessories and both platform aliases.');
   assert.ok(Number.isFinite(await get(thermostat, '11')));
   assert.ok(Number.isFinite(await get(sensor, '11')));
   await put(thermostat, '33', 1);
@@ -234,20 +250,50 @@ try {
   await until('MyZone selection', async () => (await state()).info.myZone === 7);
   assert.ok([true, 1].includes(await get(myzone, '25')), 'Expected HAP On=true or 1');
   mark('Timer duration/activation/cancellation and fixture MyZone selection.');
+  const relayControl = select(first, 'Relay Output', '43');
+  const dimmerControl = select(first, 'Dimmer Output', '43');
+  assert.equal(characteristic(relayControl.service, '8'), undefined);
+  const lightState = async id => (await request(sim + '/getSystemData')).myLights.lights[id];
+  await put(relayControl, '25', true);
+  await until('Relay On', async () => (await lightState('relay1')).state === 'on');
+  await put(relayControl, '25', false);
+  await until('Relay Off', async () => (await lightState('relay1')).state === 'off');
+  await put(dimmerControl, '8', 80);
+  await until('Dimmer brightness while Off', async () => {
+    const light = await lightState('dimmer1'); return light.value === 80 && light.state === 'off';
+  });
+  await put(dimmerControl, '25', true);
+  await until('Dimmer On retains brightness', async () => {
+    const light = await lightState('dimmer1'); return light.state === 'on' && light.value === 80;
+  });
+  await until('Dimmer On confirmation before an independent external edit', () =>
+    fs.readFileSync(hb.log, 'utf8').includes('Dimmer Output Controller confirmed: On'));
+  mark('Packaged relay On/Off and dimmer Brightness/On via real Homebridge HAP and historical simulator endpoint.');
+  // Model a tablet/app write through the same historical controller endpoint.
+  for (const payload of ['{id:"dimmer1",value:35}', '{id:"dimmer1",state:off}']) {
+    const external = new URL(sim + '/setLight');
+    external.searchParams.set('json', payload);
+    await request(external);
+  }
+  await until('External dimmer state reaches HomeKit on normal polling', async () =>
+    (await get(dimmerControl, '8')) === 35 && [false, 0].includes(await get(dimmerControl, '25')), 45000);
+  mark('External simulator light changes reach HomeKit through the normal shared poll.');
   const topology = accessories => accessories.map(a => ({ aid: a.aid, services: a.services.map(s => ({ iid: s.iid, type: s.type,
-    linked: s.linked ?? [], characteristics: s.characteristics.map(c => ({ iid: c.iid, type: c.type })) })) }));
+    linked: s.linked ?? [], characteristics: s.characteristics.map(c => ({ iid: c.iid, type: c.type })) })) })).sort((a, b) => a.aid - b.aid);
   await stop(hb);
   const cacheFile = path.join(storage, 'accessories/cachedAccessories');
   const beforeCache = read(cacheFile);
-  assert.equal(beforeCache.length, 10);
+  assert.equal(beforeCache.length, 12);
   const identity = cache => cache.map(a => ({ uuid: a.UUID, services: a.services.map(s => ({ uuid: s.UUID, subtype: s.subtype })) }))
     .sort((a, b) => a.uuid.localeCompare(b.uuid));
-  assert.equal(new Set(beforeCache.map(a => a.UUID)).size, 10);
+  assert.equal(new Set(beforeCache.map(a => a.UUID)).size, 12);
   const restored = await start('cached-restart');
   assert.deepEqual(topology(restored), topology(first));
   const restoredTimer = select(restored, 'Aircon Timer', 'D0');
   await until('Restored controls ready', async () => (await get(restoredTimer, 'D3')) === 2700);
   assert.ok(Number.isFinite(await get(select(restored, 'Aircon', '4A'), '11')));
+  assert.equal(await get(select(restored, 'Dimmer Output', '43'), '8'), 35);
+  assert.ok([false, 0].includes(await get(select(restored, 'Dimmer Output', '43'), '25')));
   await stop(hb);
   assert.deepEqual(identity(read(cacheFile)), identity(beforeCache));
   for (const label of ['first-start', 'cached-restart']) {
@@ -257,7 +303,7 @@ try {
     assert.doesNotMatch(log, /TypeError|ReferenceError|Cannot find module|ERR_MODULE_NOT_FOUND/);
   }
   report.accessoryIdentity = identity(beforeCache);
-  mark('Clean shutdown/restart: same 10 UUIDs, service subtypes, HAP AIDs/IIDs and retained 45-minute Timer duration.');
+  mark('Clean shutdown/restart: same 12 UUIDs, service subtypes, HAP AIDs/IIDs and retained 45-minute Timer duration.');
   report.status = 'passed';
 } catch (error) {
   report.status = 'failed';

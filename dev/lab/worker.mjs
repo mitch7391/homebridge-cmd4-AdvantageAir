@@ -4,7 +4,7 @@ import path from 'node:path';
 import http from 'node:http';
 import { createRequire } from 'node:module';
 import { pathToFileURL } from 'node:url';
-import { directory, repository, home, storage, components, readRecord, recordPath, wait, validateConfig } from './paths.mjs';
+import { directory, repository, home, storage, components, readRecord, recordPath, wait, validateConfig, fixture } from './paths.mjs';
 
 const [kind, token] = process.argv.slice(2);
 const { console, fetch, AbortSignal, setImmediate, URL } = globalThis;
@@ -65,7 +65,7 @@ try {
     for (let attempt = 0; ; attempt++) {
       try {
         const url = new URL('http://127.0.0.1:52025/');
-        url.searchParams.set('load', path.join(directory, 'fixtures/percentage.json'));
+        url.searchParams.set('load', fixture);
         const response = await fetch(url, { signal: AbortSignal.timeout(1000) });
         if (!response.ok) {
           throw new Error('Fixture load failed');
