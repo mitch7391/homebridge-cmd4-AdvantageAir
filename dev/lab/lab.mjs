@@ -4,10 +4,19 @@ import path from 'node:path';
 import net from 'node:net';
 import crypto from 'node:crypto';
 import { spawn } from 'node:child_process';
-import { directory, repository, home, components, readRecord, recordPath, wait, validateConfig } from './paths.mjs';
 import { followLog } from './logs.mjs';
 
 const args = process.argv.slice(2);
+const profileIndex = args.indexOf('--profile');
+if (profileIndex !== -1) {
+  process.env.AA_LAB_PROFILE = args[profileIndex + 1] ?? '';
+  if (!['percentage', 'myplace-extras'].includes(process.env.AA_LAB_PROFILE)) {
+    throw new Error('Use --profile percentage or --profile myplace-extras.');
+  }
+  args.splice(profileIndex, 2);
+}
+const { directory, repository, home, baseHome, profile, storage, components, readRecord, recordPath, wait, validateConfig }
+  = await import('./paths.mjs');
 const { console, fetch, AbortSignal } = globalThis;
 if (args[0] === 'logs') {
   const component = args[1] ?? 'homebridge';
@@ -80,6 +89,20 @@ async function start(component) {
     console.log(`${component}: ${existing.state} (PID ${existing.pid})`);
     return;
   }
+  if (profile === 'myplace-extras' && !fs.existsSync(path.join(storage, 'config.json'))) {
+    // Separate identity/cache: never copy the AC lab's accessories or pairing data.
+    const original = JSON.parse(fs.readFileSync(path.join(baseHome, 'storage/config.json'), 'utf8'));
+    const config = {
+      bridge: { ...original.bridge, name: 'MyPlace Extras Lab',
+        username: ['0E', ...crypto.randomBytes(5).toString('hex').match(/../g)].join(':').toUpperCase() },
+      plugins: ['homebridge-cmd4-advantageair'], accessories: [],
+      platforms: [{ platform: 'AdvantageAir', name: 'MyPlace Extras Lab',
+        devices: [{ name: 'MyPlace Simulator', ipAddress: '127.0.0.1', port: 52025 }] }],
+    };
+    fs.mkdirSync(storage, { recursive: true });
+    fs.writeFileSync(path.join(storage, 'config.json'), JSON.stringify(config, null, 2), { flag: 'wx', mode: 0o600 });
+    console.log('New MyPlace Extras lab bridge: pair once using the PIN in ' + path.join(storage, 'config.json'));
+  }
   validateConfig();
   if (component === 'homebridge' && (await status('simulator')).state !== 'running') {
     throw new Error('Start the simulator first, or use lab:start.');
@@ -89,7 +112,7 @@ async function start(component) {
   const err = fs.openSync(path.join(home, `${component}-error.log`), 'a');
   const child = spawn(process.execPath, [path.join(directory, 'worker.mjs'), component, token], {
     cwd: repository, detached: true, windowsHide: true, stdio: ['ignore', out, err],
-    env: { ...process.env, AA_LAB_HOME: home },
+    env: { ...process.env, AA_LAB_HOME: baseHome },
   });
   fs.closeSync(out);
   fs.closeSync(err);

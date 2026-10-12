@@ -1,0 +1,604 @@
+{
+  "system": {
+    "mid": "fixture-controller",
+    "sysType": "MyAir5",
+    "hasAircons": false,
+    "noOfAircons": 0,
+    "hasLights": true
+  },
+  "aircons": {},
+  "myLights": {
+    "lights": {
+      "l000001": {
+        "id": "l000001",
+        "name": "Output 1",
+        "relay": true,
+        "state": "off"
+      },
+      "l000002": {
+        "id": "l000002",
+        "name": "Output 2",
+        "relay": true,
+        "state": "on"
+      },
+      "l000003": {
+        "id": "l000003",
+        "name": "Output 3",
+        "relay": true,
+        "state": "on"
+      },
+      "l000004": {
+        "id": "l000004",
+        "name": "Output 4",
+        "relay": true,
+        "state": "off"
+      },
+      "l000005": {
+        "id": "l000005",
+        "name": "Output 5",
+        "relay": true,
+        "state": "off"
+      },
+      "l000006": {
+        "id": "l000006",
+        "name": "Output 6",
+        "relay": true,
+        "state": "on"
+      },
+      "l000007": {
+        "id": "l000007",
+        "name": "Output 7",
+        "relay": true,
+        "state": "off"
+      },
+      "l000008": {
+        "id": "l000008",
+        "name": "Output 8",
+        "relay": true,
+        "state": "on"
+      },
+      "l000009": {
+        "id": "l000009",
+        "name": "Output 9",
+        "relay": true,
+        "state": "off"
+      },
+      "l000010": {
+        "id": "l000010",
+        "name": "Output 10",
+        "relay": true,
+        "state": "off"
+      },
+      "l000011": {
+        "id": "l000011",
+        "name": "Output 11",
+        "relay": true,
+        "state": "off"
+      },
+      "l000012": {
+        "id": "l000012",
+        "name": "Output 12",
+        "relay": true,
+        "state": "off"
+      },
+      "l000013": {
+        "id": "l000013",
+        "name": "Output 13",
+        "relay": true,
+        "state": "off"
+      },
+      "l000014": {
+        "id": "l000014",
+        "name": "Output 14",
+        "relay": true,
+        "state": "off"
+      },
+      "l000015": {
+        "id": "l000015",
+        "name": "Output 15",
+        "relay": true,
+        "state": "off"
+      },
+      "l000016": {
+        "id": "l000016",
+        "name": "Output 16",
+        "relay": true,
+        "state": "off"
+      },
+      "l000017": {
+        "id": "l000017",
+        "name": "Output 17",
+        "relay": true,
+        "state": "off"
+      },
+      "l000018": {
+        "id": "l000018",
+        "name": "Output 18",
+        "relay": true,
+        "state": "on"
+      },
+      "l000019": {
+        "id": "l000019",
+        "name": "Output 19",
+        "relay": true,
+        "state": "off"
+      },
+      "l000020": {
+        "id": "l000020",
+        "name": "Output 20",
+        "relay": true,
+        "state": "on"
+      },
+      "l000021": {
+        "id": "l000021",
+        "name": "Output 21",
+        "relay": true,
+        "state": "off"
+      },
+      "l000022": {
+        "id": "l000022",
+        "name": "Output 22",
+        "relay": true,
+        "state": "off"
+      },
+      "l000023": {
+        "id": "l000023",
+        "name": "Output 23",
+        "relay": true,
+        "state": "on"
+      },
+      "l000024": {
+        "id": "l000024",
+        "name": "Output 24",
+        "state": "off",
+        "value": 40
+      },
+      "l000025": {
+        "id": "l000025",
+        "name": "Output 25",
+        "state": "off",
+        "value": 20
+      },
+      "l000026": {
+        "id": "l000026",
+        "name": "Output 26",
+        "state": "off",
+        "value": 100
+      },
+      "l000027": {
+        "id": "l000027",
+        "name": "Output 27",
+        "state": "off",
+        "value": 100
+      },
+      "l000028": {
+        "id": "l000028",
+        "name": "Output 28",
+        "state": "off",
+        "value": 80
+      },
+      "l000029": {
+        "id": "l000029",
+        "name": "Output 29",
+        "state": "off",
+        "value": 100
+      },
+      "l000030": {
+        "id": "l000030",
+        "name": "Output 30",
+        "state": "off",
+        "value": 100
+      },
+      "l000031": {
+        "id": "l000031",
+        "name": "Output 31",
+        "state": "off",
+        "value": 100
+      },
+      "l000032": {
+        "id": "l000032",
+        "name": "Output 32",
+        "relay": true,
+        "state": "off"
+      },
+      "l000033": {
+        "id": "l000033",
+        "name": "Output 33",
+        "relay": true,
+        "state": "off"
+      },
+      "l000034": {
+        "id": "l000034",
+        "name": "Output 34",
+        "relay": true,
+        "state": "off"
+      },
+      "l000035": {
+        "id": "l000035",
+        "name": "Output 35",
+        "relay": true,
+        "state": "off"
+      },
+      "l000036": {
+        "id": "l000036",
+        "name": "Output 36",
+        "relay": true,
+        "state": "off"
+      },
+      "l000037": {
+        "id": "l000037",
+        "name": "Output 37",
+        "relay": true,
+        "state": "on"
+      },
+      "l000038": {
+        "id": "l000038",
+        "name": "Output 38",
+        "state": "off",
+        "value": 50
+      },
+      "l000039": {
+        "id": "l000039",
+        "name": "Output 39",
+        "relay": true,
+        "state": "off"
+      },
+      "l000040": {
+        "id": "l000040",
+        "name": "Output 40",
+        "relay": true,
+        "state": "off"
+      },
+      "l000041": {
+        "id": "l000041",
+        "name": "Output 41",
+        "relay": true,
+        "state": "off"
+      },
+      "l000042": {
+        "id": "l000042",
+        "name": "Output 42",
+        "relay": true,
+        "state": "off"
+      },
+      "l000043": {
+        "id": "l000043",
+        "name": "Output 43",
+        "relay": true,
+        "state": "off"
+      },
+      "l000044": {
+        "id": "l000044",
+        "name": "Output 44",
+        "relay": true,
+        "state": "off"
+      },
+      "l000045": {
+        "id": "l000045",
+        "name": "Output 45",
+        "relay": true,
+        "state": "off"
+      },
+      "l000046": {
+        "id": "l000046",
+        "name": "Output 46",
+        "relay": true,
+        "state": "off"
+      },
+      "l000047": {
+        "id": "l000047",
+        "name": "Output 47",
+        "relay": true,
+        "state": "off"
+      },
+      "l000048": {
+        "id": "l000048",
+        "name": "Output 48",
+        "state": "on",
+        "value": 60
+      },
+      "l000049": {
+        "id": "l000049",
+        "name": "Output 49",
+        "relay": true,
+        "state": "off"
+      },
+      "l000050": {
+        "id": "l000050",
+        "name": "Output 50",
+        "relay": true,
+        "state": "off"
+      },
+      "l000051": {
+        "id": "l000051",
+        "name": "Output 51",
+        "relay": true,
+        "state": "off"
+      },
+      "l000052": {
+        "id": "l000052",
+        "name": "Output 52",
+        "relay": true,
+        "state": "off"
+      },
+      "l000053": {
+        "id": "l000053",
+        "name": "Output 53",
+        "relay": true,
+        "state": "off"
+      },
+      "l000054": {
+        "id": "l000054",
+        "name": "Output 54",
+        "state": "off",
+        "value": 100
+      },
+      "l000055": {
+        "id": "l000055",
+        "name": "Output 55",
+        "state": "off",
+        "value": 100
+      },
+      "l000056": {
+        "id": "l000056",
+        "name": "Output 56",
+        "relay": true,
+        "state": "off"
+      },
+      "l000057": {
+        "id": "l000057",
+        "name": "Output 57",
+        "relay": true,
+        "state": "off"
+      },
+      "l000058": {
+        "id": "l000058",
+        "name": "Output 58",
+        "relay": true,
+        "state": "off"
+      },
+      "l000059": {
+        "id": "l000059",
+        "name": "Output 59",
+        "relay": true,
+        "state": "off"
+      },
+      "l000060": {
+        "id": "l000060",
+        "name": "Output 60",
+        "relay": true,
+        "state": "off"
+      },
+      "l000061": {
+        "id": "l000061",
+        "name": "Output 61",
+        "relay": true,
+        "state": "off"
+      },
+      "l000062": {
+        "id": "l000062",
+        "name": "Output 62",
+        "state": "off",
+        "value": 50
+      },
+      "l000063": {
+        "id": "l000063",
+        "name": "Output 63",
+        "state": "off",
+        "value": 100
+      },
+      "l000064": {
+        "id": "l000064",
+        "name": "Output 64",
+        "state": "on",
+        "value": 90
+      },
+      "l000065": {
+        "id": "l000065",
+        "name": "Output 65",
+        "state": "off",
+        "value": 100
+      },
+      "l000066": {
+        "id": "l000066",
+        "name": "Output 66",
+        "state": "off",
+        "value": 80
+      },
+      "l000067": {
+        "id": "l000067",
+        "name": "Output 67",
+        "state": "off",
+        "value": 100
+      },
+      "l000068": {
+        "id": "l000068",
+        "name": "Output 68",
+        "state": "off",
+        "value": 100
+      },
+      "l000069": {
+        "id": "l000069",
+        "name": "Output 69",
+        "state": "off",
+        "value": 100
+      },
+      "l000070": {
+        "id": "l000070",
+        "name": "Output 70",
+        "state": "off",
+        "value": 100
+      },
+      "l000071": {
+        "id": "l000071",
+        "name": "Output 71",
+        "state": "off",
+        "value": 90
+      },
+      "l000072": {
+        "id": "l000072",
+        "name": "Output 72",
+        "state": "off",
+        "value": 100
+      },
+      "l000073": {
+        "id": "l000073",
+        "name": "Output 73",
+        "state": "off",
+        "value": 50
+      },
+      "l000074": {
+        "id": "l000074",
+        "name": "Output 74",
+        "state": "off",
+        "value": 100
+      },
+      "l000075": {
+        "id": "l000075",
+        "name": "Output 75",
+        "state": "off",
+        "value": 100
+      },
+      "l000076": {
+        "id": "l000076",
+        "name": "Output 76",
+        "state": "off",
+        "value": 20
+      },
+      "l000077": {
+        "id": "l000077",
+        "name": "Output 77",
+        "state": "off",
+        "value": 100
+      },
+      "l000078": {
+        "id": "l000078",
+        "name": "Output 78",
+        "state": "off",
+        "value": 100
+      },
+      "l000079": {
+        "id": "l000079",
+        "name": "Output 79",
+        "state": "off",
+        "value": 50
+      },
+      "l000080": {
+        "id": "l000080",
+        "name": "Output 80",
+        "state": "off",
+        "value": 100
+      },
+      "l000081": {
+        "id": "l000081",
+        "name": "Output 81",
+        "state": "on",
+        "value": 100
+      },
+      "l000082": {
+        "id": "l000082",
+        "name": "Output 82",
+        "state": "off",
+        "value": 80
+      },
+      "l000083": {
+        "id": "l000083",
+        "name": "Output 83",
+        "state": "off",
+        "value": 100
+      },
+      "l000084": {
+        "id": "l000084",
+        "name": "Output 84",
+        "state": "off",
+        "value": 100
+      },
+      "l000085": {
+        "id": "l000085",
+        "name": "Output 85",
+        "state": "off",
+        "value": 100
+      },
+      "l000086": {
+        "id": "l000086",
+        "name": "Output 86",
+        "state": "off",
+        "value": 100
+      },
+      "l000087": {
+        "id": "l000087",
+        "name": "Output 87",
+        "state": "off",
+        "value": 90
+      },
+      "l000088": {
+        "id": "l000088",
+        "name": "Output 88",
+        "state": "off",
+        "value": 100
+      },
+      "l000089": {
+        "id": "l000089",
+        "name": "Output 89",
+        "state": "off",
+        "value": 100
+      },
+      "l000090": {
+        "id": "l000090",
+        "name": "Output 90",
+        "state": "off",
+        "value": 100
+      },
+      "l000091": {
+        "id": "l000091",
+        "name": "Output 91",
+        "state": "off",
+        "value": 100
+      },
+      "l000092": {
+        "id": "l000092",
+        "name": "Output 92",
+        "state": "off",
+        "value": 90
+      },
+      "l000093": {
+        "id": "l000093",
+        "name": "Output 93",
+        "state": "off",
+        "value": 100
+      },
+      "l000094": {
+        "id": "l000094",
+        "name": "Output 94",
+        "state": "off",
+        "value": 30
+      },
+      "l000095": {
+        "id": "l000095",
+        "name": "Output 95",
+        "state": "off",
+        "value": 50
+      },
+      "l000096": {
+        "id": "l000096",
+        "name": "Output 96",
+        "state": "off",
+        "value": 90
+      },
+      "l000097": {
+        "id": "l000097",
+        "name": "Output 97",
+        "state": "off",
+        "value": 100
+      },
+      "l000098": {
+        "id": "l000098",
+        "name": "Output 98",
+        "state": "off",
+        "value": 90
+      }
+    },
+    "groups": {},
+    "groupsOrder": []
+  }
+}

@@ -58,6 +58,16 @@
               "description": "Home accessory base name, e.g. Aircon or Downstairs Aircon. Additional aircons use Name 2, Name 3, etc. Use a distinct base for each controller. Zone names come from the controller.",
               "type": "string",
               "default": "Aircon"
+            },
+            "excludedLightIds": {
+              "title": "Excluded MyPlace light IDs (optional)",
+              "description": "Leave empty to discover all light outputs. Use controller light IDs, not names.",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              }
             }
           }
         }
@@ -93,7 +103,8 @@
           "key": "devices[].port",
           "type": "number"
         },
-        "devices[].debug"
+        "devices[].debug",
+        "devices[].excludedLightIds"
       ]
     },
     {

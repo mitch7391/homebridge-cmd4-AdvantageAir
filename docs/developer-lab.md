@@ -7,11 +7,11 @@ and compiled `dist` are required. No new dependencies are introduced.
 
 ## Everyday commands
 
-Open PowerShell in the Windows checkout used for the lab (Codespaces remains the
-authoritative development checkout):
+Open PowerShell in your Windows lab checkout. The following is an example
+location; use the checkout containing the reviewed MyPlace-lights build:
 
 ```powershell
-cd C:\Users\mitch\GitHub\homebridge-cmd4-AdvantageAir
+Set-Location (Join-Path $env:USERPROFILE "GitHub\homebridge-cmd4-AdvantageAir")
 ```
 
 | Operation | Windows command | npm equivalent |
@@ -46,7 +46,7 @@ finish later. The manager does not kill that worker or another process on timeou
 ## Components and data flow
 
 Apple Home → isolated Homebridge/HAP → v4 accessory/coordinator → HTTP
-`/setAircon` → existing AirConServer simulator → `/getSystemData` → confirmation.
+`/setAircon` or `/setLight` → existing AirConServer simulator → `/getSystemData` → confirmation.
 
 - `dev/lab/AirConServer.cjs`: copy of the existing v3 simulator, with v4 JSON
   parsing, local dependency resolution, loopback-only binding and an exported
@@ -55,7 +55,7 @@ Apple Home → isolated Homebridge/HAP → v4 accessory/coordinator → HTTP
   individually from ESLint; the new control scripts are linted normally.
 - `dev/lab/fixtures/percentage.json`: default startup fixture, derived from the historical
   single-system fixture's existing type-zero z06. It starts **Percentage Test Zone
-  On at 40%**. The worker loads it on every fresh simulator start.
+  On at 40%**. The worker loads it on every fresh default-profile simulator start.
 - `dev/lab/fixtures/myzone.json`: explicitly selected MyZone scenario with Living
   and Bedroom reference zones plus the percentage zone. Select it using
   `dev/lab/myzone.ps1 -Action Reset`, as described below.
@@ -65,22 +65,21 @@ Apple Home → isolated Homebridge/HAP → v4 accessory/coordinator → HTTP
 - Plugin loaded from this checkout's `dist`, dependencies from `node_modules`.
 
 The simulator keeps edits and the loaded fixture queue in memory. Every fresh
-simulator start loads the default percentage fixture; Homebridge-only restarts
+default-profile simulator start loads the percentage fixture; Homebridge-only restarts
 leave the current scenario and its state alone. Start does not save live edits
 back to fixture files. The load endpoint appends fixtures rather than replacing
 them, so explicit scenario selection must reset the queue before loading and
 verifying the chosen fixture. The MyZone helper performs that sequence without
-changing the worker's default fixture path. Future fixtures can live alongside
-these two, with an explicit reset/load/verification procedure; there is no generic
-scenario selector or automatic switching between scenarios.
+changing the worker's default fixture path. The explicit `myplace-extras` startup
+profile selects its own fixture as described below; it does not switch a running
+simulator or replace the existing MyZone reset/load procedure.
 
 ## Persistent storage and ports
 
-The maintainer's current permanent runtime is **`C:\Users\mitch\AdvantageAirLab`**,
-selected by ignored `dev/lab/local.json`. It is independent of the original Codex
-project and its old `percentage-home-trial` directory. Use this permanent runtime
-for the existing paired bridge and current logs. This documentation correction
-does not change the local setting or move/regenerate any runtime files. It contains:
+Choose a persistent runtime outside the repository using ignored
+`dev/lab/local.json` (see `local.example.json`) or `AA_LAB_HOME`.
+Preserve the runtime directory already used by an existing paired lab bridge;
+do not move or regenerate its files. The runtime contains:
 
 - `storage/config.json`: isolated Homebridge configuration.
 - `storage/persist/`: existing Apple Home pairing and identifiers — preserve it.
@@ -90,9 +89,10 @@ does not change the local setting or move/regenerate any runtime files. It conta
 - `*-control.json`: private management token/PID records; not HomeKit pairing data.
 
 `AA_LAB_HOME` can override the runtime directory. Without an override/local.json,
-the default is `../advantage-air-lab`, outside the repository. The tools require
-an existing isolated `storage/config.json`; they do not silently create a new
-bridge identity. For this already-paired laptop, leave the local setting alone.
+the default is `../advantage-air-lab`, outside the repository. The default profile requires
+an existing isolated `storage/config.json` and preserves its bridge identity.
+The explicit Extras profile creates a separate identity/storage once, as described
+below. Keep the base runtime setting consistent across launch/stop commands.
 Never commit runtime storage, pairing files, management tokens or local.json.
 
 | Purpose | Address / port |
@@ -104,14 +104,15 @@ Never commit runtime storage, pairing files, management tokens or local.json.
 | HomeKit discovery | mDNS, UDP 5353, ciao advertiser |
 
 The bridge name, username/PIN and network binding are in the preserved
-`C:\Users\mitch\AdvantageAirLab\storage\config.json`. It is already paired:
-**do not add it again**. Restarting uses the same identity and preserves room
+runtime's `storage/config.json`. If already paired, **do not add it again**. Restarting uses the same identity and preserves room
 assignments; accessories require their matching scenario to become responsive. Keep the
 laptop awake and on the same LAN as the iPhone. If its IP changes, update only
 the isolated config's `bridge.bind`; preserve username, PIN and storage. No
 production configuration changes are needed for scenario selection.
 
 ## Inspect and troubleshoot
+
+Run in the Windows PowerShell lab checkout:
 
 ```powershell
 .\lab.cmd status
@@ -141,7 +142,7 @@ status and stop for any component that did start.
 
 When stopped, Home will eventually mark test accessories unavailable. Start the
 lab later without re-pairing; select MyZone explicitly if that is the scenario you
-need, because a fresh simulator starts with percentage.json. Physical Advantage Air firmware
+need, because a fresh default-profile simulator starts with percentage.json. Physical Advantage Air firmware
 percentage retention is still not established by this simulated environment.
 
 ## Selecting the MyZone scenario
@@ -164,3 +165,42 @@ The linked MyZone procedure invokes `.ps1` files through `powershell.exe -NoProf
 -ExecutionPolicy Bypass -File ...` and checks the exit code. This permits the script
 for that process without changing permanent machine/user policy. Enforced Group Policy
 can still prevent execution; stop if blocked rather than changing policy globally.
+
+## MyPlace Extras-only profile
+
+Run in the **Windows terminal, from the lab checkout** (with its existing compiled
+MyPlace-lights build and dependencies):
+
+```powershell
+.\lab.cmd stop --profile percentage
+if ($LASTEXITCODE -ne 0) { throw 'Stop failed; inspect the output.' }
+.\lab.cmd start --profile myplace-extras
+```
+
+This uses the same simulator, historical `/setLight` endpoint, normal polling,
+and managed Homebridge workers. The fixture has `aircons: {}`, two relay lights
+(Porch Light, Utility Light), and two dimmers (Living Light, Bedroom Light).
+There are no groups or Things. It is a synthetic standalone topology assembled
+from the existing sanitised light patterns, not a real standalone capture.
+
+The profile creates `myplace-extras/storage` beneath the existing lab runtime
+on first start. It copies only the lab bridge's network settings/PIN into a new
+configuration with a new bridge username; it never copies AC accessories or
+pairing data. Pair **MyPlace Extras Lab** once in Apple Home, using the PIN in
+`myplace-extras/storage/config.json` beneath the base runtime. Subsequent starts preserve that profile's identity.
+The original AC lab storage and any real Homebridge installation remain unchanged.
+Existing AC test accessories from the original bridge may still appear in Home
+as unavailable while that bridge is stopped; this profile itself exposes only lights.
+
+Use the same profile on management commands. Run in the **Windows terminal**:
+
+```powershell
+.\lab.cmd status --profile myplace-extras
+.\lab.cmd logs --profile myplace-extras
+.\lab.cmd stop --profile myplace-extras
+```
+
+The profiles share the established lab ports and cannot run simultaneously.
+Stop the active profile before starting another. A Homebridge-only restart
+preserves simulator state; a fresh simulator start reloads the selected fixture.
+Without `--profile`, the existing percentage/MyZone workflow is unchanged.

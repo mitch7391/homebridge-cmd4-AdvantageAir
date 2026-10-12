@@ -1,3 +1,6 @@
+import { claimController } from './discovery/controllerOwnership.js';
+import { lightId } from './api/lightCommand.js';
+import { LightManager } from './accessories/lightManager.js';
 import { detailedDebug, HomeNames } from './discovery/homeNames.js';
 import { TimerValveManager } from './accessories/timerValveManager.js';
 import { fanSetting } from './api/fanCommand.js';
@@ -30,6 +33,7 @@ interface ConfiguredController {
   myZoneManager: MyZoneManager;
   percentageManager: PercentageZoneManager;
   timerManager: TimerValveManager;
+  lightManager: LightManager;
 }
 
 function isObject(value: unknown): value is Record<string, unknown> {
@@ -76,6 +80,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         controller.myZoneManager.stop();
         controller.percentageManager.stop();
         controller.timerManager.stop();
+        controller.lightManager.stop();
       }
     });
   }
@@ -90,6 +95,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
     MyZoneManager.prepareCachedAccessory(this.api, accessory);
     PercentageZoneManager.prepareCachedAccessory(this.api, accessory);
     TimerValveManager.prepareCachedAccessory(this.api, accessory);
+    LightManager.prepareCachedAccessory(this.api, accessory);
   }
 
   private configureControllers(devices: unknown): void {
@@ -154,6 +160,12 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
 
         endpoints.add(endpoint);
 
+        const excluded = device.excludedLightIds ?? [];
+        if (!Array.isArray(excluded)) {
+          throw new Error('Excluded light IDs must be an array.');
+        }
+        const exclusions = new Set(excluded.map(lightId));
+        const owner = {};
         let previouslyFailed = false;
         let receivedData = false;
         let accessoryUpdateFailed = false;
@@ -162,6 +174,7 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
           this.api,
           this.accessories,
           accessoryName => this.log.info(name, 'Created accessory:', accessoryName),
+          owner,
         );
 
         const updateManagers: Array<(state: ControllerPollState) => void> = [
@@ -170,6 +183,19 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         let latestState: ControllerPollState = { lastAttemptFailed: false };
         const refreshAccessories = (coordinator: ControllerCoordinator) => {
           let updateFailed = false;
+          if (latestState.data && !latestState.lastAttemptFailed) {
+            try {
+              claimController(this.api, latestState.data, owner);
+            } catch (error) {
+              if (error instanceof DuplicateControllerError) {
+                coordinator.stop();
+                this.log.error('Duplicate controller identity:', name, 'Polling stopped for this entry.');
+                return;
+              }
+              // Let each manager fault retained accessories when identity data is invalid.
+
+            }
+          }
           for (const update of updateManagers) {
             try {
               update(latestState);
@@ -251,13 +277,15 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
             );
           }
         }, message => this.log.warn(name, message), (event) => {
-          const state = event.kind === 'timer' ? (event.active ? 'timer ' + event.seconds / 60 + ' minutes' : 'timer cancelled')
-            : event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
-              : event.kind === 'percentage' ? 'zone percentage ' + event.percentage + '%'
-                : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
-                  : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
-                    : event.kind === 'mode' ? event.mode
-                      : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
+          const state = event.kind === 'lightOn' ? (event.on ? 'On' : 'Off')
+            : event.kind === 'lightBrightness' ? 'brightness ' + event.brightness + '%'
+              : event.kind === 'timer' ? (event.active ? 'timer ' + event.seconds / 60 + ' minutes' : 'timer cancelled')
+                : event.kind === 'zone' ? (event.on ? 'Open' : 'Closed')
+                  : event.kind === 'percentage' ? 'zone percentage ' + event.percentage + '%'
+                    : event.kind === 'modeFan' ? (event.mode === 'vent' ? 'Ventilation' : 'Dry Mode') + (event.on ? ' On' : ' Off')
+                      : event.kind === 'fan' ? 'fan speed ' + (event.percentage === 100 ? 'Auto Mode' : fanSetting(event.percentage).fan)
+                        : event.kind === 'mode' ? event.mode
+                          : event.kind === 'myZone' ? 'MyZone ' + event.zoneName : String(event.temperature) + ' °C';
           if (event.superseded || event.outcome === 'unchanged') {
             if (debug) {
               diagnostic(name, event.name,
@@ -313,9 +341,13 @@ export class AdvantageAirPlatform implements DynamicPlatformPlugin {
         updateManagers.push(state => timerManager.update(state));
 
         this.homeNames.configure(index, name, device.homeName);
+        const lightManager = new LightManager(this.api, this.accessories, poller, exclusions,
+          message => this.log.warn(name, message));
+        updateManagers.push(state => lightManager.update(state));
+
         this.controllers.push({
           refreshAccessories: () => refreshAccessories(poller), name, debug, poller,
-          switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager, timerManager,
+          switchManager, thermostatManager, modeFanManager, percentageManager, myZoneManager, timerManager, lightManager,
         });
       } catch (error) {
         const reason = error instanceof Error

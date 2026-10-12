@@ -33,8 +33,8 @@ The explicit file allowlist includes:
 - `docs/v3-migration.md`, both licence files and the template source reference;
 - npm's automatically included `package.json` and `README.md`.
 
-The current output is 119 files: 36 JavaScript modules, 36 declaration files,
-36 source maps and the 11 runtime/configuration/documentation files above.
+The MyPlace-lights output is 131 files: 40 JavaScript modules, 40 declaration files,
+40 source maps and the 11 runtime/configuration/documentation files above.
 Maps and declarations remain available for diagnostics/tooling; maps refer to
 repository source paths, but TypeScript source is not included in the package.
 
