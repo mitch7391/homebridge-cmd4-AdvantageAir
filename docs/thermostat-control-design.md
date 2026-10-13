@@ -79,10 +79,19 @@ An HTTP success is not confirmation of the requested state.
 ## HomeKit state and accessory lifecycle
 
 Target mode and temperature immediately reflect admitted desired values while
-the coordinator waits for controller confirmation. Current temperature always
-comes from the observed reference sensor: active myZone, or constant1 when
-myZone is disabled. Missing, faulty or ambiguous sensor data fails that reading;
-it does not fabricate a temperature or hide an otherwise valid target.
+the coordinator waits for controller confirmation. With temperature sensors,
+current temperature comes from the observed reference sensor: active myZone, or
+constant1 when myZone is disabled. Missing, faulty or ambiguous sensor data still
+fails that reading without hiding an otherwise valid target.
+
+For explicitly sensorless configurations only, current temperature instead uses
+the validated observed info.setTemp (16–32 C), preserving v3's useful display.
+This is a setpoint proxy, not an ambient measurement or pending HomeKit target.
+The fallback requires myZone 0, nonempty all-type-0 zones with valid
+numbers, a unique constant selection (0 or one matching zone), and agreement with
+the reported noOfZones. Unknown types, missing/partial topology and invalid
+setpoints do not qualify. Sensor error/radio fields on declared percentage zones
+are not used to invent a sensor capability. Stale data still becomes unavailable.
 
 CurrentHeatingCoolingState uses the legacy projection of observed power/mode:
 Off when powered off, Heat for reported heat, Cool for reported cool, and Off
@@ -101,11 +110,12 @@ Missing or invalid identities retain accessories but disable their controls.
 Freshness, rejection, expiry and shutdown use the coordinator's existing rules.
 Warnings identify refused commands without logging response bodies.
 
-## Next integration and validation
+## Integration and validation history
 
-Add linked fan-speed control to this same thermostat accessory and a separate
-ventilation fan. Verify fan write mapping and shared power/mode interactions
-before implementing them. Those fan services are not part of this increment.
+Linked fan-speed and separate Ventilation/Dry services have since been implemented
+and accepted. Dry-as-Auto is deliberately not restored. The following records
+the original thermostat validation scope; see homebridge1-compatibility.md for
+the later packaged campaigns.
 
 The automated suite exercises the real client/coordinator against simulated
 responses, including busy periods, partial confirmation, rapid edits, mixed
@@ -115,8 +125,10 @@ remain in the suite. Thermostat tests now exercise the complete platform with
 real HAP handlers and simulated HTTP responses, including immediate write replies,
 observed versus desired state, repeated edits, multiple aircons, cache restoration,
 identity changes, sensor faults, rejection, freshness and shutdown. After the
-feature-branch checks pass, perform an isolated Raspberry Pi thermostat trial
-before adding fan controls. Automated tests are not a substitute for that trial.
+original thermostat checks passed, the maintainer completed the isolated hardware
+trial and fan work. The later sensorless correction adds focused HAP regression
+coverage; actual Apple Home rendering on physical sensorless hardware remains
+unverified. It does not invalidate the completed sensor-equipped acceptance.
 
 ## Live precision finding and logging
 

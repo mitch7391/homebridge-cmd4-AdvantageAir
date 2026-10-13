@@ -29,6 +29,24 @@ and reason, including an active-myZone refusal. It returns a communication error
 to HomeKit and does not send the refused command. The refusal is logged once per
 request rather than repeated on each poll.
 
+## Evidence boundary
+
+The supplied API notes explicitly assign constant-zone protection to the controller;
+the official MyAir/MyAir+ manual's Constant Zones section corroborates automatic
+opening for pressure relief. This supports retaining the planner, not copying v3's
+open-zone counters, automatic reassignment or forced 100% writes. The API's active-
+MyZone closure restriction is enforced locally and again at command preflight.
+
+Neither source specifies override timing for every firmware, nor do mocked tests
+measure duct pressure. Existing ordinary zone acceptance does not by itself prove
+a last-open-zone override. Before qualifying an undocumented controller/firmware,
+obtain manufacturer/installer confirmation of protection for API commands or a
+qualified supervised trace showing requested closure, controller readback/override
+and safe physical operation with installer settings intact. Do not ask ordinary
+beta testers to close all outlets on a running system. If an API command bypasses
+protection, stop release for that configuration and investigate; do not invent a
+replacement airflow algorithm. See v3-v4-parity.md for the bounded review.
+
 ## Command flow
 
 A HomeKit write acknowledges local acceptance of a validated request. It does

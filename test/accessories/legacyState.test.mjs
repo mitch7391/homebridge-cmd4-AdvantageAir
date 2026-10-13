@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { URL } from 'node:url';
+import fs from 'node:fs';
 
 import {
   UnavailableStateError,
@@ -269,4 +271,90 @@ test('unknown thermostat power or active mode is unavailable', () => {
       UnavailableStateError,
     );
   }
+});
+
+function sensorless() {
+  // Retained percentage-zone lab payload: explicit type 0, myZone/constant1 0.
+  return JSON.parse(fs.readFileSync(new URL('../../dev/lab/fixtures/percentage.json', import.meta.url))).aircons.ac1;
+}
+
+test('sensorless thermostat displays the observed AC setpoint with or without a constant zone', () => {
+  for (const constant1 of [0, 6]) {
+    const data = sensorless();
+    data.info.constant1 = constant1;
+    data.zones.z06.measuredTemp = -20; // Type-0 placeholder is not a sensor reading.
+    assert.equal(thermostatCurrentTemperature(data), 24);
+    data.info.setTemp = 27;
+    assert.equal(thermostatCurrentTemperature(data), 27);
+    assert.equal(thermostatTargetTemperature(data), 27);
+  }
+});
+
+test('sensorless fallback refuses incomplete or ambiguous topology and invalid setpoints', () => {
+  const changes = [
+    data => {
+      data.zones = {};
+    },
+    data => {
+      delete data.zones.z06.type;
+    },
+    data => {
+      data.zones.z06.type = '0';
+    },
+    data => {
+      data.info.myZone = 6;
+    },
+    data => {
+      delete data.info.myZone;
+    },
+    data => {
+      delete data.info.constant1;
+    },
+    data => {
+      data.info.constant1 = 1;
+    },
+    data => {
+      data.info.noOfZones = 2;
+    },
+    data => {
+      delete data.info.noOfZones;
+    },
+    data => {
+      data.zones.z06.number = undefined;
+    },
+    data => {
+      data.zones.z07 = { ...data.zones.z06 };
+      data.info.noOfZones = 2;
+      data.info.constant1 = 6;
+    },
+  ];
+  for (const change of changes) {
+    const data = sensorless();
+    change(data);
+    assert.throws(() => thermostatCurrentTemperature(data), UnavailableStateError);
+  }
+  for (const setTemp of [undefined, null, '24', NaN, Infinity, 15, 33]) {
+    const data = sensorless();
+    data.info.setTemp = setTemp;
+    assert.throws(() => thermostatCurrentTemperature(data), UnavailableStateError);
+  }
+});
+
+test('a declared temperature sensor never uses the fallback on radio, measurement or sensor failure', () => {
+  for (const patch of [{ error: 1 }, { measuredTemp: undefined }, { tempSensorClash: true }]) {
+    const data = sensorless();
+    data.info.constant1 = 6;
+    Object.assign(data.zones.z06, { type: 1, error: 0, measuredTemp: 21.5, rssi: 0 }, patch);
+    assert.throws(() => thermostatCurrentTemperature(data), UnavailableStateError);
+  }
+  const data = sensorless();
+  data.info.constant1 = 6;
+  Object.assign(data.zones.z06, { type: 1, error: 0, measuredTemp: 21.5 });
+  assert.equal(thermostatCurrentTemperature(data), 21.5);
+});
+
+test('retained historical sensorless payload uses its main setpoint despite duplicate non-reference zone numbers', () => {
+  const data = JSON.parse(fs.readFileSync(new URL('../testData/advantageAirMultipleSystems.txt', import.meta.url))).aircons.ac1;
+  assert.ok(Object.values(data.zones).every(zone => zone.type === 0));
+  assert.equal(thermostatCurrentTemperature(data), data.info.setTemp);
 });
