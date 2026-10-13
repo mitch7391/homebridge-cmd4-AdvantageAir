@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { pathToFileURL, URL } from 'node:url';
 import test from 'node:test';
+import fs from 'node:fs';
 import { AdvantageAirPlatform } from '../../dist/platform.js';
 import { ThermostatAccessory } from '../../dist/accessories/thermostatAccessory.js';
 
@@ -391,4 +392,41 @@ test('accessory isolates invalid readings and sanitises unexpected admission err
     throw new Error('logger failed');
   };
   await assert.rejects(char('TargetHeatingCoolingState').handleSetRequest(1), unavailable({ api }));
+});
+
+test('sensorless HAP thermostat reads setpoint and retains modes, targets, fan and percentage zones', async t => {
+  const c = await setup(t, { paused: true });
+  const fixture = JSON.parse(fs.readFileSync(new URL('../../dev/lab/fixtures/percentage.json', import.meta.url))).aircons.ac1;
+  Object.assign(fixture.info, { uid: 'unit', name: 'Aircon' });
+  c.data.aircons.ac1 = fixture;
+  c.api.emit('didFinishLaunching');
+  await flush();
+  assert.equal(await c.char('CurrentTemperature').handleGetRequest(), 24);
+  assert.equal(await c.char('TargetTemperature').handleGetRequest(), 24);
+  assert.equal(c.registered.filter(a => a.getService(c.api.hap.Service.TemperatureSensor)).length, 0);
+  for (const mode of [1, 2, 0]) {
+    await c.char('TargetHeatingCoolingState').handleSetRequest(mode);
+    await c.advance(7200);
+    assert.equal(await c.char('CurrentHeatingCoolingState').handleGetRequest(), mode);
+  }
+  await c.char('TargetTemperature').handleSetRequest(26);
+  assert.equal(await c.char('CurrentTemperature').handleGetRequest(), 24);
+  await c.advance(7200);
+  assert.equal(await c.char('CurrentTemperature').handleGetRequest(), 26);
+  assert.deepEqual(c.writes.at(-1), { ac1: { info: { setTemp: 26 } } });
+  const fan = c.accessory().getServiceById(c.api.hap.Service.Fan, 'fan-speed');
+  await fan.getCharacteristic(c.api.hap.Characteristic.RotationSpeed).handleSetRequest(90);
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.info.fan, 'high');
+  const zone = c.registered.find(a => a.getService(c.api.hap.Service.Lightbulb)).getService(c.api.hap.Service.Lightbulb);
+  await zone.getCharacteristic(c.api.hap.Characteristic.Brightness).handleSetRequest(65);
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.zones.z06.value, 65);
+  await zone.getCharacteristic(c.api.hap.Characteristic.On).handleSetRequest(false);
+  await c.advance(7200);
+  assert.equal(c.data.aircons.ac1.zones.z06.state, 'close');
+  assert.equal(await c.char('CurrentTemperature').handleGetRequest(), 26);
+  c.model.failRead = true;
+  await c.advance(90100);
+  await assert.rejects(c.char('CurrentTemperature').handleGetRequest(), unavailable(c));
 });

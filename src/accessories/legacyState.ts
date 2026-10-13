@@ -114,7 +114,34 @@ function selectedTemperatureZone(aircon: AirconData): JsonObject {
   return matches[0];
 }
 
+/**
+ * Type 0 explicitly identifies percentage-only zones. A missing sensor reading
+ * or failed radio is not evidence that a temperature-controlled zone is sensorless.
+ */
+function isSensorless(aircon: AirconData): boolean {
+  const zones = Object.values(aircon.zones);
+  const constant = aircon.info.constant1;
+  const count = aircon.info.noOfZones;
+  return aircon.info.myZone === 0
+    && typeof constant === 'number' && Number.isInteger(constant) && constant >= 0
+    && zones.length > 0
+    && count === zones.length
+    && zones.every(zone => zone.type === 0
+      && typeof zone.number === 'number' && Number.isSafeInteger(zone.number) && zone.number > 0)
+    && (constant === 0 || zones.filter(zone => zone.number === constant).length === 1);
+}
+
 export function thermostatCurrentTemperature(aircon: AirconData): number {
+  if (isSensorless(aircon)) {
+    // v3-compatible display fallback, not an ambient measurement. Validate the
+    // observed setpoint; do not substitute an optimistic pending HomeKit target.
+    const temperature = aircon.info.setTemp;
+    if (typeof temperature !== 'number' || !Number.isFinite(temperature) || temperature < 16 || temperature > 32) {
+      throw new UnavailableStateError('Sensorless temperature setpoint is unavailable or outside the supported range.');
+    }
+    return temperature;
+  }
+
   const zone = selectedTemperatureZone(aircon);
 
   if (
