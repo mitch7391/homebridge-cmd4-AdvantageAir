@@ -5,6 +5,11 @@ feature, installer or Windows service. Do not point it at a real controller or
 production Homebridge storage. Node 24 and this checkout's installed dependencies
 and compiled `dist` are required. No new dependencies are introduced.
 
+The standalone build uses the `homebridge-advantageair` plugin allowlist.
+Existing persistent lab installations must follow
+[the offline cache/allowlist transition](native-package-transition.md) first.
+Do not delete their storage or generate a new bridge identity just for this rename.
+
 ## Everyday commands
 
 Open PowerShell in your Windows lab checkout. The following is an example

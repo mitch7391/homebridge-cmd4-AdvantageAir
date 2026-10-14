@@ -31,6 +31,10 @@ function filesBelow(directory) {
   });
 }
 
+function membersContainLegacy(files) {
+  return files.some(file => /(^|\/)(AdvAir\.sh|legacyCompatibility\.)/.test(file.path));
+}
+
 try {
   // Never overwrite a maintainer's local configuration. Only remove our probes.
   for (const relative of ['dev/lab/local.json', 'assets/package-check-local.json', 'dist/package-check-stale.js']) {
@@ -58,9 +62,10 @@ try {
   assert.equal(Object.keys(manifest.dependencies ?? {}).length, 0);
 
   const expected = [
-    'package.json', 'README.md', 'AdvAir.sh', 'config.schema.json',
+    'package.json', 'README.md', 'config.schema.json',
     'LICENSE', 'LICENSE.homebridge-template', 'TEMPLATE_SOURCE.txt',
     'assets/README.md', 'assets/settings-header.png', 'assets/settings-header.svg', 'docs/v3-migration.md',
+    'docs/native-package-transition.md',
   ];
   for (const source of filesBelow(path.join(root, 'src'))) {
     if (source.endsWith('.ts') && !source.endsWith('.d.ts')) {
@@ -77,13 +82,7 @@ try {
   for (const file of expected) {
     assert.deepEqual(fs.readFileSync(path.join(temporary, 'package', file)), fs.readFileSync(path.join(root, file)), file);
   }
-  // Windows cannot represent the Unix executable bit faithfully; Linux CI must verify it.
-  if (process.platform !== 'win32') {
-    // Inspect stored permissions, independent of extraction/filesystem behaviour.
-    const modes = path.join(temporary, 'legacy-mode.txt');
-    capture('tar', ['-tvzf', archive, 'package/AdvAir.sh'], modes);
-    assert.match(fs.readFileSync(modes, 'utf8'), /^-rwxr-xr-x\s/, 'Archive must preserve AdvAir.sh mode 0755.');
-  }
+  assert.equal(membersContainLegacy(packed.files), false, 'Native package must not contain legacy backend/registration.');
 
   const install = path.join(temporary, 'consumer');
   fs.mkdirSync(install);
@@ -97,7 +96,7 @@ import register from '${manifest.name}';
 const calls = [];
 register({ registerPlatform: (...args) => calls.push(args) });
 assert.deepEqual(calls.map(call => call.slice(0, 2)), [
-  ['${manifest.name}', 'AdvantageAir'], ['${manifest.name}', 'cmd4AdvantageAir'],
+  ['${manifest.name}', 'AdvantageAir'],
 ]);
 assert.ok(calls.every(call => typeof call[2] === 'function'));
 `);

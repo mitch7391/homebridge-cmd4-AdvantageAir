@@ -1,55 +1,59 @@
 # Migrating from v3 to native v4
 
-This guide describes the compatibility-bearing v4 development package.
+This guide describes two independently installed packages: existing v3
+`homebridge-cmd4-advantageair` and native v4 `homebridge-advantageair`.
 An npm beta is not yet published. Follow the announced beta installation
 instructions when it is; do not substitute an unbuilt GitHub branch.
 
-## What the upgrade preserves
+## What remains with v3
 
 v3 HomeKit accessories belong to `homebridge-cmd4`. Their configured
-`state_cmd` calls this package's `AdvAir.sh`. v4 temporarily includes that
-unchanged executable at the same package-root path, so existing paths continue
-to work **when the package is upgraded in the same installation location**.
+`state_cmd` continues calling the independently installed v3 package's `AdvAir.sh`.
+Keep that package, installation prefix and configured path unchanged. Native v4
+does not supply this backend and does not replace v3 when installed.
 
 The frozen source is v3 commit
 `d65be40f736e4814c261c1470275f2405df20c94`, Git blob
 `c8b6e7d12530dd3d4bb27b71bfa3d063139fcf53`, mode `100755`.
-Its historical whitespace and acknowledgements are intentionally preserved.
+It remains in the repository as historical parity reference, excluded from the
+native npm package. Its whitespace and acknowledgements remain preserved.
 
 Cmd4, its existing polling/queue configuration, Bash, curl, jq and a writable
 temporary directory remain required for legacy accessories only. Existing
 older Cmd4 installations may have a queue patch previously installed by the
 v3 configuration creator; this package neither installs nor replaces it.
 
-The old `cmd4AdvantageAir` platform alias is accepted by an inert compatibility
-handler that logs a migration notice. It does not create accessories, poll,
-write, convert configuration or activate native v4 from old device settings.
-The configuration creator, custom UI and CheckConfig tools are not restored.
+Only the separate v3 package registers `cmd4AdvantageAir`. Native v4 registers
+only `AdvantageAir`, avoiding ambiguous legacy configuration. Existing v3 setup
+tools remain with v3; native v4 does not provide them.
 
 Native v4 uses platform `AdvantageAir`. New native users need none of this
 legacy setup.
 
-## Before upgrading
+## Before adding native v4
 
 - Back up Homebridge configuration and pairing/storage, including the existing
   Cmd4 entries and any local script customisations.
 - Check the actual `state_cmd` path. A changed npm prefix, container or
-  Homebridge installation can invalidate it. The upgrade replaces any
-  customised copy at the packaged `AdvAir.sh` path.
+  Homebridge installation can invalidate it. Installing native v4 must not
+  remove or overwrite that v3 backend or local customisations.
 - Upgrade away from Node 18/20 first. Node 22/24 are the current v4 targets;
   check your Homebridge, Cmd4 and other plugins against the chosen version.
-  Current validation is primarily Homebridge 2.x/Node 24, not a completed
-  Homebridge 1.x or Node 26 compatibility claim.
+  The pre-rename package passed Homebridge 1.8.5/Node 22 and 2.4.0/Node 24
+  campaigns. Standalone coexistence/cache validation is a separate gate.
+  Node 26 remains outside the current engine range.
 - Know how to stop/disable the Advantage Air entries or their dedicated Cmd4
   bridge. Do not disable unrelated Cmd4 accessories unnecessarily.
 - Check whether you use v3 features absent from native v4, such as MyPlace
-  lights/Things, mode-specific legacy timers or alternative zone layouts.
+  Things, light groups/scenes, mode-specific legacy timers or alternative zone
+  layouts. Individual MyPlace lights are supported.
   These are not automatically replaced.
 
 ## Transition
 
-1. Upgrade the package in its existing installation location. Existing Cmd4
-   accessories retain their backend; the old helper platform is inert.
+1. Keep v3 and Cmd4 installed. Add the reviewed standalone native package
+   separately. If you already ran native development v4 under the old package
+   name, first follow [the cache-transition procedure](native-package-transition.md).
 2. Add a **separate** native `AdvantageAir` platform configuration using the
    plugin settings or the README's minimal example. Do not overwrite the
    existing Cmd4 configuration or repurpose the old helper entry.
@@ -67,7 +71,10 @@ legacy setup.
    Cmd4 entries when satisfied. Remove the obsolete helper-platform entry too.
    Preserve Cmd4 itself if it still serves unrelated accessories.
 
-There is no automatic transfer of v3 UUIDs, rooms, scenes or automations.
+Existing Cmd4 identities, rooms and automations remain with the original
+accessories when configuration, dependencies and pairing/storage are preserved.
+Native accessories have separate identities; arrange them and transfer your
+Home setup manually. There is no automatic transfer of rooms or automations.
 Both accessory sets may remain paired temporarily; inactive accessories can
 show unavailable. No cache clearing or re-pairing is required merely to retain
 the legacy backend.
@@ -101,10 +108,7 @@ Keep the existing Cmd4 configuration, pairing and dependencies until the
 transition is accepted. Do not erase shared temporary directories or pairing
 data as a rollback shortcut.
 
-The retained backend lets you return to the configured legacy integration
-without downgrading the npm package. If the installation itself needs rollback,
-restore the recorded exact v3 package/configuration backup rather than assuming
-an arbitrary old version matches your setup.
-
-This compatibility layer is temporary. Its removal must be announced with
-migration instructions before it is removed; no removal release is set yet.
+The independently retained v3 backend lets you return to the configured legacy
+integration without replacing native v4 with v3. If v3 itself was changed, restore
+its recorded exact version/configuration backup. Keep native storage if planning
+to resume v4 later. Neither npm package owns or removes the other package.

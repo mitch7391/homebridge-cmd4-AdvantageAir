@@ -23,7 +23,7 @@ test('lab startup uses bounded timeout retries without adopting or killing other
   });
   fs.mkdirSync(path.join(runtime, 'storage'));
   fs.writeFileSync(path.join(runtime, 'storage/config.json'), JSON.stringify({
-    bridge: { port: 51889 }, plugins: ['homebridge-cmd4-advantageair'],
+    bridge: { port: 51889 }, plugins: ['homebridge-advantageair'],
     platforms: [{ platform: 'AdvantageAir', devices: [{ ipAddress: '127.0.0.1', port: 52025 }] }],
   }));
   // Import the real CLI for each case; only OS/network/clock boundaries are mocked.
