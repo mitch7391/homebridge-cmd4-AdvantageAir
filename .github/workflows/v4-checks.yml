@@ -76,7 +76,7 @@ jobs:
           npm run check:package | tee /tmp/aa-hb1-pack.log
           package_dir="$(sed -n 's/^Archive and full file manifest: //p' /tmp/aa-hb1-pack.log | tail -n 1)"
           test -n "$package_dir"
-          npm run check:homebridge1 -- "$package_dir/homebridge-cmd4-advantageair-4.0.0-beta.1.tgz"
+          npm run check:homebridge1 -- "$package_dir/homebridge-advantageair-4.0.0-beta.1.tgz"
 
       - name: Print compatibility evidence and logs
         if: always()

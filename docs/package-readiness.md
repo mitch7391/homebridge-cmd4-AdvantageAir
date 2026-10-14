@@ -12,7 +12,8 @@ This metadata correction does not relicense the retained template material:
 alongside the project's MIT licence. Header artwork attribution also remains in
 `assets/README.md`.
 
-The package name, author `mitch7391`, exact PayPal funding URL, repository links,
+The native package name is now `homebridge-advantageair`. Author `mitch7391`,
+exact PayPal funding URL, repository links,
 Homebridge keywords, version and engine ranges remain unchanged. `private: true`
 is intentional. No dependency updates or runtime changes are part of this work.
 
@@ -28,13 +29,14 @@ build safeguard and is suitable only for separately verified build artifacts.
 The explicit file allowlist includes:
 
 - `dist` JavaScript, declarations and JavaScript source maps;
-- root `AdvAir.sh`, retained for legacy migration compatibility;
+- the native package-transition guide; `AdvAir.sh` remains repository-only reference;
 - `config.schema.json` and the exact two header assets plus their attribution;
 - `docs/v3-migration.md`, both licence files and the template source reference;
 - npm's automatically included `package.json` and `README.md`.
 
-The MyPlace-lights output is 131 files: 40 JavaScript modules, 40 declaration files,
-40 source maps and the 11 runtime/configuration/documentation files above.
+The standalone output is 128 files: 39 JavaScript modules, 39 declaration files,
+39 source maps and 11 runtime/configuration/documentation files. The inert legacy
+platform is removed. The historical shell backend is excluded.
 Maps and declarations remain available for diagnostics/tooling; maps refer to
 repository source paths, but TypeScript source is not included in the package.
 
@@ -44,10 +46,10 @@ configuration are excluded. Keep secrets outside the explicitly shipped files;
 an allowlist cannot detect a secret deliberately placed inside an allowed file.
 
 `npm run check:package` uses actual npm packing, checks the complete tarball file
-set and bytes, and verifies the executable legacy script on Unix. It places
+set and bytes, and rejects the legacy backend/handler in the native payload. It places
 temporary non-secret probes to check local-file exclusion and stale-build cleanup,
 without overwriting an existing local configuration. It then installs the tarball
-offline into a disposable consumer and imports/registers both platform aliases
+offline into a disposable consumer and imports/registers only `AdvantageAir`
 without contacting a controller or needing development dependencies. Temporary
 probes are removed even on failure; the archive and manifest are retained in the
 printed temporary directory for review. Node 22/24 Linux CI runs this check.
@@ -60,8 +62,7 @@ These packaging changes do not require repeating those controller campaigns.
 Before external beta publication:
 
 1. Run Linux `npm ci`, lint, tests and `npm run check:package` on the reviewed
-   commit. This also verifies Unix executable permissions and the clean-install
-   lifecycle. A developer's existing node_modules is not a clean-install result.
+   commit. This verifies native contents and the clean-install lifecycle. A developer's existing node_modules is not a clean-install result.
 2. Run `npm audit --omit=dev` and separately `npm audit` with registry access.
    There are currently no production npm dependencies. Previously reported
    development-tool advisories still need a fresh online assessment; do not use
@@ -74,7 +75,7 @@ Before external beta publication:
    `^1.8.0 || ^2.0.0`.
 4. Choose an unused beta version using the registry, obtain explicit publication
    approval, then remove `private` in a separately reviewed release change. Publish
-   using the beta dist-tag, preserving the existing v3 latest tag. Nothing in this
+   using the new package beta dist-tag. The separate v3 package/latest remains untouched. Nothing in this
    increment publishes or enables automatic publication.
 
 The plugin-card shield/author/donation presentation remains a separate registry

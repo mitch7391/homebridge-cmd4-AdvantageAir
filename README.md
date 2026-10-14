@@ -11,10 +11,11 @@ npm package.
 
 ## Existing v3 users: read this first
 
-See [Migrating from v3](docs/v3-migration.md) before upgrading. The package
-temporarily retains the unchanged root-level `AdvAir.sh` backend for existing
-Cmd4 accessories and accepts the old `cmd4AdvantageAir` helper-platform entry.
-It does not convert accessories or restore the old setup UI.
+See [Migrating from v3](docs/v3-migration.md) before installing native v4.
+`homebridge-cmd4-advantageair` remains the separate v3 package supplying
+`AdvAir.sh` and `cmd4AdvantageAir`. Native `homebridge-advantageair` registers
+only `AdvantageAir` and does not bundle the legacy backend. Existing native
+development installations need the cache-transition procedure in that guide.
 
 Temporary side-by-side use is intended for migration/comparison, not permanent
 dual operation. Avoid simultaneous conflicting commands. Legacy Timer polling
@@ -25,7 +26,8 @@ can write to the controller; follow the timer precautions in the migration guide
 Once an npm beta has been explicitly published, install its exact
 `4.0.0-beta.x` version using Homebridge UI's alternate-version option, or the
 npm `beta` tag. Do not assume the normal `latest` tag selects v4.
-The package name remains `homebridge-cmd4-advantageair`.
+Install `homebridge-advantageair`; do not replace the separately installed v3
+package. Existing v3 npm releases and their `latest` tag remain independent.
 
 For a maintainer trial before publication, use the built, validated tarball
 and the existing isolated test environment. Do not enable npm publishing just
@@ -161,7 +163,8 @@ data, notification tokens or PINs.
 
 Use `npm ci`, `npm run lint`, `npm run build` and `npm test`.
 `npm pack` now cleans and builds through `prepack`. Run `npm run check:package`
-to verify the actual tarball, runtime entry point and executable root `AdvAir.sh`. The simulator is maintainer tooling:
+to verify the actual tarball, native registration and exclusion of the historical
+`AdvAir.sh` reference. The simulator is maintainer tooling:
 see [the developer lab guide](docs/developer-lab.md).
 
 Before the first actual npm beta publication:

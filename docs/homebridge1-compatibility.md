@@ -30,7 +30,38 @@ and sorting the accessory comparison by AID; identity checks remain intact.
 No plugin runtime fix was required by the Linux campaign. This is simulator/HAP
 evidence, not physical MyPlace light or every-firmware acceptance.
 
+## Standalone package evidence
+
+The focused standalone campaign passed on Windows with Node 24.19.0,
+Homebridge 2.4.0 and genuine v3 `homebridge-cmd4-advantageair@3.12.2` installed
+beside the native 128-file package. Archive SHA-256:
+`90de79002d02577fd09261e527e49fab49c776aec7edea0917b4e5a6d8c66a22`.
+Both platforms registered independently. All twelve native accessories survived
+ordinary restart and an offline old-owner-to-new-owner cache transition with
+unchanged UUIDs, service identities, HAP AIDs/IIDs and 45-minute Timer duration.
+Temperature reads and the Timer-duration write passed; established controller
+control campaigns were not repeated for this package-identity change.
+
+Windows process termination initially bypassed graceful teardown. The disposable
+harness now invokes Homebridge's actual SIGTERM handler over IPC on Windows;
+Linux still sends SIGTERM normally. All three Homebridge shutdowns then passed.
+No plugin runtime correction was required. This does not test real Apple Home
+pairing, rooms or automations. Standalone Linux Homebridge 1.8.5 / Node 22 and
+Linux Homebridge 2.4.0 checks remain required in Codespaces/CI before merging;
+the historical package results above do not substitute for that gate.
+
 ## Running the existing campaign
+
+The evidence above predates the standalone npm rename and remains historical
+functional evidence, not a claim that the renamed package was already tested.
+The current harness installs genuine `homebridge-cmd4-advantageair@3.12.2`
+alongside `homebridge-advantageair`, with unqualified legacy/native platform
+configuration, and verifies distinct registration ownership. After an ordinary
+restart it also reconstructs old native cache ownership, applies the offline
+helper and verifies another restart without identity or saved-state loss.
+Append `--standalone` after the explicit Homebridge version for focused
+startup/read/Timer-duration/restart/ownership-transition coverage without
+repeating the established control-write campaign. No real pairing is exercised.
 
 Run `npm run check:package` using Node 22 first. Then, in the Linux Codespaces
 terminal, run `npm run check:homebridge1 -- /absolute/path/to/the/validated.tgz`.
@@ -49,8 +80,9 @@ storage is used. Do not pair the temporary bridge to Apple Home.
 
 Coverage:
 
-- All 131 installed plugin files must match the supplied tarball.
-- Native and legacy compatibility platforms both load with the current config
+- All 128 installed native plugin files must match the supplied tarball; the
+  shell backend and inert compatibility handler must be absent.
+- V3's legacy platform and v4's native platform both load with the current config
   shape. The packaged schema is present and retains the native alias/Home Name.
   Homebridge core does not render the settings schema; this is not a new UI-renderer
   claim and does not replace or repeat previously completed UI acceptance.
@@ -77,6 +109,6 @@ Do not change the runtime implementation solely to get this test to pass.
 
 A separate CI job pins Node 22.23.3 and runs this same package-based
 Homebridge 1.8.5 campaign. The existing Node 22/24 job is unchanged.
-CI prints evidence and process logs on success or failure. Hosted CI for this
-uncommitted MyPlace-lights change remains a post-push merge gate; the extended
+CI prints evidence and process logs on success or failure. Hosted CI for the
+standalone package remains a post-push merge gate; historical MyPlace-lights
 passing evidence above is from Codespaces.

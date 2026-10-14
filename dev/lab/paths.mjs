@@ -25,7 +25,7 @@ export function validateConfig() {
   const devices = config.platforms?.[0]?.devices;
   if (config.platforms?.length !== 1 || config.platforms[0].platform !== 'AdvantageAir'
     || devices?.length !== 1 || devices[0].ipAddress !== '127.0.0.1' || devices[0].port !== 52025
-    || config.bridge?.port !== 51889 || config.plugins?.length !== 1 || config.plugins[0] !== 'homebridge-cmd4-advantageair') {
+    || config.bridge?.port !== 51889 || config.plugins?.length !== 1 || config.plugins[0] !== 'homebridge-advantageair') {
     throw new Error('Lab config must use only the loopback simulator and isolated bridge port 51889.');
   }
   return config;

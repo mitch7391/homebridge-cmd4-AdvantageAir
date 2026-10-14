@@ -1,5 +1,5 @@
 {
-  "name": "homebridge-cmd4-advantageair",
+  "name": "homebridge-advantageair",
   "displayName": "Homebridge Advantage Air",
   "type": "module",
   "version": "4.0.0-beta.1",
@@ -30,11 +30,11 @@
   ],
   "main": "dist/index.js",
   "files": [
-    "AdvAir.sh",
     "assets/README.md",
     "assets/settings-header.png",
     "assets/settings-header.svg",
     "docs/v3-migration.md",
+    "docs/native-package-transition.md",
     "dist/**/*.js",
     "dist/**/*.d.ts",
     "dist/**/*.js.map",

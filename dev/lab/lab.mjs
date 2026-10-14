@@ -95,7 +95,7 @@ async function start(component) {
     const config = {
       bridge: { ...original.bridge, name: 'MyPlace Extras Lab',
         username: ['0E', ...crypto.randomBytes(5).toString('hex').match(/../g)].join(':').toUpperCase() },
-      plugins: ['homebridge-cmd4-advantageair'], accessories: [],
+      plugins: ['homebridge-advantageair'], accessories: [],
       platforms: [{ platform: 'AdvantageAir', name: 'MyPlace Extras Lab',
         devices: [{ name: 'MyPlace Simulator', ipAddress: '127.0.0.1', port: 52025 }] }],
     };
