@@ -46,9 +46,16 @@ Windows process termination initially bypassed graceful teardown. The disposable
 harness now invokes Homebridge's actual SIGTERM handler over IPC on Windows;
 Linux still sends SIGTERM normally. All three Homebridge shutdowns then passed.
 No plugin runtime correction was required. This does not test real Apple Home
-pairing, rooms or automations. Standalone Linux Homebridge 1.8.5 / Node 22 and
-Linux Homebridge 2.4.0 checks remain required in Codespaces/CI before merging;
-the historical package results above do not substitute for that gate.
+pairing, rooms or automations.
+
+The same 128-file archive subsequently passed the focused Linux campaigns on
+Homebridge 2.4.0 / Node 24.21.0 (npm 11.19.0) and Homebridge 1.8.5 /
+Node 22.23.3 (npm 10.9.9), with genuine v3 3.12.2 installed. Both verified twelve
+native accessories, distinct registrations, graceful shutdown/restart and offline
+cache-owner migration with unchanged UUIDs/service subtypes/HAP AIDs/IIDs and
+45-minute Timer duration. The q deprecation notice was non-fatal.
+The new release-preparation package adds tester guidance and metadata safeguards;
+its inventory is validated separately without repeating this full runtime campaign.
 
 ## Running the existing campaign
 
@@ -80,7 +87,8 @@ storage is used. Do not pair the temporary bridge to Apple Home.
 
 Coverage:
 
-- All 128 installed native plugin files must match the supplied tarball; the
+- The complete native inventory, derived from the clean build and explicit
+  allowlist, must match the supplied tarball and installed files; the
   shell backend and inert compatibility handler must be absent.
 - V3's legacy platform and v4's native platform both load with the current config
   shape. The packaged schema is present and retains the native alias/Home Name.
@@ -109,6 +117,7 @@ Do not change the runtime implementation solely to get this test to pass.
 
 A separate CI job pins Node 22.23.3 and runs this same package-based
 Homebridge 1.8.5 campaign. The existing Node 22/24 job is unchanged.
-CI prints evidence and process logs on success or failure. Hosted CI for the
-standalone package remains a post-push merge gate; historical MyPlace-lights
-passing evidence above is from Codespaces.
+CI prints evidence and process logs on success or failure. The final release
+preparation commit still requires green hosted CI. Historical MyPlace and
+standalone Linux evidence above came from Codespaces; it does not claim a
+release-preparation compatibility rerun.

@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertBetaPackage } from './beta-policy.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -56,7 +57,7 @@ try {
   const manifest = read(path.join(root, 'package.json'));
   assert.equal(packed.name, manifest.name);
   assert.equal(packed.version, manifest.version);
-  assert.equal(manifest.private, true, 'Publication remains a separate, explicitly authorised step.');
+  assertBetaPackage(manifest);
   assert.equal(manifest.license, 'MIT');
   assert.equal(manifest.author, 'mitch7391');
   assert.equal(Object.keys(manifest.dependencies ?? {}).length, 0);
@@ -65,7 +66,7 @@ try {
     'package.json', 'README.md', 'config.schema.json',
     'LICENSE', 'LICENSE.homebridge-template', 'TEMPLATE_SOURCE.txt',
     'assets/README.md', 'assets/settings-header.png', 'assets/settings-header.svg', 'docs/v3-migration.md',
-    'docs/native-package-transition.md',
+    'docs/native-package-transition.md', 'docs/beta1-testing.md',
   ];
   for (const source of filesBelow(path.join(root, 'src'))) {
     if (source.endsWith('.ts') && !source.endsWith('.d.ts')) {

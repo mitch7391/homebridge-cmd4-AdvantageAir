@@ -2,8 +2,8 @@
 
 This guide describes two independently installed packages: existing v3
 `homebridge-cmd4-advantageair` and native v4 `homebridge-advantageair`.
-An npm beta is not yet published. Follow the announced beta installation
-instructions when it is; do not substitute an unbuilt GitHub branch.
+An npm beta is not yet published. Follow [Beta 1 installation and rollback](beta1-testing.md)
+after the publication notice; do not substitute an unbuilt GitHub branch.
 
 ## What remains with v3
 
@@ -39,8 +39,9 @@ legacy setup.
   remove or overwrite that v3 backend or local customisations.
 - Upgrade away from Node 18/20 first. Node 22/24 are the current v4 targets;
   check your Homebridge, Cmd4 and other plugins against the chosen version.
-  The pre-rename package passed Homebridge 1.8.5/Node 22 and 2.4.0/Node 24
-  campaigns. Standalone coexistence/cache validation is a separate gate.
+  The standalone package passed Linux Homebridge 1.8.5/Node 22.23.3 and
+  2.4.0/Node 24.21.0 coexistence/cache campaigns with genuine v3 installed.
+  This is unpaired simulator evidence, not real Home room/automation retention.
   Node 26 remains outside the current engine range.
 - Know how to stop/disable the Advantage Air entries or their dedicated Cmd4
   bridge. Do not disable unrelated Cmd4 accessories unnecessarily.
