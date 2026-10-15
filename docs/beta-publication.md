@@ -1,77 +1,143 @@
-# Maintainer beta publication gate
+# Maintainer public-beta publication and tag gates
 
-Preparation only. This change keeps private: true and version 4.0.0-beta.1.
-No publish command is executed by tests, CI or the transfer handoff.
-The target is homebridge-advantageair@beta. The separate stable package
-homebridge-cmd4-advantageair@latest must remain untouched. The v3 invitation message is a later, separate task.
+Development keeps private: true and version 4.0.0-beta.1. No test, CI job,
+package check or policy validator publishes or changes registry tags.
 
-## Safeguards
+## Two separately approved registry operations
 
-- publishConfig pins tag beta and registry https://registry.npmjs.org/.
-- dev/beta-policy.mjs enforces homebridge-advantageair, explicit boolean private, and a
-  4.0.0-beta.N version (no stable/RC version or leading-zero beta number).
-- Packing and compatibility checks share this policy instead of requiring
-  private:true forever. The future reviewed private:false change will not break
-  these checks. The flag is not changed by any helper.
-- prepublishOnly refuses private:true; requires AA_BETA_RELEASE_PACKAGE equal
-  to homebridge-advantageair and AA_BETA_RELEASE_VERSION equal to the exact
-  package version, explicit --tag beta and explicit public registry;
-  then runs lint and actual package validation. Pack still cleans/rebuilds dist.
-- If the guard runs, enabled force/ignore-scripts configuration is rejected.
-- There is no automatic publish CI job, tag creation, version bump or dist-tag update.
+Publish homebridge-advantageair initially with beta. Verify its contents and
+registry metadata, then obtain separate approval to assign latest to that exact
+version. During the initial public beta programme both tags intentionally identify
+the same reviewed prerelease. Latest means default installation, not stable quality.
+Keep the public beta warning, prerelease version and GitHub Prerelease label.
 
-These are accident-prevention controls, not an npm account security boundary.
-An operator can bypass lifecycle hooks with --ignore-scripts; publishing a tarball
-must not be assumed to execute this checkout's prepublishOnly. Use the reviewed
-checkout publication workflow below, never a raw archive or a bypass flag.
-Do not change global/user npm configuration to make this pass.
+Never modify homebridge-cmd4-advantageair. Its recorded tags are latest=3.12.2
+and beta=3.6.0-beta.2. An intervening v3 release requires review of this snapshot,
+not blindly restoring or changing its tags.
 
-## Future release sequence — Codespaces terminal, only after approval
+## Safeguards and limits
 
-1. Use a clean complete checkout of the reviewed release commit. Record Git SHA,
-   Node/npm versions and green hosted CI. Close any configuration-specific airflow
-   evidence gap; see v3-v4-parity.md. Review the installed backup/migration guide.
-2. Recheck name availability/ownership and the unused version on
-   homebridge-advantageair. Separately record homebridge-cmd4-advantageair@latest
-   and the new package's current tags (absence is valid for a first release).
-   Never expect the new package latest tag to refer to v3. Confirm the intended
-   maintainer account and supported npm authentication/2FA before approval.
-   A version cannot be republished; if the name/version is unavailable, stop.
-3. Obtain explicit publication approval, then review a separate change setting
-   private:false. Keep the beta version, publishConfig and guard intact. If the
-   version must change, update lock root and version-pinned docs/harness references
-   coherently. Do not silently choose another version or remove the guard.
-4. On that exact release tree, run clean-install CI checks, production audit and
-   package validation. Record the tarball SHA-256 and complete file manifest;
-   require tester/migration guides and absence of AdvAir.sh/legacy registration.
-   Review dev-only advisories separately. Do not use npm audit fix.
-5. Rehearse a dry run from the checkout with exact-package/version acknowledgements and
-   explicit beta/public-registry arguments. Review package name, version, tag,
-   file list and lifecycle results. Stop on any mismatch. A dry run is not a
-   publication and does not establish registry availability/authentication.
-6. Recheck Git cleanliness, release tree, npm account/name/version availability
-   and both packages' recorded tags immediately before the separately authorised
-   publication. In the Codespaces terminal, the future command form is
-   AA_BETA_RELEASE_PACKAGE=homebridge-advantageair
-   AA_BETA_RELEASE_VERSION=<approved-version> npm publish --tag beta
-   --registry https://registry.npmjs.org/ from the reviewed checkout (both
-   acknowledgements are environment assignments on the same command). For
-   rehearsal add --dry-run. This procedure is not approval to run it now.
-7. After publication verify homebridge-advantageair@beta points to the approved
-   version and its latest tag has not been newly assigned or changed. Verify
-   homebridge-cmd4-advantageair@latest still points to the separately recorded v3
-   version. Compare published archive integrity/content with the intended release.
-   If anything differs, stop: do not automatically retag latest,
-   unpublish, publish another version or issue the v3 invitation.
+publishConfig still pins beta and the public registry. Initial publication must
+pass dev/beta-policy.mjs: exact standalone name, 4.0.0-beta.N version, explicit
+private:false, package/version acknowledgements and explicit beta/registry options.
+Initial --tag latest remains prohibited. Force/ignore-scripts are refused when
+the guard executes. prepublishOnly runs the guard, lint and actual package checks;
+prepack cleans and rebuilds dist.
 
-The acknowledgement is not a secret and does not replace maintainer approval.
-Credentials/OTP belong in npm's supported secure interaction, never committed
-files or logs. Published-package install/migration smoke checks and the v3
-notification follow only after the beta is available and separately authorised.
-Record the source commit and create the explicitly approved v4 prerelease notes
-without implying a v3 update. New-package Homebridge verification is a separate
-application after publication, not inherited from v3 or a controlled-beta blocker.
-Retain the existing repository/issues; make source and release links select v4.
+Only copied child environments for the checker's internal pack and offline
+consumer installation override inherited dry-run. These local files must exist
+for validation. The parent publication dry-run, process.env and hooks are unchanged.
+No checker subprocess invokes publication or distribution-tag commands.
 
-References: [npm package metadata](https://docs.npmjs.com/cli/v11/configuring-npm/package-json/)
-and [npm lifecycle scripts](https://docs.npmjs.com/cli/v11/using-npm/scripts/).
+dev/beta-latest-policy.mjs is a read-only before/after gate. It requires exact
+package/version acknowledgements, separate latest approval, the reviewed source
+SHA and published sha512 integrity, an explicit previous latest (or none), matching
+published metadata and beta tag, and unchanged v3 tags. It refuses downgrades,
+repeated promotion and stable versions. It performs pinned-registry GET requests
+only and never executes npm dist-tag.
+
+Lifecycle hooks cannot protect independent npm dist-tag writes, raw-archive
+publication or --ignore-scripts. These controls prevent accidents, not deliberate
+bypass. Review the literal tag command separately. Registry reads/writes are not
+atomic: coordinate with other maintainers, check immediately before each write
+and verify afterward. Never automatically repair a tag or retry an ambiguous write.
+Do not use --dry-run with dist-tag as if it made the operation harmless.
+
+## Future release sequence
+
+1. Use a clean reviewed v4-beta release commit with green CI. Preserve backups,
+   hardware qualification boundaries and the fresh-install/native-cache distinction.
+2. Read package/version availability and both complete tag maps. Confirm the npm
+   account and supported authentication/2FA privately; never put tokens/OTP in Git.
+3. Obtain approval for a separate private:false release change, keeping version,
+   beta publishConfig and guards. Never silently choose a different version.
+4. Validate that exact source: clean build, lint, policy tests, production audit
+   and npm run check:package. Record the actual inventory and archive hashes.
+   Review development advisories separately; do not use npm audit fix blindly.
+5. Obtain rehearsal approval. Run the command below with --dry-run added and
+   review all lifecycle output. Rehearsal does not prove registry authorisation.
+6. Recheck source, account and registry; obtain separate publication approval.
+
+**Future Codespaces terminal, reviewed release checkout, only after publication
+approval; add --dry-run only for a separately approved rehearsal:**
+
+```bash
+AA_BETA_RELEASE_PACKAGE=homebridge-advantageair \
+AA_BETA_RELEASE_VERSION=4.0.0-beta.1 \
+npm publish --tag=beta --registry=https://registry.npmjs.org/ \
+  --ignore-scripts=false --force=false
+```
+
+7. Require the exact beta tag and unchanged previous latest/v3 tags. Download and
+   verify the archive against registry dist.integrity and reviewed contents,
+   explicitly accounting for npm-added gitHead metadata. Record approved published
+   integrity only after this review; do not automatically trust returned metadata.
+8. Obtain separate approval for latest promotion. Set evidence below from that
+   review. The validator does not itself constitute approval.
+
+**Future Codespaces terminal, reviewed release checkout; read-only preparation
+following artifact verification and latest-promotion approval:**
+
+```bash
+export AA_BETA_RELEASE_PACKAGE=homebridge-advantageair
+export AA_BETA_RELEASE_VERSION=4.0.0-beta.1
+export AA_BETA_LATEST_APPROVAL=4.0.0-beta.1
+export AA_BETA_PREVIOUS_LATEST=none
+export npm_config_registry=https://registry.npmjs.org/
+read -r -p 'Approved published source commit (40 hex): ' AA_BETA_RELEASE_COMMIT
+read -r -p 'Approved published sha512 integrity: ' AA_BETA_RELEASE_INTEGRITY
+export AA_BETA_RELEASE_COMMIT AA_BETA_RELEASE_INTEGRITY
+node dev/beta-latest-policy.mjs before
+```
+
+9. Review and approve the exact literal command. This changes the new package only.
+
+**Future Codespaces terminal, same approved session; registry-changing operation,
+never run during development or rehearsal:**
+
+```bash
+node dev/beta-latest-policy.mjs before &&
+npm dist-tag add homebridge-advantageair@4.0.0-beta.1 latest \
+  --registry=https://registry.npmjs.org/ &&
+node dev/beta-latest-policy.mjs after
+```
+
+On any error inspect registry state. An ambiguous write may have succeeded: run
+the read-only after check before considering a retry, not another blind write.
+
+10. Check Homebridge UI exact-name search, normal installation, alternate selection
+    and updates with backups. Record UI/Homebridge/Node versions. Announce only
+    after the agreed checks. Git tags and GitHub Prerelease creation at the exact
+    published commit need separate approval. Verified and v3 invitations are later.
+
+## Subsequent betas and eventual stable release
+
+For beta.2/beta.3 review a coherent version update, including lock root and any
+version-pinned tooling/docs. Publish beta, inspect, then separately approve latest.
+Supply the actual old latest rather than none. The gate requires increasing beta
+numbers. Until promotion, default installs remain on the previous reviewed beta;
+record this short interval explicitly so latest is not forgotten. No automatic
+promotion or tag synchronisation belongs in CI.
+
+Normal Homebridge updates should offer a higher latest prerelease; exactly pinned
+installations may need explicit selection. Do not modify v3 or downgrade tags to
+influence native updates. On a bad beta, stop promotion and warn testers; separately
+approve a correction/deprecation. Automatic unpublishing is not rollback and a
+published version cannot be reused. Emergency rollback of latest is intentionally
+outside this forward-only gate and requires a separate incident procedure.
+
+Stable 4.0.0 needs a separately reviewed policy/documentation transition: current
+beta guards deliberately reject it. Decide then what beta should track; do not
+bypass guards or silently retain permanent dual-tag synchronisation.
+
+## Homebridge UI expectations
+
+Current UI source uses exact-name registry lookup, all-version/tag lookup for
+alternate selection, and /latest for normal installation/update metadata. Both
+tags should make these paths resolve the approved prerelease and later higher
+betas. Search indexing and UI-version-specific behaviour still require actual
+post-publication checks; this is an expectation, not a completed UI acceptance.
+
+References: [npm lifecycle](https://docs.npmjs.com/cli/v11/using-npm/scripts/),
+[npm dist-tag](https://docs.npmjs.com/cli/v11/commands/npm-dist-tag/),
+[Homebridge UI registry handling](https://github.com/homebridge/homebridge-config-ui-x/blob/latest/src/modules/plugins/plugins.service.ts).

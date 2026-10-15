@@ -40,7 +40,7 @@ test('stable versions, foreign packages and unsafe publication defaults are reje
   }
 });
 
-test('explicit latest or other tag and registry overrides cannot pass the publication guard', () => {
+test('initial publication still refuses latest despite the separately authorised dual-tag policy', () => {
   for (const tag of ['latest', 'next', '', 'Beta']) {
     assert.throws(() => assertBetaPublication(release(), { ...environment(), npm_config_tag: tag }));
   }

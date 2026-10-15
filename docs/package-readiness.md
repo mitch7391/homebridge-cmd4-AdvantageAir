@@ -56,6 +56,9 @@ offline into a disposable consumer and imports/registers only AdvantageAir
 without contacting a controller or needing development dependencies. Temporary
 probes are removed even on failure; the archive and manifest are retained in the
 printed temporary directory for review. Node 22/24 Linux CI runs this check.
+Only the internal pack and offline consumer-install child environments disable
+inherited dry-run so their local validation artifacts exist. The parent's
+publication dry-run and all hooks remain intact; no check publishes anything.
 
 ## Remaining release gates
 
@@ -80,9 +83,10 @@ Before external beta publication:
    approval, then change `private` explicitly to false in a separately reviewed
    release change. Packing and compatibility checks accept both explicit boolean
    states under the same beta metadata policy. Follow [beta publication](beta-publication.md);
-   target homebridge-advantageair@beta, preserve the separate v3 package/latest
-   and do not bypass scripts. Nothing here publishes or enables
-   automatic publication.
+   initially publish homebridge-advantageair with beta, inspect its artifact,
+   then separately approve latest promotion to that exact prerelease. Preserve
+   both v3 tags and do not bypass scripts. Neither publication nor tag promotion
+   is automatic. Latest is intentionally a beta during this programme.
 
 Existing native development migrations still need a backed-up real Apple Home
 pairing/room/automation check; simulated cache restoration is not that evidence.

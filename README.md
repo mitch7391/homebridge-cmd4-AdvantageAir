@@ -5,10 +5,13 @@ MyPlace lights. v4 discovers
 the existing legacy accessory layout from your controller; new native users do
 not need Cmd4, Bash, curl, jq or the old configuration creator.
 
-**Beta 1 candidate: publication is a separate maintainer action.**
-Publishing remains disabled. Do not install a raw GitHub checkout and expect a
-ready-built plugin; the supported installation path being prepared is a built
-npm package.
+**Public beta — 4.0.0-beta.1 is prerelease software under active development.**
+Bugs are possible and hardware/firmware support is not yet fully qualified.
+Read [the beta testing and backup guidance](docs/beta1-testing.md) before installing.
+The new package's npm latest and beta tags will intentionally identify the same
+approved beta; latest means the default installation, not stable-quality software.
+Publication remains a separate maintainer action and is disabled in development.
+Do not install an unbuilt GitHub checkout.
 
 ## Existing v3 users: read this first
 
@@ -26,10 +29,11 @@ can write to the controller; follow the timer precautions in the migration guide
 ## Native v4 setup
 
 After publication, install `homebridge-advantageair@4.0.0-beta.1` using your
-Homebridge installation's supported explicit-package/version workflow. Use the
-Homebridge UI beta/alternate-version option if offered for the new package, or
-the host-specific npm procedure in the tester guide. Do not rely on discovery
-or an unqualified package install finding a beta-only first release.
+Homebridge installation's supported workflow. After the separately approved
+latest promotion, normal npm/Homebridge installation should resolve this beta.
+Exact-name search and alternate-version selection provide an explicit choice;
+the actual UI workflow will be checked after publication. See the tester guide
+for the host-specific fallback if needed.
 Install `homebridge-advantageair` independently; do not upgrade or replace v3.
 `homebridge-cmd4-advantageair@latest` remains the independent stable package.
 Prefer the exact announced beta version for reproducibility.
@@ -205,11 +209,11 @@ Before the first actual npm beta publication:
 - Record the supported version combinations and remaining hardware limitations.
 - Review production and development audits separately; dev-only findings are not
   automatically runtime beta blockers.
-- Explicitly authorise publication, choose an unused beta version and publish
-  under `beta`, preserving the v3 `latest` tag.
+- Explicitly authorise publication under `beta`, verify the artifact, then
+  separately approve the new package's `latest` promotion. Preserve both v3 tags.
 
-`private: true` still disables publication. Beta-only defaults and a prepublish
-guard are prepared; neither authorises publication. See the
+`private: true` still disables publication. Initial beta-only publication and a
+separate latest-promotion gate are prepared; neither authorises registry writes. See the
 [maintainer procedure](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/beta-publication.md).
 
 ## History and attribution

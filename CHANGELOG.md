@@ -14,8 +14,11 @@
 - Provide a guarded offline cache-owner transition for existing native development
   installations; preserve pairing storage and bridge identity, with a full backup.
 - Packaged Homebridge 1.8.5 / Node 22 and 2.4.0 / Node 24 compatibility evidence,
-  MIT metadata alignment, package-content checks and beta-only publication guards.
-- Opt-in homebridge-advantageair@beta only; homebridge-cmd4-advantageair@latest stays independent. Physical MyPlace-light/low-brightness behaviour,
+  MIT metadata alignment, package-content checks and guarded initial beta publication.
+- Public beta: homebridge-advantageair latest and beta will identify the same reviewed
+  prerelease after separate latest-promotion approval; default installation is not
+  a stability guarantee. homebridge-cmd4-advantageair@latest stays independent.
+  Physical MyPlace-light/low-brightness behaviour,
   broader firmware coverage and large-scene completion remain hardware-validation items.
 
 See [Beta 1 testing](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/beta1-testing.md)

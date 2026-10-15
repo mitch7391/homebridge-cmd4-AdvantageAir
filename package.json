@@ -4,7 +4,7 @@
   "type": "module",
   "version": "4.0.0-beta.1",
   "private": true,
-  "description": "Standalone Homebridge integration for Advantage Air systems.",
+  "description": "Public beta: native Advantage Air AC and MyPlace lights. Review beta guidance before installation.",
   "author": "mitch7391",
   "funding": [
     {

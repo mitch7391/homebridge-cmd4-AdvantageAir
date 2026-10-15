@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { assertBetaPackage } from './beta-policy.mjs';
+import { localPackageCheckOptions } from './package-check-options.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -15,11 +16,11 @@ assert.ok(npm, 'Run npm run check:package.');
 const temporary = fs.mkdtempSync(path.join(os.tmpdir(), 'aa-package-check-'));
 const created = [];
 const read = file => JSON.parse(fs.readFileSync(file, 'utf8'));
-const run = (command, args, cwd = root) => execFileSync(command, args, { cwd, stdio: 'inherit' });
-const capture = (command, args, output) => {
+const run = (command, args, cwd = root, options = {}) => execFileSync(command, args, { ...options, cwd, stdio: 'inherit' });
+const capture = (command, args, output, options = {}) => {
   const fd = fs.openSync(output, 'w');
   try {
-    execFileSync(command, args, { cwd: root, stdio: ['ignore', fd, 'inherit'] });
+    execFileSync(command, args, { ...options, cwd: root, stdio: ['ignore', fd, 'inherit'] });
   } finally {
     fs.closeSync(fd);
   }
@@ -49,7 +50,7 @@ try {
     }
   }
   const output = path.join(temporary, 'pack.json');
-  capture(process.execPath, [npm, 'pack', '--json', '--pack-destination', temporary], output);
+  capture(process.execPath, [npm, 'pack', '--json', '--pack-destination', temporary], output, localPackageCheckOptions('pack'));
   assert.ok(!fs.existsSync(path.join(root, 'dist/package-check-stale.js')), 'prepack did not clean dist.');
   const results = read(output);
   assert.equal(results.length, 1);
@@ -89,7 +90,7 @@ try {
   fs.mkdirSync(install);
   fs.writeFileSync(path.join(install, 'package.json'), '{"name":"aa-package-consumer","private":true}\n');
   run(process.execPath, [npm, 'install', '--offline', '--ignore-scripts', '--omit=dev', '--no-audit', '--no-fund',
-    '--package-lock=false', archive], install);
+    '--package-lock=false', archive], install, localPackageCheckOptions('install'));
   // Import from a consumer directory, without the development tree or Homebridge installed.
   const smoke = path.join(install, 'smoke.mjs');
   fs.writeFileSync(smoke, `import assert from 'node:assert/strict';
