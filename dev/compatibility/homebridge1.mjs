@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertBetaPackage } from '../beta-policy.mjs';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
@@ -127,7 +128,12 @@ try {
   const membersFile = path.join(home, 'archive-members.txt');
   capture('tar', ['-tzf', archive], membersFile);
   const members = fs.readFileSync(membersFile, 'utf8').trim().split(/\r?\n/);
-  assert.equal(members.length, 128, 'Expected the validated standalone package.');
+  // Derive the exact inventory from the clean build/explicit allowlist, not a guessed count.
+  const sourcePackage = read(path.join(root, 'package.json'));
+  const runtimeFiles = fs.readdirSync(path.join(root, 'dist'), { recursive: true })
+    .filter(file => /\.(?:js|ts|map)$/.test(file)).map(file => 'dist/' + file.split(path.sep).join('/'));
+  const expected = ['package.json', 'README.md', ...sourcePackage.files.filter(file => !file.includes('*')), ...runtimeFiles];
+  assert.deepEqual([...members].sort(), expected.map(file => 'package/' + file).sort(), 'Unexpected standalone package inventory.');
   assert.equal(new Set(members).size, members.length);
   assert.ok(!members.some(member => /AdvAir\.sh|legacyCompatibility/.test(member)), 'No legacy backend/handler in native tarball.');
   assert.ok(members.every(file => file.startsWith('package/') && !file.split('/').includes('..')));
@@ -135,7 +141,7 @@ try {
   const pkg = read(path.join(home, 'package/package.json'));
   assert.equal(pkg.name, name);
   assert.equal(pkg.version, read(path.join(root, 'package.json')).version);
-  assert.equal(pkg.private, true);
+  assertBetaPackage(pkg);
   report.plugin = pkg.version;
   fs.writeFileSync(path.join(home, 'package.json'), '{"name":"aa-hb1-consumer","private":true}\n');
   run(process.execPath, [process.env.npm_execpath, 'install', '--save-exact', '--omit=dev', '--no-audit', '--no-fund',

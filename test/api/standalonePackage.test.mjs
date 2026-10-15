@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { assertBetaPackage } from '../../dev/beta-policy.mjs';
 import { Buffer } from 'node:buffer';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -28,7 +29,7 @@ test('standalone registration and schema retain the native platform under the ne
   assert.equal(PLATFORM_NAME, 'AdvantageAir');
   assert.equal(pkg.name, PLUGIN_NAME);
   assert.equal(JSON.parse(fs.readFileSync(new URL('config.schema.json', root))).pluginAlias, PLATFORM_NAME);
-  assert.equal(pkg.private, true);
+  assertBetaPackage(pkg); // Supports the separately reviewed publication state too.
   assert.equal(pkg.version, '4.0.0-beta.1');
   assert.equal(pkg.dependencies, undefined);
   assert.equal(pkg.files.includes('AdvAir.sh'), false);

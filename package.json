@@ -13,7 +13,7 @@
     }
   ],
   "license": "MIT",
-  "homepage": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir#readme",
+  "homepage": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/README.md",
   "repository": {
     "type": "git",
     "url": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir.git"
@@ -35,6 +35,7 @@
     "assets/settings-header.svg",
     "docs/v3-migration.md",
     "docs/native-package-transition.md",
+    "docs/beta1-testing.md",
     "dist/**/*.js",
     "dist/**/*.d.ts",
     "dist/**/*.js.map",
@@ -50,7 +51,7 @@
   "scripts": {
     "build": "rimraf ./dist && tsc",
     "lint": "eslint . --max-warnings=0",
-    "prepublishOnly": "npm run lint && npm run build",
+    "prepublishOnly": "node dev/beta-policy.mjs && npm run lint && npm run check:package",
     "simulator:start": "node dev/lab/lab.mjs simulator start",
     "simulator:stop": "node dev/lab/lab.mjs simulator stop",
     "simulator:status": "node dev/lab/lab.mjs simulator status",
@@ -79,5 +80,9 @@
     "ts-node": "^10.9.2",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.67.0"
+  },
+  "publishConfig": {
+    "tag": "beta",
+    "registry": "https://registry.npmjs.org/"
   }
 }
