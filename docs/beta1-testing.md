@@ -3,7 +3,11 @@
 This is the prepared guide for 4.0.0-beta.1, not an announcement that it is
 available. Wait for the maintainer's publication notice and exact version.
 Stable v3 is homebridge-cmd4-advantageair@latest; native v4 is a separate
-homebridge-advantageair@beta package. Do not install an unbuilt GitHub branch.
+homebridge-advantageair package. During the initial public beta programme its
+latest and beta tags intentionally identify the same approved prerelease.
+Latest is a default installation target, not a stability guarantee. This software
+is under active development; bugs and incomplete hardware qualification remain.
+Do not install an unbuilt GitHub branch.
 
 ## Before installing — Homebridge web UI
 
@@ -23,9 +27,12 @@ homebridge-advantageair@beta package. Do not install an unbuilt GitHub branch.
 
 After publication, add **homebridge-advantageair**, selecting exactly 4.0.0-beta.1
 (or the precise announced version). Do not select the v3 package's update action.
-Use the UI's beta/alternate-version installation if it exposes the new package.
-A beta-only first publication may not appear in normal search/latest discovery;
-do not change npm tags to work around this.
+Once the maintainer has verified and separately promoted latest, normal UI
+installation should resolve the announced beta. Search by exact package name;
+alternate-version selection allows an explicit version. Discovery/indexing and
+the installed UI version still require a post-publication check. During the
+short beta-only verification interval normal install/update discovery may fail;
+wait for the announcement rather than changing registry tags yourself.
 
 If the UI cannot select the new package, use your host's supported npm install
 workflow with the explicit specifier homebridge-advantageair@4.0.0-beta.1. For a
@@ -40,7 +47,9 @@ after publication and backup:**
 npm install -g homebridge-advantageair@4.0.0-beta.1
 ```
 
-An explicit beta tag is also opt-in but can move between trials. Preserve the
+Both latest and beta can move after separate release approval. Normal updates
+may offer subsequent beta versions; inspect release notes and preserve backups.
+Use the exact announced version for repeatable trials. Preserve the
 separately installed v3 package and its existing AdvAir.sh path. Native v4 does
 not supply that script and requires neither Cmd4 nor its shell dependencies.
 

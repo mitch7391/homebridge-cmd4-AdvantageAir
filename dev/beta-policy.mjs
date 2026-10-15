@@ -12,7 +12,7 @@ export function assertBetaPackage(manifest) {
   assert.equal(manifest.publishConfig?.registry, 'https://registry.npmjs.org/', 'Unexpected publication registry.');
 }
 
-/** This guard performs no publication or registry calls. */
+/** Initial publication must use beta; independent latest promotion has a separate read-only gate. */
 export function assertBetaPublication(manifest, env) {
   assertBetaPackage(manifest);
   assert.equal(manifest.private, false, 'Publication disabled: private remains true.');
