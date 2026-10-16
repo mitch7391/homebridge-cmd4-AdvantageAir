@@ -1,84 +1,119 @@
 {
-   "pluginAlias": "cmd4AdvantageAir",
-   "pluginType": "platform",
-   "singular": true,
-   "customUi": true,
-   "headerDisplay": "Homebridge plugin for AdvantageAir devices",
-   "schema": {
-      "debug": {
-         "title": "debug",
-         "type": "boolean",
-         "description": "Enables additional output in the log.",
-         "required": false,
-         "placeholder": false
+  "pluginAlias": "AdvantageAir",
+  "pluginType": "platform",
+  "singular": true,
+  "strictValidation": false,
+  "schema": {
+    "type": "object",
+    "required": [
+      "name",
+      "devices"
+    ],
+    "additionalProperties": false,
+    "properties": {
+      "name": {
+        "title": "Platform log name",
+        "description": "Retained platform log label. This value is preserved when saving settings.",
+        "type": "string",
+        "default": "Homebridge Advantage Air"
       },
-      "type": "object",
-      "properties": {
-         "name": {
-           "title": "Name",
-           "type": "string",
-           "default": "cmd4AdvantageAir",
-           "required": true
-         },
-         "devices": {
-            "type": "array",
-            "items": {
-               "title": "AdvantageAir device",
-               "type": "object",
-               "properties": {
-                  "name": {
-                     "title": "Name",
-                     "description": "The name of the AdvantageAir device, default=Aircon",
-                     "type": "string",
-                     "required": true,
-                     "default": "Aircon"
-                  },
-                  "ipAddress": {
-                     "title": "IP Address",
-                     "description": "The device's IP address. It is recommended to set a static IP for this device.",
-                     "type": "string",
-                     "format": "ipv4",
-                     "required": true,
-                     "placeholder": "192.168.0.1"
-                  },
-                  "port": {
-                     "title": "PORT used",
-                     "description": "The PORT number used for this device, default=2025.",
-                     "type": "number",
-                     "required": true,
-                     "default": "2025"
-                  },
-                  "debug": {
-                     "title": "Enable detailed debug log",
-                     "description": "Enables a detailed debug log. Useful when trying to figure out issues with the plugin.",
-                     "type": "boolean",
-                     "required": false,
-                     "default": false
-                  }
-               }
+      "devices": {
+        "title": "Controllers",
+        "type": "array",
+        "minItems": 1,
+        "items": {
+          "type": "object",
+          "required": [
+            "ipAddress"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "name": {
+              "title": "Controller log label (optional)",
+              "type": "string",
+              "description": "Defaults to Controller 1, Controller 2, etc. This label does not rename Home accessories."
+            },
+            "ipAddress": {
+              "title": "IP Address",
+              "description": "The wall-mounted controller's IP address. A reserved address in your router is recommended.",
+              "type": "string",
+              "format": "ipv4"
+            },
+            "port": {
+              "title": "Port",
+              "description": "Controller API port: normally 2025; Fujitsu anywAIR systems use 10211. This is not the Homebridge child-bridge port.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 65535,
+              "default": 2025
+            },
+            "debug": {
+              "title": "Detailed debug logging",
+              "description": "Include sanitised request timing, read summaries and command confirmations for this controller. No Homebridge Debug Mode required.",
+              "type": "boolean",
+              "default": false
+            },
+            "homeName": {
+              "title": "Name",
+              "description": "Home accessory base name, e.g. Aircon or Downstairs Aircon. Additional aircons use Name 2, Name 3, etc. Use a distinct base for each controller. Zone names come from the controller.",
+              "type": "string",
+              "default": "Aircon"
+            },
+            "excludedLightIds": {
+              "title": "Excluded MyPlace light IDs (optional)",
+              "description": "Leave empty to discover all light outputs. Use controller light IDs, not names.",
+              "type": "array",
+              "uniqueItems": true,
+              "items": {
+                "type": "string",
+                "pattern": "^[a-zA-Z0-9_-]{1,64}$"
+              }
             }
-         }
-      }
-   },
-   "layout": [
-      {
-      "type": "fieldset",
-      "title": "AdvantageAir Device Settings",
-      "description": "Enter below the name and IP address of your AdvantageAir device.",
-      "items": [
-         ]
+          }
+        }
       },
-      {
+      "debug": {
+        "title": "Detailed debug logging for all controllers",
+        "description": "Enable detailed diagnostics for every controller. Individual selections are preserved when this is turned off. No Homebridge Debug Mode required.",
+        "type": "boolean",
+        "default": false
+      }
+    }
+  },
+  "headerDisplay": "<img src=\"https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/v4-beta/assets/settings-header.png\" alt=\"Homebridge and Advantage Air\" width=\"700\" class=\"d-block mx-auto img-fluid\">\n\n## Advantage Air Device Settings\n\nEnter the details of your Advantage Air controller(s).",
+  "layout": [
+    {
+      "key": "name",
+      "type": "hidden",
+      "htmlClass": "d-none"
+    },
+    {
       "key": "devices",
       "type": "tabarray",
-      "title": "{{ value.name || 'new device' }}",
-      "description": "Note: only a maximum of 3 AdvantageAir devices can be processed by Config Creator.",
+      "title": "{{ value.homeName || 'Controller' }}",
       "items": [
-         "devices[].name",
-         "devices[].ipAddress",
-         "devices[].port",
-         "devices[].debug"
-         ]
-      }
-   ]
+        {
+          "key": "devices[].name",
+          "type": "hidden",
+          "htmlClass": "d-none"
+        },
+        "devices[].homeName",
+        "devices[].ipAddress",
+        {
+          "key": "devices[].port",
+          "type": "number"
+        },
+        "devices[].debug",
+        "devices[].excludedLightIds"
+      ]
+    },
+    {
+      "type": "fieldset",
+      "notitle": true,
+      "htmlClass": "mt-4 border-top pt-3",
+      "items": [
+        "debug"
+      ]
+    }
+  ]
 }

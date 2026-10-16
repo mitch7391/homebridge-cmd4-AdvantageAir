@@ -1,3 +1,29 @@
+## 4.0.0-beta.1 — prepared, not yet published
+
+- Native Advantage Air AC accessories with shared polling/command coordination,
+  bounded confirmation and stable cached identities; no Cmd4 required for native use.
+- Thermostat Off/Heat/Cool, linked FanSpeed, separate Ventilation and Dry, temperature
+  and percentage zones, MyZone and native Timer with retained duration.
+- Restore sensorless thermostat setpoint display without masking genuine sensor faults.
+  Dry deliberately no longer maps to thermostat Auto; active MyZone closure is refused.
+- Individual MyPlace relay/dimmer lights, ID-based discovery/exclusions and isolated
+  developer light profile. Keep brightness 0–100 / 1% and separate On/Off.
+- Publish native v4 independently as homebridge-advantageair, registering only
+  AdvantageAir. Separately installed v3 retains its own AdvAir.sh and helper platform.
+  Cmd4 identities remain separate; new native accessories need manual Home arrangement.
+- Provide a guarded offline cache-owner transition for existing native development
+  installations; preserve pairing storage and bridge identity, with a full backup.
+- Packaged Homebridge 1.8.5 / Node 22 and 2.4.0 / Node 24 compatibility evidence,
+  MIT metadata alignment, package-content checks and guarded initial beta publication.
+- Public beta: homebridge-advantageair latest and beta will identify the same reviewed
+  prerelease after separate latest-promotion approval; default installation is not
+  a stability guarantee. homebridge-cmd4-advantageair@latest stays independent.
+  Physical MyPlace-light/low-brightness behaviour,
+  broader firmware coverage and large-scene completion remain hardware-validation items.
+
+See [Beta 1 testing](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/beta1-testing.md)
+for backup, installation, limitations and rollback. No publication date is asserted.
+
 # Change Log
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).

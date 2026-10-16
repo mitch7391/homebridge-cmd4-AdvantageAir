@@ -1,44 +1,33 @@
 ---
 name: Bug Report
-about: Raise a bug related report for homebridge-cmd4-AdvantageAir.
+about: Report a native v4 or legacy Cmd4 Advantage Air problem.
 title: "[Bug]"
-labels: enhancement
+labels: bug
 assignees: mitch7391
-
 ---
 
-<!-- If using hastebin/pastebin or other text sharing website please make the lifespan long-->
-<!-- Remove any sensitive information, passwords, etc. -->
+**Integration:** native v4 / legacy Cmd4 / both during migration
 
-**Paste of Logs:**
-```
+**Exact versions:** homebridge-advantageair, homebridge-cmd4-advantageair (if installed),
+Homebridge, Node, npm, OS; Cmd4 if applicable
 
-```
+**Migration:** fresh native install / ordinary v3 coexistence / old native-development
+cache-owner transition; main or child bridge (do not share pairing identifiers)
 
-**Cmd4 Config:**
-<!-- Paste relevant output between the two ``` lines below -->
-<!-- Remove any sensitive information, passwords, etc. -->
+**Controller:** model/tablet/firmware; sensor-equipped or sensorless; temperature
+and percentage zone counts; MyZone enabled; relay/dimmer light counts if relevant
 
-```json
+**Reproduction:** requested action/value, expected outcome, physical response,
+controller/tablet readback, elapsed time; repeatable or intermittent
 
+**Overlap:** other controller callers, native/Cmd4 timers or automations active?
 
-```
+**Sanitised evidence:** short logs around one request with plugin Detailed debug
+logging enabled; relevant config fields only. Include before/after values for
+brightness or zone issues. Do not post full backups or raw getSystemData dumps.
+Remove IPs, controller UIDs, personal names/locations, PINs and tokens. Do not
+run unsafe all-zones-closed tests to produce an issue report.
 
-**Screenshots:**
-<!-- If applicable, add screenshots to help explain your problem. -->
+**Recovery/rollback:** what restored operation? Did restarting change identities?
 
-**Advantage Air System:**
-
-* **Control Unit:** e-zone / MyAir / MyAir3 / MyAir4 / MyPlace / zone10e / zone10
-* **Temperature Sensors**: Yes / No
-
-**Homebridge Environment:**
-
-* **Node.js Version**: <!-- node -v -->
-* **NPM Version**: <!-- npm -v -->
-* **Homebridge Version**: <!-- homebridge -V -->
-* **homebridge-cmd4 Version**: <!-- Check on homebridge-config-ui-x -->
-* **homebridge-cmd4-AdvantageAir Version**: <!-- Check on homebridge-config-ui-x -->
-* **Operating System**: Raspbian / Ubuntu / Debian / Windows / macOS / Docker / other
-
-<!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
+**Screenshot:** optional, with identifying details removed.
