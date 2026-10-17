@@ -1,0 +1,38 @@
+{
+  "system": {
+    "mid": "lab-myplace-extras",
+    "sysType": "e-zone",
+    "hasAircons": false,
+    "noOfAircons": 0,
+    "hasLights": true
+  },
+  "aircons": {},
+  "myLights": {
+    "lights": {
+      "relay1": {
+        "id": "relay1",
+        "name": "Porch Light",
+        "relay": true,
+        "state": "off"
+      },
+      "relay2": {
+        "id": "relay2",
+        "name": "Utility Light",
+        "relay": true,
+        "state": "off"
+      },
+      "dimmer1": {
+        "id": "dimmer1",
+        "name": "Living Light",
+        "state": "off",
+        "value": 50
+      },
+      "dimmer2": {
+        "id": "dimmer2",
+        "name": "Bedroom Light",
+        "state": "off",
+        "value": 75
+      }
+    }
+  }
+}
