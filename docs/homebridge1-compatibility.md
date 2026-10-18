@@ -59,8 +59,9 @@ its inventory is validated separately without repeating this full runtime campai
 
 ## Running the existing campaign
 
-The evidence above predates the standalone npm rename and remains historical
-functional evidence, not a claim that the renamed package was already tested.
+The original AC-only and MyPlace-lights campaigns predate the standalone npm
+rename. The later standalone campaigns above validate the renamed package
+alongside genuine v3, including restart and cache-owner migration.
 The current harness installs genuine `homebridge-cmd4-advantageair@3.12.2`
 alongside `homebridge-advantageair`, with unqualified legacy/native platform
 configuration, and verifies distinct registration ownership. After an ordinary

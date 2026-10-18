@@ -19,9 +19,9 @@ and produces only an `Already in requested state` debug message.
 
 ## Debug diagnostics
 
-Enable the existing device `debug` option and run Homebridge with debug logging
-enabled (`-D` in the isolated terminal trial). Each configured controller opts
-in separately. No new setting or temporary fetch wrapper is required.
+Enable **Detailed debug logging** for a controller in plugin settings, or
+**Detailed debug logging for all controllers**. Selected diagnostics are emitted
+at info level with a `[Debug]` prefix; Homebridge Debug Mode (`-D`) is not required.
 
 `Controller read` summaries appear once per valid observed response. Pending
 switch updates do not produce extra read messages. Empty busy replies and
@@ -59,7 +59,8 @@ duration, observer exceptions, default-off logging, accessory creation and
 cache restoration, one summary per observed read, and accurate confirmation
 messages during reversals, unchanged requests, rejection, and expiry.
 
-The preceding coordinator was tested on the maintainer's e-zone controller,
-including rapid and multiple zone requests. This logging change still requires
-a short isolated Raspberry Pi check before merging. Those observations do not
-establish compatibility with all Advantage Air controllers.
+The coordinator was tested on the maintainer's e-zone controller, including
+rapid and multiple zone requests. Completed live debug/UI acceptance is recorded
+in [package readiness](package-readiness.md#remaining-release-gates); it is no
+longer a pending pre-merge check. These observations do not establish compatibility
+with all Advantage Air controllers.
