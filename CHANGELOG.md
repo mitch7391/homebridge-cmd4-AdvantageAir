@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.12.3 (Unreleased)
+
+* Prepare a once-per-Homebridge-process startup notice for the separate native v4
+  public beta. Existing v3 configurations, accessories and controller behaviour
+  are unchanged; migration is optional, not automatic.
+* Keep this maintenance release unpublished until v4 availability is verified
+  and the linked migration guidance is updated for publication.
+
 ## 3.12.2 (2026-07-22)
 
 Clearly rusty at releases...
