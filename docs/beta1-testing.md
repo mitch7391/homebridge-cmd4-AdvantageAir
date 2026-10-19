@@ -1,7 +1,7 @@
 # Beta 1: opt-in installation and hardware feedback
 
-This is the prepared guide for 4.0.0-beta.1, not an announcement that it is
-available. Wait for the maintainer's publication notice and exact version.
+This guide covers installation and hardware feedback for 4.0.0-beta.1.
+Check the maintainer's release announcement for the currently available version.
 Stable v3 is homebridge-cmd4-advantageair@latest; native v4 is a separate
 homebridge-advantageair package. During the initial public beta programme its
 latest and beta tags intentionally identify the same approved prerelease.
