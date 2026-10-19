@@ -3,9 +3,10 @@
 This guide covers installation and hardware feedback for 4.0.0-beta.1.
 Check the maintainer's release announcement for the currently available version.
 Stable v3 is homebridge-cmd4-advantageair@latest; native v4 is a separate
-homebridge-advantageair package. During the initial public beta programme its
-latest and beta tags intentionally identify the same approved prerelease.
-Latest is a default installation target, not a stability guarantee. This software
+homebridge-advantageair package. Its beta and latest npm tags currently both
+identify 4.0.0-beta.1, as set during initial publication; no separate latest
+promotion command was executed. Latest is the default installation tag, not a
+guarantee of stability. This software
 is under active development; bugs and incomplete hardware qualification remain.
 Do not install an unbuilt GitHub branch.
 
@@ -25,14 +26,12 @@ Do not install an unbuilt GitHub branch.
 
 ## Install deliberately — Homebridge web UI
 
-After publication, add **homebridge-advantageair**, selecting exactly 4.0.0-beta.1
+Add **homebridge-advantageair**, selecting exactly 4.0.0-beta.1
 (or the precise announced version). Do not select the v3 package's update action.
-Once the maintainer has verified and separately promoted latest, normal UI
-installation should resolve the announced beta. Search by exact package name;
-alternate-version selection allows an explicit version. Discovery/indexing and
-the installed UI version still require a post-publication check. During the
-short beta-only verification interval normal install/update discovery may fail;
-wait for the announcement rather than changing registry tags yourself.
+Homebridge plugin search has been verified to discover the standalone package.
+Search by exact package name and check the selected version before installing;
+alternate-version selection allows an explicit version. Do not change registry
+tags to troubleshoot installation.
 
 If the UI cannot select the new package, use your host's supported npm install
 workflow with the explicit specifier homebridge-advantageair@4.0.0-beta.1. For a
@@ -41,7 +40,7 @@ targets that same prefix. UI/container/local-prefix installations must use their
 documented package-management route; do not mix locations or add sudo blindly.
 
 **Run in the Homebridge host terminal, only for the global npm-managed case,
-after publication and backup:**
+after backup:**
 
 ```sh
 npm install -g homebridge-advantageair@4.0.0-beta.1
