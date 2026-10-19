@@ -9,20 +9,19 @@
 [![npm](https://badgen.net/npm/dt/homebridge-cmd4-advantageair?label=downloads)](https://www.npmjs.com/package/homebridge-cmd4-advantageair)
 [![verified-by-homebridge](https://badgen.net/badge/homebridge/verified/purple)](https://github.com/homebridge/homebridge/wiki/Verified-Plugins)
 [![buy-me-a-coffee](https://badgen.net/badge/icon/BuyMeACoffee/orange?icon=buymeacoffee&label)](https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD)
-  <a href="https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="GitHub Discussions"></a>
+  <a href="https://github.com/mitch7391/homebridge-advantageair/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="GitHub Discussions"></a>
   
 </span>
 
 ## Introducing native Advantage Air v4
 
-Meet `homebridge-advantageair`, the new standalone native v4 plugin with no Cmd4
-required. **Beta 1 is still being prepared and has not yet been published.**
-Please wait for the release announcement before installing.
+Meet `homebridge-advantageair@4.0.0-beta.1`, the publicly available standalone
+native v4 beta with no Cmd4 required. Read the migration guidance before installing.
 
 Existing v3 installations remain supported, and migration is optional. Updating
 this legacy package will not install v4 or migrate your accessories. Some legacy
 features, including garage doors and gates, are not yet available in v4. Read the
-[v4 migration guide and beta limitations](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/v3-migration.md)
+[v4 migration guide and beta limitations](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/v3-migration.md)
 before changing your setup.
 
 # homebridge-cmd4-AdvantageAir
@@ -51,7 +50,7 @@ No affiliation with Advantage Air.
      - [ ] Motion Sensors
      - [ ] Blinds
 
-<I><B> Note: </B> Config for these extras can be found [here](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#myplace-extras). </I>
+<I><B> Note: </B> Config for these extras can be found [here](https://github.com/mitch7391/homebridge-advantageair/wiki/Config-Creation#myplace-extras). </I>
 
 
 ## How It Looks:
@@ -135,8 +134,8 @@ apk add curl
 ``` 
 7. Automatically create your Homebridge `config.json`:
 * Homebridge users with access to the Homebridge web UI can jump ahead to `Step 8`.
-* Homebridge users without access to the Homebridge web UI can use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#homebridge-terminal-instructions).
-* HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki/Config-Creation#hoobs-terminal-instructions).
+* Homebridge users without access to the Homebridge web UI can use the following [terminal instructions](https://github.com/mitch7391/homebridge-advantageair/wiki/Config-Creation#homebridge-terminal-instructions).
+* HOOBS users do not have access to our Homebridge UI (for now!) and will have to use the following [terminal instructions](https://github.com/mitch7391/homebridge-advantageair/wiki/Config-Creation#hoobs-terminal-instructions).
 
 8. Go to the 'plugins' tab in Homebridge UI and locate your newly installed `homebridge-cmd4-AdvantageAir`. Click `SETTINGS > Config` and it should launch the 'Advantage Air Configuration Creator'.
      <p align="left">
@@ -215,16 +214,16 @@ I have not successfully set this up on a Windows OS Homebridge server yet. If yo
 
 
 ## Further Notes
-You can read more about this project and how to create your config on the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) page.
+You can read more about this project and how to create your config on the [legacy v3 Wiki](https://github.com/mitch7391/homebridge-advantageair/wiki/Legacy-v3-Overview) page.
 
 
 ## How You Can Help:
 * Open Issues/Tickets.
 * Report Bugs/Errors.
 * Suggest Improvements and Features you would like to see!
-* Help test the beta releases! See the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki#beta-testing) to find out how to 'sign up'.  
+* Help test the native v4 beta! Read the [beta testing guide](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md) before getting started.
 * Create a fork, add or fix something yourself and create a Pull Request to be merged back into this project and released!
-* Let me know if you have a Control Unit or App that works that is not confirmed in my [Supported List](https://github.com/mitch7391/cmd4-AdvantageAir#supported-control-units)!
+* Let me know if you have a Control Unit or App that works that is not confirmed in my [Supported List](https://github.com/mitch7391/homebridge-advantageair/blob/v3-maintenance/README.md#supported-control-units)!
 * Let me know if you can figure out how to get this running on Windows 10/11 Homebridge.
 * Feel free to let me know you are loving the project by give me a `Star`! It is nice to have an idea how many people use this project! 
 
@@ -237,4 +236,4 @@ You can read more about this project and how to create your config on the [Wiki]
 
 
 ## LICENSE:
-This plugin is distributed under the MIT license. See [LICENSE](https://github.com/mitch7391/cmd4-E-Zone-MyAir/blob/master/LICENSE) for details.
+This plugin is distributed under the MIT license. See [LICENSE](https://github.com/mitch7391/homebridge-advantageair/blob/v3-maintenance/LICENSE) for details.

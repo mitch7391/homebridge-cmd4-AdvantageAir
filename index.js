@@ -32,7 +32,7 @@ module.exports =
            console.info("[AdvantageAir] Try homebridge-advantageair@4.0.0-beta.1 (no Cmd4 required).");
            console.info("[AdvantageAir] Your existing v3 setup will continue working; migration is optional.");
            console.info("[AdvantageAir] Some legacy features are not yet supported. Read the migration guide: " +
-             "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/v3-migration.md");
+             "https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/v3-migration.md");
          }, 30000);
          timer.unref();
        };
