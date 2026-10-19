@@ -14,18 +14,17 @@
      <a href="https://www.npmjs.com/package/homebridge-advantageair"><img src="https://img.shields.io/npm/dt/homebridge-advantageair?label=downloads" alt="npm downloads"></a>
 -->
 <p align="center">
-  <img src="https://img.shields.io/badge/status-beta%20in%20preparation-blue" alt="Beta in preparation">
+  <img src="https://img.shields.io/badge/status-beta%20software-blue" alt="Beta software">
   <a href="https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-orange" alt="Buy Me a Coffee"></a>
   <a href="https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="GitHub Discussions"></a>
 </p>
-<!-- RELEASE: Change beta badge to Public Beta after publication. -->
 
 Bring compatible **Advantage Air air conditioning systems and MyPlace lighting** into Apple Home with a native Homebridge plugin. Simple configuration and automatic accessory discovery, with no Cmd4, shell scripts or separate configuration creator required.
 
 *This is an independent community project and is not affiliated with or endorsed by Advantage Air.*
 
 > [!IMPORTANT]
-> **Public Beta — release pending:** `homebridge-advantageair@4.0.0-beta.1` has not yet been published. Please wait for the release announcement before installing. Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/beta1-testing.md) before getting started.
+> **Beta software:** `homebridge-advantageair@4.0.0-beta.1` is publicly available. Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. Install only a version announced by the maintainer. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/beta1-testing.md) before getting started.
 
 ## Supported Control Units
 
