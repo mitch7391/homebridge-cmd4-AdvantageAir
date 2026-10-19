@@ -2,8 +2,8 @@
 
 This guide describes two independently installed packages: existing v3
 `homebridge-cmd4-advantageair` and native v4 `homebridge-advantageair`.
-An npm beta is not yet published. Follow [Beta 1 installation and rollback](beta1-testing.md)
-after the publication notice; do not substitute an unbuilt GitHub branch.
+Follow [Beta 1 installation and rollback](beta1-testing.md) when installing a
+version announced by the maintainer; do not substitute an unbuilt GitHub branch.
 
 ## What remains with v3
 
