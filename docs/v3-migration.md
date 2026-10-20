@@ -56,8 +56,8 @@ legacy setup.
    separately. If you already ran native development v4 under the old package
    name, first follow [the cache-transition procedure](native-package-transition.md).
 2. Add a **separate** native `AdvantageAir` platform configuration using the
-   plugin settings or the README's minimal example. Do not overwrite the
-   existing Cmd4 configuration or repurpose the old helper entry.
+   Homebridge plugin settings. Do not overwrite the existing Cmd4 configuration
+   or repurpose the old helper entry.
    For the same naming convention, manually enter the base **Name** you configured
    in v3 (historically defaulting to `Aircon`) into native v4's Name field.
    This is saved separately as `homeName`; the retained legacy configuration

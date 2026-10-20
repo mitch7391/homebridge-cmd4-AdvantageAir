@@ -3,10 +3,12 @@ name: V4 checks
 on:
   push:
     branches:
+      - master
       - v4-beta
       - 'v4-*'
   pull_request:
     branches:
+      - master
       - v4-beta
 
 permissions:
@@ -76,7 +78,9 @@ jobs:
           npm run check:package | tee /tmp/aa-hb1-pack.log
           package_dir="$(sed -n 's/^Archive and full file manifest: //p' /tmp/aa-hb1-pack.log | tail -n 1)"
           test -n "$package_dir"
-          npm run check:homebridge1 -- "$package_dir/homebridge-advantageair-4.0.0-beta.1.tgz"
+          archive_name="$(node -e 'const p = require("./package.json"); if (p.name !== "homebridge-advantageair" || !/^4\.0\.0-beta\.[1-9][0-9]*$/.test(p.version)) throw new Error("Unexpected package identity"); process.stdout.write(p.name + "-" + p.version + ".tgz")')"
+          test -f "$package_dir/$archive_name"
+          npm run check:homebridge1 -- "$package_dir/$archive_name"
 
       - name: Print compatibility evidence and logs
         if: always()

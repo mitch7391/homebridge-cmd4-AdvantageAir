@@ -1,52 +1,25 @@
 ---
 name: Support Request
-about: Stuck on one of the installation steps in the README?
+about: Ask for help with native v4 or legacy Cmd4 Advantage Air.
 title: "[Support]"
 labels: help wanted
 assignees: mitch7391
-
 ---
 
-<!-- Provide a general summary in the Title above -->
+For setup help and general questions, please use [Q&A Discussions](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/q-a).
+Use a Bug Report for a reproducible software defect. Community help is welcome; volunteer response times cannot be guaranteed.
 
-**Describe Your Problem:**
-<!-- A clear and concise description of what problem you are experiencing or what installation step you are stuck on. -->
+**Integration:** Native v4 / legacy v3 (Cmd4) / both during migration
 
-[**Link to Logs:**]()
-<!-- If using a gist, hastebin or pastebin; paste the link between the two () above -->
-<!-- If pasting log files directly, please instead do so between the ``` lines below -->
-<!-- If using hastebin/pastebin or other text sharing website please make the lifespan long-->
-<!-- Remove any sensitive information, passwords, etc. -->
+**What are you trying to do, what happens, and what have you tried?**
 
-**Paste of Logs:**
-```
+**Versions:** Plugin package name/version, Homebridge, Node.js and operating system.
+<!-- Include Cmd4 version only for legacy installations. -->
 
-```
+**Controller:** Model/app family and firmware if known; sensor layout or light type if relevant.
 
-**Cmd4 Config:**
-<!-- Paste relevant output between the two ``` lines below -->
-<!-- Remove any sensitive information, passwords, etc. -->
-
-```json
-
-
-```
-
-**Screenshots:**
-<!-- If applicable, add screenshots to help explain your problem. -->
-
-**Advantage Air System:**
-
-* **Control Unit:** e-zone / MyAir / MyAir3 / MyAir4 / MyPlace / zone10e / zone10
-* **Temperature Sensors**: Yes / No
-
-**Homebridge Environment:**
-
-* **Node.js Version**: <!-- node -v -->
-* **NPM Version**: <!-- npm -v -->
-* **Homebridge Version**: <!-- homebridge -V -->
-* **homebridge-cmd4 Version**: <!-- Check on homebridge-config-ui-x -->
-* **homebridge-cmd4-AdvantageAir Version**: <!-- Check on homebridge-config-ui-x -->
-* **Operating System**: Raspbian / Ubuntu / Debian / Windows / macOS / Docker / other
-
-<!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
+**Sanitised evidence (optional):** Short relevant log excerpts or screenshots.
+<!-- Do not post full configurations, backups or raw controller responses.
+Remove controller addresses/identifiers, personal names/locations, PINs, tokens
+and pairing information. Native v4 users do not need to supply Cmd4 configuration.
+If a configuration detail is relevant, share only the necessary sanitised fields. -->
