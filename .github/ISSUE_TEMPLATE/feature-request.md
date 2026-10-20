@@ -1,27 +1,21 @@
 ---
 name: Feature Request
-about: Suggest an idea or improvement for homebridge-cmd4-AdvantageAir.
+about: Suggest an improvement for native v4 or legacy v3 Advantage Air.
 title: "[Feature Request]"
 labels: enhancement
 assignees: mitch7391
-
 ---
 
-**Is your feature request related to a problem? Please describe:**
-<!-- A clear and concise description of what the problem is. E.g. Mitch does not put enough time into this repo [...] -->
+Early ideas are welcome in [Ideas & Feature Requests](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/ideas-feature-requests).
 
-**Describe the solution you'd like:**
-<!-- A clear and concise description of what you want to happen. -->
+**Which integration?** Native v4 / legacy v3 (Cmd4)
 
-**Describe alternatives you've considered:**
-<!-- A clear and concise description of any alternative solutions or features you've considered. -->
+**What would you like to do, and why would it help?**
 
-**Additional context:**
-<!-- Add any other context or screenshots about the feature request here. -->
+**How should it behave?**
 
-**Advantage Air System:**
+**Relevant controller or accessory:** Model/app family, if known; temperature sensors if relevant.
+<!-- Your model helps us understand the request; it does not imply confirmed compatibility. -->
 
-* **Control Unit:** e-zone / MyAir / MyAir3 / MyAir4 / MyPlace / zone10e / zone10
-* **Temperature Sensors**: Yes / No
-
-<!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
+**Optional examples or alternatives:**
+<!-- Remove private information from screenshots or examples. -->

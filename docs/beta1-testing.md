@@ -78,7 +78,8 @@ manually while retaining the old accessories as a reference.
   standalone 128-file package then passed Linux Homebridge 2.4.0 / Node 24.21.0
   and Homebridge 1.8.5 / Node 22.23.3 coexistence, restart and cache-owner migration
   with genuine v3 3.12.2; twelve native accessory identities and Timer duration survived. Node 22/24 CI
-  remains required for the final release commit; Node 26 is excluded.
+  passed on the published source commit
+  95c41ca771cb159cde0d2decee23f6f1d5df1018; Node 26 is excluded.
 - Hardware evidence is mainly the maintainer's e-zone AC. MyZone, percentage
   zones and MyPlace lights have simulator/HAP coverage; four simulated lights
   also passed manual Apple Home checks. Physical MyPlace lights remain a beta
@@ -119,7 +120,11 @@ confirmation or a qualified supervised procedure; do not deliberately close all
 outlets on a running system to test this beta. Report existing observations of
 controller overrides with model/firmware and readback, not guessed guarantees.
 
-## Reporting — GitHub issue form
+## Reporting
+
+- Successful installations and controller compatibility feedback: [Beta 1 feedback](https://github.com/mitch7391/homebridge-advantageair/discussions/143).
+- Reproducible software bugs: [GitHub Issues](https://github.com/mitch7391/homebridge-advantageair/issues).
+- General setup or support questions: [Q&A Discussions](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/q-a).
 
 State native v4 or legacy Cmd4 (or both). Include reproduction steps, expected
 and observed outcomes, exact versions, and sanitised debug logs around one

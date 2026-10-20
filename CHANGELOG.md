@@ -1,4 +1,4 @@
-## 4.0.0-beta.1 — prepared, not yet published
+## 4.0.0-beta.1 (2026-10-19) — public beta / GitHub prerelease
 
 - Native Advantage Air AC accessories with shared polling/command coordination,
   bounded confirmation and stable cached identities; no Cmd4 required for native use.
@@ -15,14 +15,15 @@
   installations; preserve pairing storage and bridge identity, with a full backup.
 - Packaged Homebridge 1.8.5 / Node 22 and 2.4.0 / Node 24 compatibility evidence,
   MIT metadata alignment, package-content checks and guarded initial beta publication.
-- Public beta: homebridge-advantageair latest and beta will identify the same reviewed
-  prerelease after separate latest-promotion approval; default installation is not
-  a stability guarantee. homebridge-cmd4-advantageair@latest stays independent.
+- Public beta: homebridge-advantageair latest and beta both identify 4.0.0-beta.1
+  following initial npm publication; no separate latest-promotion command was
+  executed. Default installation is not a stability guarantee.
+  homebridge-cmd4-advantageair@latest stays independent.
   Physical MyPlace-light/low-brightness behaviour,
   broader firmware coverage and large-scene completion remain hardware-validation items.
 
-See [Beta 1 testing](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/docs/beta1-testing.md)
-for backup, installation, limitations and rollback. No publication date is asserted.
+See [Beta 1 testing](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md)
+for backup, installation, limitations and rollback.
 
 # Change Log
 
