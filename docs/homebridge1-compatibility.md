@@ -54,13 +54,14 @@ Node 22.23.3 (npm 10.9.9), with genuine v3 3.12.2 installed. Both verified twelv
 native accessories, distinct registrations, graceful shutdown/restart and offline
 cache-owner migration with unchanged UUIDs/service subtypes/HAP AIDs/IIDs and
 45-minute Timer duration. The q deprecation notice was non-fatal.
-The new release-preparation package adds tester guidance and metadata safeguards;
-its inventory is validated separately without repeating this full runtime campaign.
+The published Beta 1 package adds tester guidance and metadata safeguards;
+its 129-file inventory was verified separately against the approved source.
 
 ## Running the existing campaign
 
-The evidence above predates the standalone npm rename and remains historical
-functional evidence, not a claim that the renamed package was already tested.
+The original AC-only and MyPlace-lights campaigns predate the standalone npm
+rename. The later standalone campaigns above validate the renamed package
+alongside genuine v3, including restart and cache-owner migration.
 The current harness installs genuine `homebridge-cmd4-advantageair@3.12.2`
 alongside `homebridge-advantageair`, with unqualified legacy/native platform
 configuration, and verifies distinct registration ownership. After an ordinary
@@ -117,7 +118,8 @@ Do not change the runtime implementation solely to get this test to pass.
 
 A separate CI job pins Node 22.23.3 and runs this same package-based
 Homebridge 1.8.5 campaign. The existing Node 22/24 job is unchanged.
-CI prints evidence and process logs on success or failure. The final release
-preparation commit still requires green hosted CI. Historical MyPlace and
-standalone Linux evidence above came from Codespaces; it does not claim a
-release-preparation compatibility rerun.
+CI prints evidence and process logs on success or failure. Node 22, Node 24 and
+Homebridge 1.8.5 / Node 22 CI passed on published source commit
+95c41ca771cb159cde0d2decee23f6f1d5df1018. The historical MyPlace and standalone
+Linux campaigns above came from Codespaces. Neither CI nor those simulator
+campaigns establish physical-device or Apple Home migration acceptance.
