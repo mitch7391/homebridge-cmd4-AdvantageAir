@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file. This project uses [Semantic Versioning](https://semver.org/).
 
+## 3.12.3 (Unreleased)
+
+* Add a once-per-Homebridge-process startup notice for the published standalone
+  `homebridge-advantageair@4.0.0-beta.1` native v4 beta. Existing v3 configurations,
+  accessories and controller behaviour are unchanged; migration is optional,
+  not automatic.
+* Update the README and announcement links to the renamed repository and
+  published migration guidance. This v3.12.3 maintenance update remains unreleased.
+
 ## 3.12.2 (2026-07-22)
 
 Clearly rusty at releases...
