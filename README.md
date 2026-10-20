@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/v4-beta/assets/settings-header.png" alt="Homebridge and Advantage Air" width="640">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/v4-beta/assets/settings-header.png" alt="Homebridge and Advantage Air" width="640">
 </p>
 
 <h1 align="center">Homebridge Advantage Air</h1>
@@ -8,15 +8,11 @@
   <strong>The original Homebridge integration for Advantage Air systems.</strong>
 </p>
 
-<!-- PREVIEW ONLY: npm version and download badges are hidden until first publication.
-     Re-enable for the public README, after both endpoints display real data.
-     <a href="https://www.npmjs.com/package/homebridge-advantageair"><img src="https://img.shields.io/npm/v/homebridge-advantageair?label=npm" alt="npm version"></a>
-     <a href="https://www.npmjs.com/package/homebridge-advantageair"><img src="https://img.shields.io/npm/dt/homebridge-advantageair?label=downloads" alt="npm downloads"></a>
--->
 <p align="center">
+  <a href="https://www.npmjs.com/package/homebridge-advantageair"><img src="https://img.shields.io/npm/v/homebridge-advantageair/beta?label=npm%20beta" alt="npm beta version"></a>
   <img src="https://img.shields.io/badge/status-beta%20software-blue" alt="Beta software">
   <a href="https://www.paypal.com/donate/?business=FWN5P4BP7NJT4&no_recurring=1&item_name=Shout+me+a+coffee+%3A%29&currency_code=AUD"><img src="https://img.shields.io/badge/Buy%20Me%20a%20Coffee-Donate-orange" alt="Buy Me a Coffee"></a>
-  <a href="https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="GitHub Discussions"></a>
+  <a href="https://github.com/mitch7391/homebridge-advantageair/discussions"><img src="https://img.shields.io/badge/GitHub-Discussions-blue?logo=github" alt="GitHub Discussions"></a>
 </p>
 
 Bring compatible **Advantage Air air conditioning systems and MyPlace lighting** into Apple Home with a native Homebridge plugin. Simple configuration and automatic accessory discovery, with no Cmd4, shell scripts or separate configuration creator required.
@@ -24,7 +20,9 @@ Bring compatible **Advantage Air air conditioning systems and MyPlace lighting**
 *This is an independent community project and is not affiliated with or endorsed by Advantage Air.*
 
 > [!IMPORTANT]
-> **Beta software:** Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. Install only a version announced by the maintainer. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/beta1-testing.md) before getting started.
+> **Beta software:** `homebridge-advantageair@4.0.0-beta.1` is publicly available. Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. Install only a version announced by the maintainer. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md) before getting started.
+>
+> Share successful installations and problems in the [Beta 1 feedback discussion](https://github.com/mitch7391/homebridge-advantageair/discussions/143).
 
 ## Supported Control Units
 
@@ -33,7 +31,7 @@ Bring compatible **Advantage Air air conditioning systems and MyPlace lighting**
 e-zone · MyAir · MyAir4 · MyAir5  
 MyPlace · zone10e · Fujitsu anywAIR
 
-*These systems were supported by the original v3 plugin. Native v4 compatibility is being reconfirmed, with **e-zone** as the primary physically tested system. **zone10** and **MyAir3** were not known to work with v3 and remain unconfirmed. Share your results in [GitHub Discussions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/discussions).*
+*These systems were supported by the original v3 plugin. Native v4 compatibility is being reconfirmed, with **e-zone** as the primary physically tested system. **zone10** and **MyAir3** were not known to work with v3 and remain unconfirmed. Share your results in [GitHub Discussions](https://github.com/mitch7391/homebridge-advantageair/discussions).*
 
 ### MyPlace Extras
 
@@ -51,7 +49,7 @@ Native v4 Beta 1 automatically discovers individual MyPlace lights:
 *Native thermostat with linked fan-speed control.*
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/aircon-thermostat-control-interface.png" alt="Advantage Air thermostat with linked fan-speed control in Apple Home" width="340">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/aircon-thermostat-control-interface.png" alt="Advantage Air thermostat with linked fan-speed control in Apple Home" width="340">
 </p>
 
 ### Zone Control
@@ -59,9 +57,9 @@ Native v4 Beta 1 automatically discovers individual MyPlace lights:
 *With temperature sensors (real installation) and without temperature sensors (simulator).*
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/zone-with-sensors.png" alt="Zone control with temperature sensors" height="610">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/zone-without-sensors.png" alt="Sensorless percentage-based zone control" height="610">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/zone-percentage-control.png" alt="Adjustable percentage zone in Apple Home" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/zone-with-sensors.png" alt="Zone control with temperature sensors" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/zone-without-sensors.png" alt="Sensorless percentage-based zone control" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/zone-percentage-control.png" alt="Adjustable percentage zone in Apple Home" height="610">
 </p>
 
 ### Additional Controls
@@ -69,8 +67,8 @@ Native v4 Beta 1 automatically discovers individual MyPlace lights:
 *Grouped MyZone selection and the native countdown timer.*
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/aircon-myzone-overview.png" alt="Grouped MyZone selection switches in Apple Home" height="610">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/aircon-timer-control.png" alt="Native air conditioning timer with adjustable duration" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/aircon-myzone-overview.png" alt="Grouped MyZone selection switches in Apple Home" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/aircon-timer-control.png" alt="Native air conditioning timer with adjustable duration" height="610">
 </p>
 
 ### MyPlace Lighting
@@ -78,13 +76,13 @@ Native v4 Beta 1 automatically discovers individual MyPlace lights:
 *Individual relay lights (On/Off) and dimmer lights (Brightness), shown using the simulator.*
 
 <p align="left">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/myplace-lights-overview.png" alt="MyPlace lighting accessories in Apple Home" height="610">
-  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-cmd4-AdvantageAir/master/assets/myplace-lights-controls.png" alt="MyPlace dimmer and relay light controls" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/myplace-lights-overview.png" alt="MyPlace lighting accessories in Apple Home" height="610">
+  <img src="https://raw.githubusercontent.com/mitch7391/homebridge-advantageair/master/assets/myplace-lights-controls.png" alt="MyPlace dimmer and relay light controls" height="610">
 </p>
 
 ## Installation
 
-Getting started with Homebridge Advantage Air is simple **once the public beta has been released**:
+Getting started with Homebridge Advantage Air:
 
 1. **Install the plugin** — Search for `homebridge-advantageair` in the Homebridge UI and install the announced beta version.
 2. **Configure your controller** — Enter your Advantage Air controller's IP address and choose a name for your system.
@@ -94,19 +92,19 @@ Getting started with Homebridge Advantage Air is simple **once the public beta h
 4. **Save and restart** — Restart Homebridge or the Child Bridge as prompted to discover your supported accessories.
 5. **Add to Apple Home** — Pair a new Child Bridge using the QR code provided by Homebridge, if needed, then arrange your discovered accessories in Apple Home.
 
-**Upgrading from v3?** Native v4 is a **separate plugin** and does not automatically migrate existing HomeKit accessories, rooms or automations. Do not replace or uninstall your Cmd4 setup without reading the [v3 Migration Guide](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/v3-migration.md).
+**Upgrading from v3?** Migration is optional. Native v4 is a **separate plugin** and does not automatically migrate existing HomeKit accessories, rooms or automations. Do not replace or uninstall your Cmd4 setup without reading the [v3 Migration Guide](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/v3-migration.md).
 
-**Compatibility:** Native v4 requires a supported Node.js 22 or 24 release and Homebridge 1.8.x or 2.x. Check the [beta testing guide](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/beta1-testing.md) for exact versions, backups and known limitations.
+**Compatibility:** Native v4 requires a supported Node.js 22 or 24 release and Homebridge 1.8.x or 2.x. Check the [beta testing guide](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md) for exact versions, backups and known limitations.
 
 ## Further Notes
 
-For additional configuration information, troubleshooting and compatibility details, please visit the [Wiki](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/wiki) and [Documentation](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/tree/master/docs).
+For additional configuration information, troubleshooting and compatibility details, please visit the [Wiki](https://github.com/mitch7391/homebridge-advantageair/wiki) and [Documentation](https://github.com/mitch7391/homebridge-advantageair/tree/master/docs).
 
 **Useful Guides:**
 
-- [Getting Started & Beta Testing](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/beta1-testing.md)
-- [Migrating from v3](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/v3-migration.md)
-- [Diagnostics & Troubleshooting](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/docs/diagnostics.md)
+- [Getting Started & Beta Testing](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md)
+- [Migrating from v3](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/v3-migration.md)
+- [Diagnostics & Troubleshooting](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/diagnostics.md)
 
 > [!NOTE]
 > This is a community-driven beta. Some historically supported controller configurations and physical MyPlace devices still need real-world confirmation. Keep your original controller app available and follow the manufacturer's normal operating safeguards.
@@ -115,8 +113,8 @@ For additional configuration information, troubleshooting and compatibility deta
 
 This project has grown over the years thanks to the support, feedback and contributions of the Homebridge community. Whether you're a long-time user or just getting started, there are plenty of ways to get involved!
 
-- **Join the Discussion:** Visit [GitHub Discussions](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/discussions) to ask questions, share your setup, exchange ideas and help other users.
-- **Report Bugs:** Found something that isn't working? Open a [GitHub Issue](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues) with the details so we can investigate.
+- **Join the Discussion:** Visit [GitHub Discussions](https://github.com/mitch7391/homebridge-advantageair/discussions) to ask questions, share your setup, exchange ideas and help other users.
+- **Report Bugs:** Found something that isn't working? Open a [GitHub Issue](https://github.com/mitch7391/homebridge-advantageair/issues) with the details so we can investigate.
 - **Test Compatibility:** Help confirm support for different Advantage Air controllers, firmware versions and MyPlace accessories. Successful test results are just as valuable as bug reports!
 - **Suggest Improvements:** Have an idea for a new feature or improvement? We'd love to hear it in Discussions.
 - **Contribute Code:** Developers are welcome to contribute fixes and improvements through Pull Requests.
@@ -140,8 +138,8 @@ This project wouldn't be where it is today without the kindness, knowledge and c
 
 A heartfelt thank you also goes to everyone who has tested, contributed, shared feedback or simply enjoyed using the plugin over the years. Your support has made this project a genuinely rewarding experience.
 
-For a look back at the original Cmd4-based implementation and its history, see the [v3 README](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/README-v3.md).
+For a look back at the original Cmd4-based implementation and its history, see the [v3 README](https://github.com/mitch7391/homebridge-advantageair/blob/master/README-v3.md).
 
 ## Licence
 
-This project is distributed under the [MIT Licence](https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/master/LICENSE).
+This project is distributed under the [MIT Licence](https://github.com/mitch7391/homebridge-advantageair/blob/master/LICENSE).

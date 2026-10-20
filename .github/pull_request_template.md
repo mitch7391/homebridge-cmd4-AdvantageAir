@@ -1,26 +1,22 @@
----
-name: Pull Request
-about: Resolve an issue or add an improvement to homebridge-cmd4-AdvantageAir.
-title: "[Pull Request]"
-labels: pull-request
-assignees: mitch7391
+## Summary
+<!-- What changes, and why? Link a related issue if applicable. -->
 
----
+## Target branch
+<!-- Native v4 development normally targets v4-beta; legacy v3 maintenance targets
+v3-maintenance. master is the public default branch, not the automatic development
+target. Use master for a maintainer-approved documentation/housekeeping change. -->
+- [ ] I checked the intended base branch.
 
-<!-- Provide a general summary in the Title above -->
+## Validation
+<!-- List checks actually run and their results, or explain why none were needed.
+Small changes do not require the maintainer's full hardware campaign. -->
 
-**Is your pull request related to a problem or a new feature? Please describe:**
-<!-- A clear and concise description of what the problem is. E.g. "Mitch, there needs to be a button to buy you a coffee!" -->
+## Compatibility and risk
+<!-- Note HomeKit identity/cache/pairing implications, configuration or migration
+changes, and any remaining uncertainty. Write "None" where appropriate. -->
 
-**Describe the solution you'd have implemented:**
-<!-- A clear and concise description of what you your pull request is for. Explain the technical solution you have provided and how it addresses the issue. -->
+## Documentation
+<!-- Describe any guidance updated, or why no documentation change is needed. -->
 
-**Do your changes pass local testing:**
-- [x] Yes
-- [ ] No
-<!-- If unclear, I can update these afterwards. -->
-
-**Additional context:**
-<!-- Add any other context or screenshots about the pull request here. -->
-
-<!-- Click the "Preview" tab before you submit to ensure the formatting is correct. -->
+- [ ] The change is limited to its stated scope.
+- [ ] I removed private information from logs, fixtures and screenshots.
