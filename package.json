@@ -13,20 +13,35 @@
     }
   ],
   "license": "MIT",
-  "homepage": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/blob/v4-beta/README.md",
+  "homepage": "https://github.com/mitch7391/homebridge-advantageair",
   "repository": {
     "type": "git",
-    "url": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir.git"
+    "url": "https://github.com/mitch7391/homebridge-advantageair.git"
   },
   "bugs": {
-    "url": "https://github.com/mitch7391/homebridge-cmd4-AdvantageAir/issues"
+    "url": "https://github.com/mitch7391/homebridge-advantageair/issues"
   },
   "keywords": [
     "homebridge-plugin",
     "supports-hap",
     "advantage-air",
+    "advantageair",
+    "advantage",
     "myair",
-    "e-zone"
+    "myplace",
+    "e-zone",
+    "ezone",
+    "myair4",
+    "myair5",
+    "anywair",
+    "zone10e",
+    "air-conditioning",
+    "aircon",
+    "myzone",
+    "fujitsu",
+    "homebridge",
+    "homekit",
+    "home"
   ],
   "main": "dist/index.js",
   "files": [
