@@ -56,7 +56,7 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
   assert.equal(tabs.key, 'devices');
   assert.deepEqual(tabs.items, [
     { key: 'devices[].name', type: 'hidden', htmlClass: 'd-none' }, 'devices[].homeName', 'devices[].ipAddress',
-    { key: 'devices[].port', type: 'number' }, 'devices[].debug', 'devices[].excludedLightIds',
+    { key: 'devices[].port', type: 'number' }, 'devices[].debug',
   ]);
   assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
   assert.deepEqual(config.layout[2], { type: 'fieldset', notitle: true,
@@ -68,4 +68,36 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
   assert.equal(controller.properties.name.default, undefined, 'Do not fill in an absent legacy controller label.');
   assert.equal(properties.name.default, 'Homebridge Advantage Air');
   assert.doesNotThrow(() => new AdvantageAirClient({ ipAddress: '192.0.2.1', port: 10211 }));
+});
+
+// Homebridge UI uses this explicit layout; '*' would regenerate schema controls.
+// Form values are schema-derived independently of layout (ng-formworks), so keep
+// the optional array schema intact rather than converting it to a hidden input.
+test('JSON-only light exclusions stay in the schema without any generated form controls', () => {
+  const keys = [];
+  const visit = items => {
+    for (const item of items) {
+      if (typeof item === 'string') {
+        keys.push(item);
+      } else {
+        if (item.key) {
+          keys.push(item.key);
+        }
+        if (item.items) {
+          visit(item.items);
+        }
+      }
+    }
+  };
+  visit(config.layout);
+  assert.equal(keys.some(key => key.includes('excludedLightIds') || key.includes('*')), false);
+  assert.deepEqual(controller.properties.excludedLightIds, {
+    title: 'Excluded MyPlace light IDs (optional)',
+    description: 'Leave empty to discover all light outputs. Use controller light IDs, not names.',
+    type: 'array',
+    uniqueItems: true,
+    items: { type: 'string', pattern: '^[a-zA-Z0-9_-]{1,64}$' },
+  });
+  assert.equal(controller.required.includes('excludedLightIds'), false);
+  assert.equal(controller.properties.excludedLightIds.default, undefined);
 });

@@ -103,8 +103,7 @@
           "key": "devices[].port",
           "type": "number"
         },
-        "devices[].debug",
-        "devices[].excludedLightIds"
+        "devices[].debug"
       ]
     },
     {
