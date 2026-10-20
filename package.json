@@ -13,7 +13,7 @@
     }
   ],
   "license": "MIT",
-  "homepage": "https://github.com/mitch7391/homebridge-advantageair/blob/v4-beta/README.md",
+  "homepage": "https://github.com/mitch7391/homebridge-advantageair",
   "repository": {
     "type": "git",
     "url": "https://github.com/mitch7391/homebridge-advantageair.git"
