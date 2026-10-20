@@ -2,7 +2,7 @@
 
 This guide describes two independently installed packages: existing v3
 `homebridge-cmd4-advantageair` and native v4 `homebridge-advantageair`.
-Follow [Beta 1 installation and rollback](beta1-testing.md) when installing a
+Follow [Beta installation and rollback](beta1-testing.md) when installing a
 version announced by the maintainer; do not substitute an unbuilt GitHub branch.
 
 ## What remains with v3

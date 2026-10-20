@@ -20,7 +20,7 @@ Bring compatible **Advantage Air air conditioning systems and MyPlace lighting**
 *This is an independent community project and is not affiliated with or endorsed by Advantage Air.*
 
 > [!IMPORTANT]
-> **Beta software:** `homebridge-advantageair@4.0.0-beta.1` is publicly available. Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. Install only a version announced by the maintainer. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md) before getting started.
+> **Beta software:** Install the version of `homebridge-advantageair` identified in the [maintainer’s release announcement](https://github.com/mitch7391/homebridge-advantageair/releases). Native v4 is prerelease software, and broader hardware compatibility is still being confirmed. Install only a version announced by the maintainer. [Read the beta testing and backup guidance](https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/beta1-testing.md) before getting started.
 >
 > Share successful installations and problems in the [Beta 1 feedback discussion](https://github.com/mitch7391/homebridge-advantageair/discussions/143).
 

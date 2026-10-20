@@ -1,3 +1,17 @@
+## 4.0.0-beta.2 — unreleased candidate
+
+- Remove the unwanted MyPlace light exclusion editor from the visible Homebridge
+  Settings page. Name, IP Address, Port and controller/global Detailed debug
+  logging remain visible. The maintainer visually accepted the corrected schema
+  on the Raspberry Pi's published Beta 1 installation on 20 October 2026.
+- Preserve automatic MyPlace light discovery and optional advanced exclusions
+  through JSON configuration. Accessory identities, runtime operation and
+  controller communication are unchanged.
+- Include approved post-Beta-1 documentation, canonical repository metadata and
+  the 20 approved npm search keywords. Search indexing is not immediate or guaranteed.
+- This remains beta software with the existing hardware qualification limits.
+  See [installation, backup and feedback guidance](docs/beta1-testing.md).
+
 ## 4.0.0-beta.1 (2026-10-19) — public beta / GitHub prerelease
 
 - Native Advantage Air AC accessories with shared polling/command coordination,
