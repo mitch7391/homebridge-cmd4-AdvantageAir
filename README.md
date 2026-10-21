@@ -15,7 +15,7 @@
 
 ## Introducing native Advantage Air v4
 
-Meet `homebridge-advantageair@4.0.0-beta.1`, the publicly available standalone
+Meet `homebridge-advantageair@4.0.0-beta.2`, the publicly available standalone
 native v4 beta with no Cmd4 required. Read the migration guidance before installing.
 
 Existing v3 installations remain supported, and migration is optional. Updating

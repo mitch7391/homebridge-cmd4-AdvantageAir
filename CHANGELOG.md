@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file. This projec
 ## 3.12.3 (Unreleased)
 
 * Add a once-per-Homebridge-process startup notice for the published standalone
-  `homebridge-advantageair@4.0.0-beta.1` native v4 beta. Existing v3 configurations,
+  `homebridge-advantageair@4.0.0-beta.2` native v4 beta. Existing v3 configurations,
   accessories and controller behaviour are unchanged; migration is optional,
   not automatic.
 * Update the README and announcement links to the renamed repository and
