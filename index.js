@@ -29,7 +29,7 @@ module.exports =
            api.removeListener("shutdown", shutdown);
            // Homebridge supplies no public logger to the plugin initialiser.
            console.info("[AdvantageAir] A new native Advantage Air v4 beta is available!");
-           console.info("[AdvantageAir] Try homebridge-advantageair@4.0.0-beta.1 (no Cmd4 required).");
+           console.info("[AdvantageAir] Try homebridge-advantageair@4.0.0-beta.2 (no Cmd4 required).");
            console.info("[AdvantageAir] Your existing v3 setup will continue working; migration is optional.");
            console.info("[AdvantageAir] Some legacy features are not yet supported. Read the migration guide: " +
              "https://github.com/mitch7391/homebridge-advantageair/blob/master/docs/v3-migration.md");
