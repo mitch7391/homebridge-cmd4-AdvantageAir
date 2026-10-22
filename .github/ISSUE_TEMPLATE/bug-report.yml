@@ -7,7 +7,7 @@ body:
       value: |
         Thanks for helping improve Advantage Air! Tell us what happened in your own words.
         For setup help, use [Q&A](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/q-a).
-        Working configurations and beta observations are welcome in [beta feedback](https://github.com/mitch7391/homebridge-advantageair/discussions/143).
+        Working configurations and beta observations are welcome in [beta feedback](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/beta-testing-feedback).
 
         **Keep private information out of this public report.** Do not share full configurations,
         backups, unredacted controller responses, addresses, controller identifiers, credentials,
@@ -31,7 +31,7 @@ body:
     attributes:
       label: Plugin version(s)
       description: Copy the installed version from Homebridge Plugins. Include both packages if relevant, or say unknown.
-      placeholder: "homebridge-advantageair: 4.0.0-beta.2"
+      placeholder: "homebridge-advantageair: x.y.z"
     validations:
       required: true
   - type: input
