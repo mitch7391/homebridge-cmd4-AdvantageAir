@@ -1,0 +1,106 @@
+name: Report a bug
+description: Something is not working as expected in native v4 or legacy v3.
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve Advantage Air! Tell us what happened in your own words.
+        For setup help, use [Q&A](https://github.com/mitch7391/homebridge-advantageair/discussions/categories/q-a).
+        Working configurations and beta observations are welcome in [beta feedback](https://github.com/mitch7391/homebridge-advantageair/discussions/143).
+
+        **Keep private information out of this public report.** Do not share full configurations,
+        backups, unredacted controller responses, addresses, controller identifiers, credentials,
+        PINs, tokens or HomeKit pairing details. Remove personal names and locations from evidence.
+        Do not run unsafe all-zones-closed tests to reproduce a problem.
+
+        Community help is welcome. This is a volunteer project, so response times cannot be guaranteed.
+  - type: dropdown
+    id: integration
+    attributes:
+      label: Which plugin are you using?
+      options:
+        - Native v4 (homebridge-advantageair)
+        - Legacy v3 (homebridge-cmd4-advantageair with Cmd4)
+        - Both during migration
+        - Not sure
+    validations:
+      required: true
+  - type: input
+    id: plugin-version
+    attributes:
+      label: Plugin version(s)
+      description: Copy the installed version from Homebridge Plugins. Include both packages if relevant, or say unknown.
+      placeholder: "homebridge-advantageair: 4.0.0-beta.2"
+    validations:
+      required: true
+  - type: input
+    id: homebridge-node
+    attributes:
+      label: Homebridge and Node.js versions
+      description: Shown on the Homebridge status page. If you cannot find them, say unknown.
+      placeholder: "Homebridge: ... / Node.js: ..."
+    validations:
+      required: true
+  - type: input
+    id: controller
+    attributes:
+      label: Controller model or app family (if known)
+      description: Tell us the model you use; this does not imply every model is physically verified.
+      placeholder: "For example: e-zone, MyAir, MyAir4, MyAir5, MyPlace, zone10e or Fujitsu anywAIR"
+  - type: input
+    id: firmware
+    attributes:
+      label: Controller firmware (optional)
+      description: Only if readily available; please omit serial numbers and device identifiers.
+  - type: textarea
+    id: problem
+    attributes:
+      label: What happened, and what did you expect?
+      description: Name the affected feature and describe the expected and actual behaviour. Include any error message.
+      placeholder: "I tried to ... / I expected ... / Instead ..."
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: How can we reproduce it?
+      description: Include the action or value requested and whether it happens every time. If it is intermittent or unclear, say so.
+      placeholder: |
+        1. Open ...
+        2. Change ...
+        3. Observe ...
+    validations:
+      required: true
+  - type: textarea
+    id: setup
+    attributes:
+      label: Relevant setup details (optional)
+      description: Describe only what matters; do not paste a configuration file or raw controller response.
+      placeholder: |
+        Host/installation type, such as Raspberry Pi or Docker; Cmd4 version only for legacy users.
+        Relevant sensor or percentage zones, MyZone, relay/dimmer lights, or settings described in words.
+        Other apps, automations or timers controlling the same system, if relevant.
+  - type: textarea
+    id: migration
+    attributes:
+      label: Migration or HomeKit changes (optional)
+      description: Only for update, migration, pairing or accessory issues. Never share pairing codes or identifiers.
+      placeholder: |
+        New installation or update? Main or child bridge?
+        Did accessories disappear, duplicate, or lose rooms/automations?
+        What changed recently, and did anything restore operation?
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Sanitised logs or screenshots (optional)
+      description: Paste a short relevant log excerpt or attach a redacted screenshot. Review everything for private information first.
+      placeholder: "For control issues, describe the physical response or tablet readback if safely observed."
+  - type: checkboxes
+    id: before-submitting
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have checked the available documentation and existing issues for this problem.
+        - label: I have removed private information from the report and any attachments.
+          required: true
