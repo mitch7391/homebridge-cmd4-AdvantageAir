@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { URL, pathToFileURL } from 'node:url';
@@ -271,7 +272,7 @@ test('never-confirmed change expires and cancels dependent intentions', async t 
   await c.on().handleSetRequest(false);
   await flush();
   await c.on('Theatre').handleSetRequest(false);
-  await c.advance(15100);
+  await c.advance(30100);
   await assert.rejects(c.on().handleGetRequest());
   await assert.rejects(c.on('Theatre').handleGetRequest());
   assert.equal(c.writes.length, 1);
@@ -376,15 +377,15 @@ test('shutdown during preflight prevents a late write even if the reader ignores
 });
 
 test('queued intents expire without being sent after their acceptance lifetime', async t => {
-  const c = await setup(t, { delay: 14000 });
+  const c = await setup(t, { delay: 29000 });
   await c.on('Bedroom').handleSetRequest(false);
   await flush();
   await c.on('Theatre').handleSetRequest(false);
   await c.on('Living').handleSetRequest(false);
   await c.on('Bedroom').handleSetRequest(true);
-  await c.advance(31000);
+  await c.advance(90100);
   assert.equal(c.writes.some(item => item.state === 'open'), false);
-  assert.ok(c.writes.every(item => item.at < 31000));
+  assert.ok(c.writes.every(item => item.at < 61000));
   assert.ok(c.messages.warn.some(message => message.includes('expired')));
   assert.equal(new Set(c.messages.warn.map(message => message.split(':')[0])).size, c.messages.warn.length);
 });
@@ -392,7 +393,7 @@ test('queued intents expire without being sent after their acceptance lifetime',
 test('stale valid responses never count as confirmation and do not trigger write retries', async t => {
   const c = await setup(t, { never: true, busy: false });
   await c.on().handleSetRequest(false);
-  await c.advance(15100);
+  await c.advance(30100);
   await assert.rejects(c.on().handleGetRequest());
   assert.equal(c.writes.length, 1);
   assert.equal(c.messages.warn.length, 1);
@@ -401,7 +402,7 @@ test('stale valid responses never count as confirmation and do not trigger write
 test('confirmation failure faults only the affected zone and recovers from a later poll', async t => {
   const c = await setup(t, { never: true, busy: false });
   await c.on().handleSetRequest(false);
-  await c.advance(15100);
+  await c.advance(30100);
   assert.equal(await c.on('Living').handleGetRequest(), true);
   await assert.rejects(c.on().handleGetRequest());
   c.model.never = false;
@@ -540,7 +541,7 @@ test('rejected and expired requests produce no success message', async t => {
   c.model.reject = false;
   c.model.never = true;
   await c.on().handleSetRequest(false);
-  await c.advance(16000);
+  await c.advance(31000);
   assert.equal(c.messages.warn.length, 2);
   assert.equal(c.messages.info.filter(line => line.includes('Controller confirmed:')).length, 0);
 });

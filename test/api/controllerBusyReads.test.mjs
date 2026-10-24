@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { AdvantageAirClient } from '../../dist/api/advantageAirClient.js';
@@ -145,12 +146,12 @@ test('busy preflight replans an externally satisfied timer as unchanged without 
   assert.deepEqual(c.warnings, []);
 });
 
-test('persistent preflight busy expires at the existing 15-second deadline without a late write', async t => {
+test('persistent preflight busy expires at the 10-second preflight deadline without a late write', async t => {
   const c = await setup(t);
   c.model.busyUntil = Infinity;
   c.coordinator.requestFanSpeed(identity, 90);
   await flush();
-  await c.advance(14900);
+  await c.advance(9900);
   assert.deepEqual(c.warnings, []);
   await c.advance(100);
   assert.equal(c.warnings.length, 1);
@@ -232,7 +233,7 @@ test('MyZone busy between confirmed steps continues without replay and replans f
   assert.deepEqual(c.warnings, []);
 });
 
-test('MyZone busy between steps expires on the original budget, retaining confirmed partial progress', async t => {
+test('MyZone busy between steps expires on the separate preflight budget, retaining confirmed partial progress', async t => {
   const c = await setup(t);
   c.model.onProgress = event => {
     if (event.step === 'open' && event.outcome === 'confirmed') {
@@ -241,7 +242,7 @@ test('MyZone busy between steps expires on the original budget, retaining confir
   };
   c.coordinator.requestMyZoneSelection(identity, zone('z02'));
   await flush();
-  await c.advance(14900);
+  await c.advance(10900);
   assert.deepEqual(c.warnings, []);
   await c.advance(100);
   assert.match(c.warnings[0], /select step failed.*Earlier confirmed steps: open.*no rollback/);
@@ -265,6 +266,25 @@ test('MyZone still refuses a changed reported number after busy inter-step reads
   await c.advance(6000);
   assert.equal(c.writes.length, 1);
   assert.match(c.warnings[0], /number changed after dispatch/);
+});
+
+test('MyZone preflight failure after a confirmed step does not cancel independently revalidated work', async t => {
+  const c = await setup(t);
+  c.model.onProgress = event => {
+    if (event.step === 'open' && event.outcome === 'confirmed') {
+      c.model.busyUntil = Date.now() + 12000;
+    }
+  };
+  c.coordinator.requestMyZoneSelection(identity, zone('z02'));
+  c.coordinator.requestFanSpeed(identity, 90);
+  await c.advance(15000);
+  assert.deepEqual(c.writes, [
+    { ac1: { zones: { z02: { state: 'open' } } } }, { ac1: { info: { fan: 'high' } } },
+  ]);
+  assert.equal(c.warnings.length, 1);
+  assert.match(c.warnings[0], /select step failed.*Earlier confirmed steps: open/);
+  assert.equal(c.events.length, 1);
+  assert.equal(c.events[0].kind, 'fan');
 });
 
 test('startup busy recovers in the same poll without a failure/recovery period', async t => {

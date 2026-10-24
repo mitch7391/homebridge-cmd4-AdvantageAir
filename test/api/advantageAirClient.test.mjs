@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   AdvantageAirClient,
   AdvantageAirRequestError,
+  TransientControllerReadError,
 } from '../../dist/api/advantageAirClient.js';
 import {
   IncompleteSystemDataError,
@@ -19,6 +20,36 @@ const validData = {
     },
   },
 };
+
+for (const [name, response, retryable] of [
+  ['reset', () => {
+    throw Object.assign(new Error('private'), { cause: { code: 'ECONNRESET' } });
+  }, true],
+  ['body interruption', () => ({ ok: true, text: async () => {
+    throw Object.assign(new Error('private'), { code: 'UND_ERR_SOCKET' });
+  } }), true],
+  ['503', () => ({ ok: false, status: 503 }), true],
+  ['401', () => ({ ok: false, status: 401 }), false],
+  ['unknown transport failure', () => {
+    throw new Error('private');
+  }, false],
+  ['malformed JSON', () => ({ ok: true, text: async () => '{private' }), false],
+]) {
+  test(`only eligible GET failures are classified transient: ${name}`, async t => {
+    t.mock.method(globalThis, 'fetch', async () => response());
+    const client = new AdvantageAirClient({ ipAddress: '192.0.2.1' });
+    await assert.rejects(client.getFreshSystemData(), error => {
+      assert.equal(error instanceof TransientControllerReadError, retryable);
+      assert.equal(error.message.includes('private'), false);
+      return true;
+    });
+    await assert.rejects(client.requestZoneState('ac1', 'z01', 'open'), error => {
+      assert.equal(error instanceof TransientControllerReadError, false, 'Write delivery must remain ambiguous');
+      assert.equal(error.message.includes('private'), false);
+      return true;
+    });
+  });
+}
 
 async function createServer(t, handler) {
   const server = http.createServer(handler);

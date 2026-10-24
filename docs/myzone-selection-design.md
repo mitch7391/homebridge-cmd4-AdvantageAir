@@ -67,16 +67,23 @@ a later selection executes. Thermostat temperature requests remain independent
 queue entries and replan against the selection observed when their turn arrives.
 Other controls retain existing queue order.
 
-Explicit rejection fails. Ambiguous delivery is reconciled by reading without
-resending. Existing cancellation of queued work after an unreconciled write is
-retained; independent observed state is not reverted.
+Explicit rejection fails the affected intention without automatically cancelling
+other queued work. Ambiguous delivery is reconciled by reading without resending.
+An unreconciled possibly delivered step cancels remaining intentions for that
+controller; independent observed state is not reverted.
 
 ## Bounds and validation limits
 
-Admission retains the 90-second observation-freshness limit and 30-second intent
-lifetime. The existing 15-second execution budget covers the entire ordered
-selection, including preflights and confirmations. It is not reset for each step.
-HTTP requests retain their existing limit and cancellation signal.
+Admission retains the 90-second observation-freshness limit. Queue waiting is
+limited to 60 seconds; selection starts a separate 60-second active-operation
+budget, giving a maximum 120-second coordinator lifetime. Each step gets fresh
+validation bounded by 10 seconds and the remaining active budget.
+
+Before each required write, the coordinator must have a full 30 seconds left
+for that write and read-only confirmation. If not, it stops before sending the
+step. An already-satisfied step needs no write. Confirmed progress is retained,
+without rollback. Retries never reset either deadline; HTTP requests retain
+their 10-second limit and cancellation signal.
 
 A slow multi-step operation can therefore finish partially. These budgets are
 engineering limits, not manufacturer guarantees. Shutdown prevents later writes,

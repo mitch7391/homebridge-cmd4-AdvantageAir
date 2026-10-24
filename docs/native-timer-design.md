@@ -74,12 +74,13 @@ identity and re-reads power/countdown state before choosing direction or no-op.
 One absolute countdown-only patch is sent at most once. Timer intents have their
 own per-aircon queue key. Unsent replacements coalesce without replacing mode,
 temperature, fan, MyZone or zone intents. A sent operation is reconciled before
-its successor runs. Existing expiry, shutdown and failure/cancellation policies
-apply unchanged.
+its successor runs. The shared
+[coordinator expiry, shutdown and cancellation policies](zone-control-design.md#rapid-changes-and-bounded-work)
+apply.
 
 Start/replacement confirmation requires the requested direction to be running
-with N or N-1 minutes remaining. The existing whole-operation limit is 15 seconds,
-so this allows one minute boundary, not arbitrary drift. For N=1, only a positive
+with N or N-1 minutes remaining. The write/confirmation phase is bounded by
+30 seconds, so this allows one minute boundary, not arbitrary drift. For N=1, only a positive
 one-minute countdown confirms a start; zero never satisfies the N-1 allowance.
 Zero, a different
 direction, greater values or a two-minute discrepancy cannot confirm a start.

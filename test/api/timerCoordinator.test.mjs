@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ControllerCoordinator } from '../../dist/api/controllerCoordinator.js';
@@ -174,21 +175,21 @@ test('timer ambiguous delivery and transient empty reads reconcile once includin
   assert.deepEqual(c.warnings, []);
 });
 
-test('timer rejection fails immediately and follows existing dependent cancellation policy', async t => {
+test('timer rejection fails immediately and allows separately validated fan work', async t => {
   const c = await setup(t, { reject: true });
   c.coordinator.requestTimer(identity, true, 1800);
   c.coordinator.requestFanSpeed(identity, 90);
   await flush();
-  assert.equal(c.writes.length, 1);
+  assert.equal(c.writes.length, 2);
   assert.equal(c.warnings.length, 2);
   assert.match(c.warnings[0], /Timer command failed.*rejected/);
-  assert.match(c.warnings[1], /Cancelled because/);
+  assert.match(c.warnings[1], /Fan command failed.*rejected/);
 });
 
 test('timer confirmation timeout never resends or issues power cleanup', async t => {
   const c = await setup(t, { never: true });
   c.coordinator.requestTimer(identity, true, 1800);
-  await c.advance(16000);
+  await c.advance(31000);
   assert.equal(c.writes.length, 1);
   assert.equal(c.events.length, 0);
   assert.match(c.warnings[0], /expired/);
@@ -252,7 +253,7 @@ test('one-minute timer confirms once when positive and never confirms a zero/no-
   const confirmed = c.events.length;
   c.model.never = true;
   c.coordinator.requestTimer(identity, true, 60);
-  await c.advance(16000);
+  await c.advance(31000);
   assert.equal(c.events.length, confirmed);
   assert.equal(c.writes.length, 3);
   assert.match(c.warnings.at(-1), /expired/);

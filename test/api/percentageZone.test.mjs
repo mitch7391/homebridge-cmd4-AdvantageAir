@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { pathToFileURL, URL } from 'node:url';
@@ -328,7 +329,7 @@ test('old percentage readback times out and cancels dependent commands without r
   await c.light('z01', 'Brightness').handleSetRequest(60, {});
   await flush();
   await c.light('z03', 'Brightness').handleSetRequest(90, {});
-  await c.advance(15100);
+  await c.advance(30100);
   assert.equal(c.writes.length, 1);
   assert.equal(c.messages.warn.length, 2);
   await assert.rejects(c.light('z01', 'Brightness').handleGetRequest(), failure(c));
