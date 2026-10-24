@@ -10,6 +10,21 @@ const config = JSON.parse(fs.readFileSync(new URL('../../config.schema.json', im
 const properties = config.schema.properties;
 const controller = properties.devices.items;
 
+test('zone layouts are independent per-controller choices with Beta 2 defaults', () => {
+  const type = controller.properties.zoneControlType;
+  const link = controller.properties.linkZoneTemperatures;
+  assert.deepEqual(type.enum, ['switch-light', 'lights', 'fans']);
+  assert.equal(type.default, 'switch-light');
+  assert.equal(type.title, 'Zone Control Type');
+  assert.equal(link.type, 'boolean');
+  assert.equal(link.default, false);
+  assert.equal(link.title, 'Link temperatures to zone controls');
+  assert.equal(controller.required.includes('zoneControlType'), false);
+  assert.equal(controller.required.includes('linkZoneTemperatures'), false);
+  assert.match(type.description, /scenes and automations/);
+  assert.match(link.description, /automations/);
+});
+
 test('native schema exposes controller setup without legacy or Homebridge-owned bridge settings', () => {
   assert.equal(config.pluginAlias, PLATFORM_NAME);
   assert.equal(config.pluginType, 'platform');
@@ -17,7 +32,9 @@ test('native schema exposes controller setup without legacy or Homebridge-owned 
   assert.equal(config.strictValidation, false);
   assert.equal(config.customUi, undefined);
   assert.deepEqual(Object.keys(properties).sort(), ['debug', 'devices', 'name']);
-  assert.deepEqual(Object.keys(controller.properties).sort(), ['debug', 'excludedLightIds', 'homeName', 'ipAddress', 'name', 'port']);
+  assert.deepEqual(Object.keys(controller.properties).sort(), [
+    'debug', 'excludedLightIds', 'homeName', 'ipAddress', 'linkZoneTemperatures', 'name', 'port', 'zoneControlType',
+  ]);
   assert.deepEqual(controller.required, ['ipAddress']);
   assert.equal(properties.devices.minItems, 1);
 });
@@ -56,7 +73,11 @@ test('standard layout hides retained labels, uses controller tabs and a numeric 
   assert.equal(tabs.key, 'devices');
   assert.deepEqual(tabs.items, [
     { key: 'devices[].name', type: 'hidden', htmlClass: 'd-none' }, 'devices[].homeName', 'devices[].ipAddress',
-    { key: 'devices[].port', type: 'number' }, 'devices[].debug',
+    { key: 'devices[].port', type: 'number' },
+    { key: 'devices[].zoneControlType', type: 'select', titleMap: [
+      { value: 'switch-light', name: 'Switch / Light' }, { value: 'lights', name: 'Lights' }, { value: 'fans', name: 'Fans' },
+    ] },
+    'devices[].linkZoneTemperatures', 'devices[].debug',
   ]);
   assert.equal(tabs.title, '{{ value.homeName || \'Controller\' }}');
   assert.deepEqual(config.layout[2], { type: 'fieldset', notitle: true,

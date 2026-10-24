@@ -68,6 +68,19 @@
                 "type": "string",
                 "pattern": "^[a-zA-Z0-9_-]{1,64}$"
               }
+            },
+            "zoneControlType": {
+              "title": "Zone Control Type",
+              "description": "Choose how zone controls appear in Home. Sensorless zones also have an opening percentage. Changing layouts may require updating Home scenes and automations.",
+              "type": "string",
+              "enum": ["switch-light", "lights", "fans"],
+              "default": "switch-light"
+            },
+            "linkZoneTemperatures": {
+              "title": "Link temperatures to zone controls",
+              "description": "Show each zone temperature within its control instead of as a separate accessory. Changing this may require rearranging Home accessories and automations.",
+              "type": "boolean",
+              "default": false
             }
           }
         }
@@ -103,6 +116,16 @@
           "key": "devices[].port",
           "type": "number"
         },
+        {
+          "key": "devices[].zoneControlType",
+          "type": "select",
+          "titleMap": [
+            { "value": "switch-light", "name": "Switch / Light" },
+            { "value": "lights", "name": "Lights" },
+            { "value": "fans", "name": "Fans" }
+          ]
+        },
+        "devices[].linkZoneTemperatures",
         "devices[].debug"
       ]
     },
