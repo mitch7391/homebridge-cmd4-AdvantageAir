@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import test from 'node:test';
@@ -205,7 +206,7 @@ for (const mode of ['reject', 'ambiguous', 'never']) {
   test(`light write ${mode}: no unsafe resend`, async t => {
     const c = await setup(t); c.model[mode] = true;
     await c.characteristic('l000001', 'On').handleSetRequest(true, {});
-    await c.advance(16000);
+    await c.advance(mode === 'never' ? 31000 : 16000);
     assert.equal(c.writes.length, 1);
     if (mode === 'ambiguous') {
       assert.equal(await c.characteristic('l000001', 'On').handleGetRequest(), true);
@@ -247,7 +248,7 @@ test('98-output discovery and bounded burst retain queue safeguards', async t =>
     }
   }
   assert.equal(accepted, 64); assert.equal(refused, 34);
-  await c.advance(31000);
+  await c.advance(61000);
   assert.equal(c.writes.length, 0);
   c.model.busy = false; await c.advance(31000);
   await c.characteristic('l000001', 'On').handleSetRequest(true, {});
@@ -370,7 +371,7 @@ test('bounded mixed-output burst completes in order while large scenes expire sa
       refused++;
     }
   }
-  await c.advance(32000);
+  await c.advance(62000);
   assert.equal(refused, 34);
   assert.ok(c.writes.length > 12 && c.writes.length < 76);
   assert.ok(c.messages.some(message => /expired/.test(message)));

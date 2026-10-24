@@ -48,8 +48,10 @@ Zone state, thermostat mode and thermostat temperature share one controller
 queue. A newer unsent value replaces only an older value for the same control
 and stable identity. Different controls retain their order. Mode and temperature
 requests are not combined across separate HomeKit writes in this increment.
-There are at most 64 pending control requests in total; existing 30-second intent,
-15-second execution and 10-second HTTP limits remain.
+There are at most 64 outstanding intention keys in total. The shared
+[coordinator policy](zone-control-design.md#rapid-changes-and-bounded-work)
+allows 60 seconds waiting, 10 seconds for fresh preflight and 30 seconds for
+write/read-only confirmation, with a 10-second individual HTTP limit.
 
 Admission validates against recent data and promptly records desired state.
 Preflight replans against a fresh response and resolves the stable aircon

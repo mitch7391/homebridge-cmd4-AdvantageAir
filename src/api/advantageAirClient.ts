@@ -38,6 +38,22 @@ export class AirconCommandRejectedError extends AdvantageAirRequestError {}
 
 export class ZoneCommandRejectedError extends AirconCommandRejectedError {}
 
+/** Only read transport failures with a known transient cause may be reconciled again. */
+export class TransientControllerReadError extends AdvantageAirRequestError {}
+
+function transientTransport(error: unknown): boolean {
+  if (!error || typeof error !== 'object') {
+    return false;
+  }
+  const code = 'code' in error ? error.code : undefined;
+  const cause = 'cause' in error ? error.cause : undefined;
+  const causeCode = cause && typeof cause === 'object' && 'code' in cause ? cause.code : undefined;
+  return [code, causeCode].some(value => typeof value === 'string' && [
+    'ECONNRESET', 'ECONNREFUSED', 'ETIMEDOUT', 'EHOSTUNREACH', 'ENETUNREACH', 'EPIPE',
+    'UND_ERR_CONNECT_TIMEOUT', 'UND_ERR_HEADERS_TIMEOUT', 'UND_ERR_BODY_TIMEOUT', 'UND_ERR_SOCKET',
+  ].includes(value));
+}
+
 export class AdvantageAirClient {
   private readonly endpoint: URL;
   private readonly timeoutMs: number;
@@ -306,11 +322,13 @@ export class AdvantageAirClient {
             Accept: 'application/json',
           },
         });
-      } catch {
+      } catch (error) {
         if (signal?.aborted) {
           throw new AdvantageAirRequestError('Controller request cancelled.');
         }
-        throw new AdvantageAirRequestError(
+        const RequestError = endpoint.pathname === '/getSystemData' && (controller.signal.aborted || transientTransport(error))
+          ? TransientControllerReadError : AdvantageAirRequestError;
+        throw new RequestError(
           controller.signal.aborted
             ? 'Controller request timed out.'
             : 'Could not connect to the controller.',
@@ -321,7 +339,9 @@ export class AdvantageAirClient {
       if (!response.ok) {
         reason = 'http';
         await response.body?.cancel();
-        throw new AdvantageAirRequestError(
+        const RequestError = endpoint.pathname === '/getSystemData' && [408, 502, 503, 504].includes(response.status)
+          ? TransientControllerReadError : AdvantageAirRequestError;
+        throw new RequestError(
           `Controller returned HTTP ${response.status}.`,
         );
       }
@@ -331,11 +351,13 @@ export class AdvantageAirClient {
 
       try {
         body = await response.text();
-      } catch {
+      } catch (error) {
         if (signal?.aborted) {
           throw new AdvantageAirRequestError('Controller request cancelled.');
         }
-        throw new AdvantageAirRequestError(
+        const RequestError = endpoint.pathname === '/getSystemData' && (controller.signal.aborted || transientTransport(error))
+          ? TransientControllerReadError : AdvantageAirRequestError;
+        throw new RequestError(
           controller.signal.aborted
             ? 'Controller request timed out.'
             : 'Could not read the controller response.',

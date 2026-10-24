@@ -50,9 +50,12 @@ does not activate it.
 
 ## Scope and validation
 
-This change leaves the 30-second normal polling interval, one-second command
-confirmation interval, and existing timeout budgets unchanged. Configurable
-intervals and slower-controller testing remain separate follow-up work.
+Diagnostics do not alter scheduling. Normal polling remains at 30 seconds;
+confirmation retries busy or unchanged responses after one second and eligible
+transient read failures after two seconds. See the
+[coordinator timing policy](zone-control-design.md#rapid-changes-and-bounded-work)
+for the separate queue, preflight and confirmation deadlines. Slower-controller
+hardware qualification remains distinct from automated simulator evidence.
 
 Automated tests cover timing sanitisation and failure categories, body-wait
 duration, observer exceptions, default-off logging, accessory creation and

@@ -66,11 +66,13 @@ needs no write. Otherwise it sends exactly one encoded state-only request.
 
 An exact empty-object read response is considered temporarily busy. Preflight,
 MyZone snapshots between ordered steps, confirmation and ordinary/startup polls
-retry only this known busy condition at one-second intervals within their existing
-budgets. Commands retain their single 15-second execution budget (shortened by
-intent expiry); polls retain their 10-second budget. Busy reads do not extend either.
-Other validation, HTTP, connection and response-body errors retain their failure
-handling. No physical write is retried.
+retry this known condition at one-second intervals within their phase budgets.
+Confirmation also retries specifically classified transient read transport
+failures at two-second intervals: request timeouts, known connection/socket
+errors and HTTP 408/502/503/504. Malformed data, identity/capability changes and
+other errors are not treated as busy responses. Preflight and polls retain
+busy-only retries; polls retain their 10-second budget. No retry extends a
+deadline, and no physical write is retried.
 
 Preflight waits for valid fresh data and replans from it, including detecting a
 no-op. Unsent superseded requests stop waiting; shutdown prevents later dispatch.
@@ -80,30 +82,44 @@ exhausted polls retain the existing last-good-data/freshness policy. Ordinary po
 defer while commands are running, and valid confirmation snapshots update
 temperature accessories as well as switches.
 
-An explicit controller rejection fails the command. An ambiguous transport
-failure is reconciled by reads within the operation budget, without resending.
+An explicit controller rejection fails only that intention; later work receives
+its own fresh validation. An HTTP or transport failure during a write can mean
+delivery is ambiguous and is reconciled by reads within the confirmation budget,
+without resending.
 A valid old state is not confirmation and may be followed by a matching state.
 
 ## Rapid changes and bounded work
 
-The coordinator keeps at most one unsent desired value per zone state,
-thermostat mode, or thermostat temperature, with at most 64 pending control
-requests across the controller. A newer unsent value for the same control
+The coordinator keeps at most one unsent desired value per stable identity and
+control, with at most 64 outstanding intention keys across the controller.
+A newer unsent value for the same control
 replaces an older one. Different controls retain their queue positions.
 Already transmitted commands cannot be recalled. Their completion updates the
 observed snapshot without overwriting a newer requested value in HomeKit.
 Other queued rooms retain their order, preventing a repeatedly changed room
 from jumping ahead of them.
 
-Each accepted intent expires after 30 seconds. Each execution, including its
-fresh preflight, write and readback, has at most 15 seconds, shortened to the
-intent's remaining lifetime. Individual HTTP requests retain a 10-second cap
-and receive cancellation from the coordinator. These are engineering limits,
-not manufacturer guarantees. They do not make HomeKit wait for confirmation.
+An intention may wait up to 60 seconds before selection. Selection ends that
+queue deadline and starts a separate 10-second fresh-preflight allowance.
+An ordinary physical write and all its read-only confirmation attempts then have
+30 seconds. Monotonic elapsed time governs these phases; the derived 100-second
+admission-to-completion limit is a backstop, not a shared execution allowance.
+Individual HTTP requests retain their 10-second cap and cancellation signal.
+Changed unsent requests receive a new admission deadline without moving their
+queue key; identical duplicates do not renew it. MyZone uses the separately
+bounded ordered steps described in [MyZone selection](myzone-selection-design.md).
+These are engineering limits, not manufacturer guarantees. HomeKit acknowledges
+local admission promptly, without waiting for physical confirmation.
+
+FIFO applies to both HVAC and lighting. Light On and Brightness remain separate
+intentions. Large scenes can partially expire before dispatch when earlier
+operations are slow; the policy does not guarantee every scene completes.
 
 A timed-out reader cannot send a write when it eventually returns. Unsent
-expired intentions are discarded. An unconfirmed transmitted command cancels
-dependent queued intentions instead of sending them into uncertain state.
+expired intentions are discarded. Preflight rejection affects only that intention.
+A possibly delivered write that cannot be reconciled cancels all remaining
+intentions for that controller, including replacements, instead of sending them
+into uncertain state. Independently configured controllers are unaffected.
 Shutdown cancels pending work and prevents late publication; restart does not
 replay intentions. Cancellation cannot undo an already transmitted command.
 

@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ControllerCoordinator } from '../../dist/api/controllerCoordinator.js';
@@ -211,7 +212,7 @@ test('same-mode reversal before dispatch cancels the start; after dispatch it se
 test('mode-only readback cannot confirm a powered-on Dry request and faults the shared mode controls', async t => {
   const c = await setup(t, { modeOnly: true });
   c.coordinator.requestModeFan(identity, 'dry', true);
-  await c.advance(15100);
+  await c.advance(30100);
   assert.equal(c.writes.length, 1);
   assert.equal(c.events.length, 0);
   assert.equal(c.warnings.length, 1);
@@ -253,7 +254,7 @@ test('mode admission is immediate, desired state survives busy reads, and heat r
 test('mode-only response without requested power never confirms Heat', async t => {
   const c = await setup(t, { modeOnly: true });
   c.coordinator.requestThermostatMode(identity, 'heat');
-  await c.advance(15100);
+  await c.advance(30100);
   assert.equal(c.events.length, 0);
   assert.equal(c.writes.length, 1);
   assert.equal(c.warnings.length, 1);
@@ -276,7 +277,7 @@ test('temperature admission keeps measured data unchanged until all legacy targe
 test('matching main target cannot falsely confirm missing zone target updates', async t => {
   const c = await setup(t, { mainOnly: true });
   c.coordinator.requestThermostatTemperature(identity, 26);
-  await c.advance(15100);
+  await c.advance(30100);
   assert.equal(c.events.length, 0);
   assert.equal(c.warnings.length, 1);
   assert.equal(c.writes.length, 1);
@@ -404,15 +405,15 @@ test('invalid requests are refused immediately before any thermostat write', asy
   assert.equal(c.writes.length, 0);
 });
 
-test('explicit rejection cancels dependent work and never logs confirmation', async t => {
+test('explicit rejection allows separately validated work and never logs confirmation', async t => {
   const c = await setup(t, { reject: true });
   c.coordinator.requestThermostatMode(identity, 'heat');
   c.coordinator.requestZone(zoneIdentity, false);
-  await flush();
-  assert.equal(c.writes.length, 1);
+  await c.advance(100);
+  assert.equal(c.writes.length, 2);
   assert.equal(c.events.length, 0);
   assert.equal(c.warnings.length, 2);
-  assert.match(c.warnings[0], /Controller rejected/);
+  assert.ok(c.warnings.every(message => message.includes('Controller rejected')));
 });
 
 test('ambiguous thermostat delivery is confirmed by reads without resending', async t => {
@@ -530,13 +531,13 @@ test('stale data prevents thermostat reads and new requests until a valid observ
 });
 
 test('queued work cannot outlive the accepted-intent deadline while preceding commands are slow', async t => {
-  const c = await setup(t, { delay: 14000 });
+  const c = await setup(t, { delay: 29000 });
   c.coordinator.requestThermostatMode(identity, 'heat');
   c.coordinator.requestThermostatTemperature(identity, 26);
   c.coordinator.requestZone(zoneIdentity, false);
   const living = JSON.stringify(['AdvantageAir', 'controller', 'unit', 'zone', 'z01']);
   c.coordinator.requestZone(living, false);
-  await c.advance(31000);
+  await c.advance(61000);
   assert.equal(c.writes.length, 3);
   assert.equal(c.writes.some(write => write.ac1.zones?.z01?.state === 'close'), false);
   assert.ok(c.warnings.some(message => message.includes('expired')));

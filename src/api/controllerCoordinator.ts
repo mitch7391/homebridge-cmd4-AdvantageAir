@@ -18,7 +18,7 @@ import type { ThermostatPatch } from './thermostatPatch.js';
 import type { ThermostatMode } from '../accessories/legacyState.js';
 import { fanSpeedPercentage, thermostatCurrentTemperature, thermostatTargetMode, thermostatTargetTemperature, zoneIsOpen } from '../accessories/legacyState.js';
 import { ControllerBusyError } from './systemData.js';
-import { AirconCommandRejectedError } from './advantageAirClient.js';
+import { AirconCommandRejectedError, TransientControllerReadError } from './advantageAirClient.js';
 
 export interface ControllerClient {
   requestLight?(id: string, field: 'state' | 'value', value: boolean | number, signal?: AbortSignal): Promise<unknown>;
@@ -64,7 +64,9 @@ type Intent = Request & {
   key: string;
   generation: number;
   name: string;
+  admittedAt: number;
   expires: number;
+  selectedAt?: number;
   finished: boolean;
   timer: ReturnType<typeof setTimeout>;
 };
@@ -76,7 +78,7 @@ export class ControllerCoordinator {
   private stopped = false;
   private running = false;
   private timer?: ReturnType<typeof setTimeout>;
-  private operation?: AbortController;
+  private readonly operations = new Set<AbortController>();
   private generation = 0;
   private readonly queued = new Map<string, Intent>();
   private readonly desired = new Map<string, Intent>();
@@ -103,7 +105,9 @@ export class ControllerCoordinator {
   stop(): void {
     this.stopped = true;
     clearTimeout(this.timer);
-    this.operation?.abort();
+    for (const operation of this.operations) {
+      operation.abort();
+    }
     for (const intent of this.desired.values()) {
       clearTimeout(intent.timer);
     }
@@ -440,11 +444,12 @@ export class ControllerCoordinator {
     if (previous) {
       clearTimeout(previous.timer);
     }
+    const admittedAt = performance.now();
     const intent: Intent = {
       ...request, identity, key, name, generation: ++this.generation,
-      expires: Date.now() + 30000,
+      admittedAt, expires: admittedAt + 60000,
       finished: false,
-      timer: setTimeout(() => this.expire(intent), 30000),
+      timer: setTimeout(() => this.expire(intent), 60000),
     };
     this.desired.set(key, intent);
     // Map replacement preserves queue position, giving other rooms a turn.
@@ -630,11 +635,16 @@ export class ControllerCoordinator {
   }
 
   private expire(intent: Intent): void {
-    if (this.desired.get(intent.key) !== intent || this.stopped) {
+    if (this.queued.get(intent.key) !== intent || this.desired.get(intent.key) !== intent || this.stopped) {
+      return;
+    }
+    const remaining = intent.expires - performance.now();
+    if (remaining > 0) {
+      intent.timer = setTimeout(() => this.expire(intent), remaining);
       return;
     }
     this.queued.delete(intent.key);
-    this.fail(intent, 'The accepted controller request expired before completion.');
+    this.fail(intent, 'The accepted controller request expired before dispatch.');
   }
 
   private finish(intent: Intent): void {
@@ -713,8 +723,19 @@ export class ControllerCoordinator {
       }
       while (!this.stopped && this.queued.size > 0) {
         const intent = this.queued.values().next().value!;
+        if (this.desired.get(intent.key) !== intent || intent.finished) {
+          this.queued.delete(intent.key);
+          continue;
+        }
+        const selectedAt = performance.now();
+        if (selectedAt >= intent.expires) {
+          this.expire(intent);
+          continue;
+        }
         this.queued.delete(intent.key);
-        if (this.desired.get(intent.key) === intent && Date.now() < intent.expires) {
+        if (this.desired.get(intent.key) === intent && !intent.finished) {
+          intent.selectedAt = selectedAt;
+          clearTimeout(intent.timer);
           await this.execute(intent);
         }
       }
@@ -728,9 +749,9 @@ export class ControllerCoordinator {
 
   private async poll(): Promise<void> {
     try {
-      await this.bounded(10000, async signal => {
+      await this.bounded(performance.now() + 10000, async (signal, check) => {
         const data = await this.readWhenReady(() => this.client.getSystemData(signal), signal);
-        signal.throwIfAborted();
+        check();
         if (data) {
           this.observe(data);
         }
@@ -743,82 +764,67 @@ export class ControllerCoordinator {
     }
   }
 
-  /** One ordered operation within the existing controller queue and total execution budget. */
+  /** Ordered MyZone steps share a finite operation budget; confirmed progress is never rolled back. */
   private async executeMyZone(intent: Extract<Intent, { kind: 'myZone' }>): Promise<void> {
     let sent = false;
+    let unresolved = false;
     let number: number | undefined;
     let step: MyZoneStep = 'open';
     const completed: MyZoneStep[] = [];
-
+    const deadline = Math.min(intent.selectedAt! + 60000, intent.admittedAt + 120000);
     const progress = (outcome: MyZoneProgress['outcome'], reason?: string) => {
       if (this.stopped || intent.finished) {
         return;
       }
       try {
-        this.onMyZoneProgress?.({
-          name: intent.name, zoneName: intent.zoneName, step, outcome, reason,
-        });
+        this.onMyZoneProgress?.({ name: intent.name, zoneName: intent.zoneName, step, outcome, reason });
       } catch {
         // Progress observers cannot affect physical execution.
       }
     };
-
     try {
-      await this.bounded(Math.min(15000, intent.expires - Date.now()), async signal => {
-        const live = () => {
-          signal.throwIfAborted();
-          if (this.stopped || intent.finished || Date.now() >= intent.expires) {
-            throw new MyZoneCommandError('The MyZone request expired before completion.');
-          }
-        };
-        const snapshot = async () => {
-          const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
-            () => !intent.finished && (sent || this.desired.get(intent.key) === intent));
+      await this.bounded(deadline, async (operationSignal, live) => {
+        const snapshot = (data: SystemData) => {
           live();
-          if (!data) {
-            return;
-          }
-          // Publish observations before checking whether they confirm our request.
-          // A partial outcome or changed reference must never restore an older snapshot.
           this.observe(data);
           live();
           const aircon = this.aircon(data, intent.identity);
           const zone = this.locate(data, intent.zoneIdentity);
           if (zone.airconKey !== aircon.device.airconKey) {
-            throw new MyZoneCommandError('The requested MyZone changed air conditioner.');
+            throw new MyZoneCommandError('The requested zone no longer belongs to this air conditioner.');
           }
           const plan = planMyZoneSelection(aircon.data, zone.zoneKey);
-          if (sent && plan.zoneNumber !== number) {
-            throw new MyZoneCommandError('The requested MyZone number changed after dispatch.');
+          if (sent && number !== plan.zoneNumber) {
+            throw new MyZoneCommandError('The requested zone number changed after dispatch.');
           }
           return { aircon, zone, plan };
         };
-
-        for (const next of ['open', 'select', 'target'] as const) {
-          step = next;
-          const before = await snapshot();
+        for (step of ['open', 'select', 'target'] as const) {
           live();
-          if (!before) {
+          const preflightDeadline = Math.min(performance.now() + 10000, deadline);
+          const before = await this.bounded(preflightDeadline, async (signal, check) => {
+            const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
+              () => sent || (!intent.finished && this.desired.get(intent.key) === intent));
+            check();
+            return data ? snapshot(data) : undefined;
+          }, operationSignal, 'MyZone preflight');
+          live();
+          if (!before || (!sent && this.desired.get(intent.key) !== intent)) {
+            this.finish(intent);
             return;
           }
-          if (!sent && this.desired.get(intent.key) !== intent) {
-            return;
-          }
-
           if (step !== 'open' && !before.plan.open) {
             throw new MyZoneCommandError('The requested zone is no longer open; it will not be reopened automatically.');
           }
           if (step === 'target' && !before.plan.selected) {
             throw new MyZoneCommandError('The reference zone changed before target synchronization.');
           }
-
           const needed = step === 'open' ? !before.plan.open
             : step === 'select' ? !before.plan.selected : !before.plan.targetMatches;
           if (!needed) {
             progress('unchanged');
             continue;
           }
-
           const target = before.plan.temperature;
           number = before.plan.zoneNumber;
           try {
@@ -827,61 +833,75 @@ export class ControllerCoordinator {
             // Logging must not prevent dispatch.
           }
           live();
-          sent = true;
-          try {
-            if (step === 'open') {
-              await this.client.requestZoneState(before.zone.airconKey, before.zone.zoneKey, 'open', signal);
-            } else if (step === 'select') {
-              await this.client.requestMyZoneSelection!(before.aircon.device.airconKey, number, signal);
-            } else {
-              await this.client.requestMyZoneTarget!(before.aircon.device.airconKey, target, signal);
-            }
-          } catch (error) {
-            if (error instanceof AirconCommandRejectedError) {
-              throw new MyZoneCommandError('Controller explicitly rejected this step.');
-            }
-            // Delivery is ambiguous. This step is never resent; reconcile by reading.
+          if (!sent && this.desired.get(intent.key) !== intent) {
+            this.finish(intent);
+            return;
           }
-          live();
-
-          while (true) {
-            await this.wait(signal);
-            let after: Awaited<ReturnType<typeof snapshot>>;
-            try {
-              after = await snapshot();
-            } catch (error) {
-              live();
-              if (error instanceof ControllerBusyError) {
-                continue;
-              }
-              if (error instanceof ZoneCommandError || error instanceof ThermostatCommandError) {
-                throw error;
-              }
-              throw new MyZoneCommandError('Controller data could not be read while confirming this step.');
-            }
-            live();
-            if (!after) {
+          const attemptedAt = performance.now();
+          if (attemptedAt >= preflightDeadline || deadline - attemptedAt < 30000) {
+            throw new MyZoneCommandError('Insufficient time remains to validate and reserve full confirmation for the next step.');
+          }
+          await this.bounded(attemptedAt + 30000, async (signal, check) => {
+            check();
+            // A replacement can arrive between phase creation and this callback.
+            if (!sent && this.desired.get(intent.key) !== intent) {
+              this.finish(intent);
               return;
             }
-            if (step === 'target' && after.plan.temperature !== target) {
-              throw new MyZoneCommandError('The selected zone target changed during target synchronization.');
+            if (performance.now() >= preflightDeadline || deadline - performance.now() < 30000) {
+              throw new MyZoneCommandError('Insufficient time remains to validate and reserve full confirmation for the next step.');
             }
-
-            const matches = step === 'open' ? after.plan.open
-              : step === 'select' ? after.plan.open && after.plan.selected
-                : after.plan.open && after.plan.selected && after.aircon.data.info.setTemp === target;
-            if (matches) {
-              completed.push(step);
-              progress('confirmed');
-              break;
+            sent = true;
+            unresolved = true;
+            try {
+              if (step === 'open') {
+                await this.client.requestZoneState(before.zone.airconKey, before.zone.zoneKey, 'open', signal);
+              } else if (step === 'select') {
+                await this.client.requestMyZoneSelection!(before.aircon.device.airconKey, number!, signal);
+              } else {
+                await this.client.requestMyZoneTarget!(before.aircon.device.airconKey, target, signal);
+              }
+            } catch (error) {
+              if (error instanceof AirconCommandRejectedError) {
+                unresolved = false;
+                throw new MyZoneCommandError('Controller explicitly rejected this step.');
+              }
+              // Delivery is ambiguous. This step is never resent.
             }
+            check();
+            while (true) {
+              await this.wait(signal);
+              const data = await this.readConfirmation(signal);
+              check();
+              const after = snapshot(data);
+              if (step === 'target' && after.plan.temperature !== target) {
+                throw new MyZoneCommandError('The selected zone target changed during target synchronization.');
+              }
+              const matches = step === 'open' ? after.plan.open
+                : step === 'select' ? after.plan.open && after.plan.selected
+                  : after.plan.open && after.plan.selected && after.aircon.data.info.setTemp === target;
+              check();
+              if (matches) {
+                unresolved = false;
+                completed.push(step);
+                progress('confirmed');
+                return;
+              }
+            }
+          }, operationSignal, 'MyZone confirmation');
+          if (intent.finished) {
+            return;
           }
         }
         live();
         this.confirm(intent, sent ? 'confirmed' : 'unchanged');
-      });
+      }, undefined, 'MyZone operation');
     } catch (error) {
       if (this.stopped) {
+        return;
+      }
+      if (!sent && this.desired.get(intent.key) !== intent) {
+        this.finish(intent);
         return;
       }
       const reason = error instanceof ZoneCommandError || error instanceof ThermostatCommandError
@@ -889,12 +909,8 @@ export class ControllerCoordinator {
       progress('failed', reason);
       const partial = completed.length > 0 ? ' Earlier confirmed steps: ' + completed.join(', ') + '.' : '';
       this.fail(intent, step + ' step failed: ' + reason + partial + ' Observed state retained; no rollback attempted.');
-      if (sent) {
-        // Preserve the existing policy after an unreconciled physical write.
-        for (const queued of this.queued.values()) {
-          this.fail(queued, 'Cancelled because a preceding controller command could not be confirmed.');
-        }
-        this.queued.clear();
+      if (unresolved) {
+        this.cancelUnresolved();
       }
     }
   }
@@ -905,79 +921,121 @@ export class ControllerCoordinator {
       return;
     }
     let sent = false;
+    let unresolved = false;
+    const deadline = intent.admittedAt + 100000;
     try {
-      await this.bounded(Math.min(15000, intent.expires - Date.now()), async signal => {
-        const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
-          () => !intent.finished && this.desired.get(intent.key) === intent);
-        signal.throwIfAborted();
-        if (!data) {
-          return;
-        }
-        this.observe(data);
-        const plan = this.plan(data, intent);
-        // A newer unsent intent replaces this one even during preflight.
-        if (this.desired.get(intent.key) !== intent) {
+      await this.bounded(deadline, async (operationSignal, live) => {
+        const preflightDeadline = intent.selectedAt! + 10000;
+        const plan = await this.bounded(preflightDeadline, async (signal, check) => {
+          const data = await this.readWhenReady(() => this.client.getFreshSystemData(signal), signal,
+            () => !intent.finished && this.desired.get(intent.key) === intent);
+          check();
+          if (!data) {
+            return;
+          }
+          this.observe(data);
+          return this.plan(data, intent);
+        }, operationSignal, 'Preflight');
+        live();
+        if (!plan || this.desired.get(intent.key) !== intent) {
+          this.finish(intent);
           return;
         }
         if (plan.kind === 'unchanged') {
           this.confirm(intent, 'unchanged');
           return;
         }
-        signal.throwIfAborted();
         try {
           this.onSending?.(intent.name, this.describe(intent));
         } catch {
           // Logging must not interrupt physical commands.
         }
-        signal.throwIfAborted();
-        sent = true;
-        // A failed/ambiguous transport must never result in resending the write.
-        try {
-          await plan.send(signal);
-        } catch (error) {
-          if (error instanceof AirconCommandRejectedError) {
-            throw new ZoneCommandError('Controller rejected the command.');
-          }
-          // Delivery is ambiguous. Reconcile by reading; never resend.
+        live();
+        if (this.desired.get(intent.key) !== intent) {
+          this.finish(intent);
+          return;
         }
-        signal.throwIfAborted();
-        while (true) {
-          await this.wait(signal);
-          let current: SystemData;
-          try {
-            current = await this.client.getFreshSystemData(signal);
-          } catch (error) {
-            signal.throwIfAborted();
-            if (error instanceof ControllerBusyError) {
-              continue;
-            }
-            throw new ZoneCommandError('Controller data could not be read while confirming the command.');
-          }
-          signal.throwIfAborted();
-          const matches = plan.matches(current);
-          this.observe(current);
-          if (matches) {
-            this.confirm(intent, 'confirmed');
+        const attemptedAt = performance.now();
+        if (attemptedAt >= preflightDeadline || deadline - attemptedAt < 30000) {
+          throw new ZoneCommandError('Preflight expired before the physical write.');
+        }
+        await this.bounded(attemptedAt + 30000, async (signal, check) => {
+          check();
+          if (this.desired.get(intent.key) !== intent) {
+            this.finish(intent);
             return;
           }
-        }
-      });
+          if (performance.now() >= preflightDeadline || deadline - performance.now() < 30000) {
+            throw new ZoneCommandError('Preflight expired before the physical write.');
+          }
+          sent = true;
+          unresolved = true;
+          try {
+            await plan.send(signal);
+          } catch (error) {
+            if (error instanceof AirconCommandRejectedError) {
+              unresolved = false;
+              throw new ZoneCommandError('Controller rejected the command.');
+            }
+            // Delivery is ambiguous. Reconcile by reading; never resend.
+          }
+          check();
+          while (true) {
+            await this.wait(signal);
+            const current = await this.readConfirmation(signal);
+            check();
+            const matches = plan.matches(current);
+            this.observe(current);
+            check();
+            if (matches) {
+              unresolved = false;
+              this.confirm(intent, 'confirmed');
+              return;
+            }
+          }
+        }, operationSignal, 'Confirmation');
+      }, undefined, 'Controller operation');
     } catch (error) {
       if (this.stopped) {
         return;
       }
+      if (!sent && this.desired.get(intent.key) !== intent) {
+        this.finish(intent);
+        return;
+      }
       this.fail(intent, error instanceof ZoneCommandError || error instanceof ThermostatCommandError || error instanceof ModeFanCommandError
         ? error.message : 'The controller did not confirm the requested state.');
-      if (sent) {
-        // Do not apply dependent intentions after an unreconciled physical write.
-        for (const queued of this.queued.values()) {
-          this.fail(queued, 'Cancelled because a preceding controller command could not be confirmed.');
-        }
-        this.queued.clear();
+      if (unresolved) {
+        this.cancelUnresolved();
       }
     }
   }
 
+  private cancelUnresolved(): void {
+    for (const queued of this.queued.values()) {
+      this.fail(queued, 'Cancelled because a preceding controller command could not be confirmed.');
+    }
+    this.queued.clear();
+  }
+
+  /** Only typed transient read errors are retried; the enclosing phase deadline is never renewed. */
+  private async readConfirmation(signal: AbortSignal): Promise<SystemData> {
+    while (true) {
+      signal.throwIfAborted();
+      try {
+        return await this.client.getFreshSystemData(signal);
+      } catch (error) {
+        signal.throwIfAborted();
+        if (error instanceof ControllerBusyError) {
+          await this.wait(signal);
+        } else if (error instanceof TransientControllerReadError) {
+          await this.wait(signal, 2000);
+        } else {
+          throw new ZoneCommandError('Controller data could not be read while confirming the command.');
+        }
+      }
+    }
+  }
   /** Retry only known busy reads under the caller's existing budget; never retry a write. */
   private async readWhenReady(
     read: () => Promise<SystemData>,
@@ -1006,34 +1064,54 @@ export class ControllerCoordinator {
     }
   }
 
-  private async bounded(ms: number, work: (signal: AbortSignal) => Promise<void>): Promise<void> {
+  private async bounded<T>(
+    deadline: number,
+    work: (signal: AbortSignal, check: () => void) => Promise<T>,
+    parent?: AbortSignal,
+    phase = 'Controller operation',
+  ): Promise<T> {
     const controller = new AbortController();
-    this.operation = controller;
-    const timer = setTimeout(() => controller.abort(), Math.max(0, ms));
+    this.operations.add(controller);
+    const timeout = () => new ZoneCommandError(`${phase} expired before completion.`);
+    const check = () => {
+      if (this.stopped || controller.signal.aborted || parent?.aborted || performance.now() >= deadline) {
+        controller.abort();
+        throw timeout();
+      }
+    };
+    const parentAbort = () => controller.abort();
+    parent?.addEventListener('abort', parentAbort, { once: true });
+    const timer = setTimeout(() => controller.abort(), Math.max(0, deadline - performance.now()));
     let abort = () => {};
     const cancelled = new Promise<never>((_, reject) => {
-      abort = () => reject(new ZoneCommandError('The controller operation expired before confirmation.'));
+      abort = () => reject(timeout());
       controller.signal.addEventListener('abort', abort, { once: true });
     });
     try {
-      await Promise.race([work(controller.signal), cancelled]);
+      // The microtask ensures cancellation is observed even if a synchronous observer stops us.
+      return await Promise.race([Promise.resolve().then(async () => {
+        check();
+        const result = await work(controller.signal, check);
+        check();
+        return result;
+      }), cancelled]);
     } finally {
       clearTimeout(timer);
       controller.signal.removeEventListener('abort', abort);
-      if (this.operation === controller) {
-        this.operation = undefined;
-      }
+      parent?.removeEventListener('abort', parentAbort);
+      controller.abort();
+      this.operations.delete(controller);
     }
   }
 
-  private wait(signal: AbortSignal): Promise<void> {
+  private wait(signal: AbortSignal, ms = 1000): Promise<void> {
     signal.throwIfAborted();
     return new Promise((resolve, reject) => {
       let abort = () => {};
       const timer = setTimeout(() => {
         signal.removeEventListener('abort', abort);
         resolve();
-      }, 1000);
+      }, ms);
       abort = () => {
         clearTimeout(timer);
         reject(new ZoneCommandError('The controller operation expired before confirmation.'));

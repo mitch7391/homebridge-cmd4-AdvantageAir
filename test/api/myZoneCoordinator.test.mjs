@@ -1,3 +1,4 @@
+import '../helpers/coordinatorClock.mjs';
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { ControllerCoordinator } from '../../dist/api/controllerCoordinator.js';
@@ -93,7 +94,7 @@ async function setup(t, options = {}) {
     state => snapshots.push(globalThis.structuredClone(state)),
     message => warnings.push(message),
     event => events.push(event),
-    () => {},
+    () => model.onSending?.(),
     event => {
       progress.push(event);
       if (model.throwProgress) {
@@ -246,13 +247,14 @@ test('opening remains observed after explicit selection rejection, without rollb
   c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
   c.coordinator.requestFanSpeed(identity, 25);
   await c.advance(3000);
-  assert.deepEqual(c.writes.map(write => write.action), ['open', 'select']);
+  assert.deepEqual(c.writes.map(write => write.action), ['open', 'select', 'fan']);
   assert.equal(c.data.aircons.ac1.zones.z02.state, 'open');
   assert.equal(c.snapshots.at(-1).data.aircons.ac1.zones.z02.state, 'open');
   assert.equal(c.coordinator.readMyZoneSelection(identity), zoneIdentity('z01'));
   assert.match(c.warnings[0], /select step failed.*Earlier confirmed steps: open/);
-  assert.ok(c.warnings.some(message => message.includes('Cancelled')));
-  assert.equal(c.events.length, 0);
+  assert.ok(c.warnings.every(message => !message.includes('Cancelled')));
+  assert.equal(c.events.length, 1);
+  assert.equal(c.events[0].kind, 'fan');
 });
 
 test('selected MyZone remains authoritative after target rejection and later selection is accepted', async t => {
@@ -275,7 +277,7 @@ test('selected MyZone remains authoritative after target rejection and later sel
 test('fractional main-target normalization fails exact confirmation while retaining actual selection and target', async t => {
   const c = await setup(t, { truncate: true });
   c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
-  await c.advance(16000);
+  await c.advance(33000);
   assert.equal(c.writes.filter(write => write.action === 'target').length, 1);
   assert.equal(c.data.aircons.ac1.info.setTemp, 23);
   assert.equal(c.data.aircons.ac1.zones.z02.setTemp, 23.5);
@@ -306,20 +308,33 @@ test('number changes after transmission fail without redirecting the remaining w
   assert.match(c.warnings[0], /number changed after dispatch/);
 });
 
-test('the execution budget covers the whole sequence, not a renewed budget per step', async t => {
-  const c = await setup(t, { delay: 6000 });
+test('MyZone reserves full confirmation before each step within the total budget', async t => {
+  const c = await setup(t, { delay: 16000 });
   c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
-  await c.advance(16000);
+  await c.advance(33000);
   assert.equal(c.events.length, 0);
   assert.equal(c.coordinator.readMyZoneSelection(identity), zoneIdentity('z02'));
-  assert.match(c.warnings[0], /target step failed/);
-  assert.equal(c.writes.length, 3);
+  assert.match(c.warnings[0], /target step failed.*reserve full confirmation/);
+  assert.equal(c.writes.length, 2);
 });
+
+for (const delay of [9000, 15000]) {
+  test(`MyZone completes ordered steps with ${delay / 1000}-second confirmation and a full final reserve`, async t => {
+    const c = await setup(t, { delay });
+    c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
+    await c.advance(delay * 3 + 1000);
+    assert.deepEqual(c.writes.map(write => write.action), ['open', 'select', 'target']);
+    assert.equal(c.events.length, 1);
+    assert.deepEqual(c.warnings, []);
+    assert.equal(c.coordinator.readMyZoneSelection(identity), zoneIdentity('z02'));
+    assert.equal(c.data.aircons.ac1.info.setTemp, 23.5);
+  });
+}
 
 test('expired unsent MyZone intentions produce no writes', async t => {
   const c = await setup(t);
   c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
-  t.mock.timers.tick(30000);
+  t.mock.timers.tick(60000);
   await flush();
   assert.deepEqual(c.writes, []);
   assert.ok(c.warnings.some(message => message.includes('expired')));
@@ -383,5 +398,18 @@ test('progress observer failures cannot interrupt MyZone execution', async t => 
   c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
   await c.advance(4000);
   assert.equal(c.events.at(-1).outcome, 'confirmed');
+  assert.deepEqual(c.warnings, []);
+});
+
+test('MyZone supersession at the final asynchronous dispatch boundary sends no obsolete step', async t => {
+  const c = await setup(t);
+  c.model.onSending = () => {
+    c.model.onSending = undefined;
+    globalThis.queueMicrotask(() => c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z01')));
+  };
+  c.coordinator.requestMyZoneSelection(identity, zoneIdentity('z02'));
+  await c.advance(20000);
+  assert.deepEqual(c.writes, []);
+  assert.equal(c.events.at(-1).outcome, 'unchanged');
   assert.deepEqual(c.warnings, []);
 });
